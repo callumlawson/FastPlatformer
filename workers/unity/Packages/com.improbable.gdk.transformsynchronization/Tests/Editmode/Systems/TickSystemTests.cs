@@ -14,15 +14,15 @@ namespace Improbable.Gdk.EditmodeTests.TransformSynchronization.Systems
             {
                 var tickSystem = world.GetOrCreateManager<TickSystem>();
 
-                Assert.AreEqual(0, tickSystem.GlobalTick);
+                Assert.AreEqual(0, tickSystem.CurrentPhysicsTick);
 
                 tickSystem.Update();
 
-                Assert.AreEqual(1, tickSystem.GlobalTick);
+                Assert.AreEqual(1, tickSystem.CurrentPhysicsTick);
 
                 tickSystem.Update();
 
-                Assert.AreEqual(2, tickSystem.GlobalTick);
+                Assert.AreEqual(2, tickSystem.CurrentPhysicsTick);
             }
         }
     }

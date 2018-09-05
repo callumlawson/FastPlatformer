@@ -89,7 +89,9 @@ namespace Playground.Editor.SnapshotGenerator
                     var transform = Generated.Improbable.Transform.Transform.Component.CreateSchemaComponentData(
                         new Location { X = x, Y = 1, Z = z },
                         new Quaternion { W = 1, X = 0, Y = 0, Z = 0 },
-                        0
+                        new Velocity(0.0f, 0.0f, 0.0f),
+                        0,
+                        0.0f
                     );
 
                     var cubeColor = CubeColor.Component.CreateSchemaComponentData();
@@ -121,7 +123,9 @@ namespace Playground.Editor.SnapshotGenerator
             var transform = Generated.Improbable.Transform.Transform.Component.CreateSchemaComponentData(
                 new Location { X = (float) coords.X, Y = (float) coords.Y, Z = (float) coords.Z },
                 new Quaternion { W = 1, X = 0, Y = 0, Z = 0 },
-                0
+                new Velocity(0.0f, 0.0f, 0.0f),
+                0,
+                0.0f
             );
 
             var collisions = Collisions.Component.CreateSchemaComponentData();
