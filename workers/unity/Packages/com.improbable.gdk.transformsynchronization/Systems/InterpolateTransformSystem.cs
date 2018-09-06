@@ -1,13 +1,13 @@
-using Improbable.Gdk.Core;
-using Improbable.Worker.Core;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using Transform = Generated.Improbable.Transform.Transform;
 
 namespace Improbable.Gdk.TransformSynchronization
 {
     [DisableAutoCreation]
+    [UpdateInGroup(typeof(TransformSynchronizationGroup))]
     public class InterpolateTransformSystem : ComponentSystem
     {
         private struct Data
@@ -15,10 +15,102 @@ namespace Improbable.Gdk.TransformSynchronization
             public readonly int Length;
             public BufferArray<BufferedTransform> TransformBuffer;
             [ReadOnly] public ComponentDataArray<Transform.ReceivedUpdates> Updates;
+            [ReadOnly] public ComponentDataArray<Transform.Component> CurrentTransform;
         }
+
+        [Inject] private Data data;
+        [Inject] private TickRateEstimationSystem tickRateSystem;
 
         protected override void OnUpdate()
         {
+            for (int i = 0; i < data.Length; ++i)
+            {
+                foreach (var update in data.Updates[i].Updates)
+                {
+                    float tickSmearFactor =
+                        math.min(update.TicksPerSecond.Value / tickRateSystem.PhysicsTicksPerRealSecond,
+                            TransformSynchronizationConfig.MaxTickSmearFactor);
+
+                    var transformBuffer = data.TransformBuffer[i];
+                    if (transformBuffer.Length == 0)
+                    {
+                        // last update should be at the target buffer size
+                        // if more then one transform
+
+                        // else can assume the first one is the one that should be at the target buffer size
+
+                        uint ticksToFill = math.max(
+                            (uint) (TransformSynchronizationConfig.TargetLoadMatchedBufferSize * tickSmearFactor), 1);
+
+                        var newTransform = ToBufferedTransform(update);
+
+                        if (ticksToFill > 1)
+                        {
+                            var currentTransform = ToBufferedTransformAtTick(data.CurrentTransform[i],
+                                newTransform.PhysicsTickId - ticksToFill + 1);
+                            transformBuffer.Add(currentTransform);
+
+                            for (uint j = 1; j < ticksToFill - 1; ++j)
+                            {
+                                transformBuffer.Add(InterpolateValues(currentTransform, newTransform, j));
+                            }
+                        }
+
+                        transformBuffer.Add(newTransform);
+                    }
+                    // else check for the buffer being too large
+                    // else add to the buffer
+                    else
+                    {
+                        var newTransformUpdate = ToBufferedTransform(update);
+                        var lastTransformUpdate = transformBuffer[transformBuffer.Length - 1];
+                        uint lastTickId = lastTransformUpdate.PhysicsTickId;
+
+                        // Extend or contract the interpolation to compensate for differences in load
+                        uint ticksToFill = math.max(
+                            (uint) ((newTransformUpdate.PhysicsTickId - lastTickId) * tickSmearFactor), 1);
+                        for (uint j = 1; j < ticksToFill; ++j)
+                        {
+                            transformBuffer.Add(InterpolateValues(lastTransformUpdate, newTransformUpdate, j));
+                        }
+                    }
+                }
+            }
+        }
+
+        private static BufferedTransform ToBufferedTransform(Transform.Update update)
+        {
+            return new BufferedTransform
+            {
+                Position = update.Location.Value.ToUnityVector3(),
+                Velocity = update.Velocity.Value.ToUnityVector3(),
+                Orientation = update.Rotation.Value.ToUnityQuaternion(),
+                PhysicsTickId = update.PhysicsTick.Value
+            };
+        }
+
+        private static BufferedTransform ToBufferedTransformAtTick(Transform.Component component, uint tick)
+        {
+            return new BufferedTransform
+            {
+                Position = component.Location.ToUnityVector3(),
+                Velocity = component.Velocity.ToUnityVector3(),
+                Orientation = component.Rotation.ToUnityQuaternion(),
+                PhysicsTickId = tick
+            };
+        }
+
+        private static BufferedTransform InterpolateValues(BufferedTransform first, BufferedTransform second,
+            uint ticksAfterFirst)
+        {
+            float t = (float) ticksAfterFirst / (float) (second.PhysicsTickId - first.PhysicsTickId);
+            return new BufferedTransform
+            {
+                Position = Vector3.Lerp(first.Position, second.Position, t),
+                Velocity = Vector3.Lerp(first.Velocity, second.Velocity, t),
+                Orientation = Quaternion.Slerp(first.Orientation, second.Orientation, t),
+                PhysicsTickId = ticksAfterFirst
+            };
         }
     }
 

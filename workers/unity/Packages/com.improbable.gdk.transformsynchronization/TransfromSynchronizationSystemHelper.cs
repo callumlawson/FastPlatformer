@@ -6,7 +6,13 @@ namespace Improbable.Gdk.TransformSynchronization
     {
         public static void AddSystems(World world)
         {
-            world.GetOrCreateManager<TickSystem>();
+            world.GetOrCreateManager<InitializeEntitiesSystem>();
+            world.GetOrCreateManager<TickRateEstimationSystem>();
+            world.GetOrCreateManager<InterpolateTransformSystem>();
+            world.GetOrCreateManager<GetLatestTrasnformValueSystem>();
+            world.GetOrCreateManager<DefaultApplyLatestTransformSystem>();
+            world.GetOrCreateManager<UpdateTransformSystem>();
+            //world.GetOrCreateManager<TickSystem>();
             // world.GetOrCreateManager<LocalTransformSyncSystem>();
             // world.GetOrCreateManager<InterpolateTransformSystem>();
             // world.GetOrCreateManager<ApplyTransformUpdatesSystem>();
