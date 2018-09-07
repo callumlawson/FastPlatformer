@@ -36,7 +36,7 @@ namespace Improbable.Gdk.Core
 
             Connection = connection;
             LogDispatcher = logDispatcher;
-            logDispatcher.Connection = Connection;
+            logDispatcher.Worker = this;
 
             World = new World(Connection.GetWorkerId());
             AddCoreSystems();
@@ -66,8 +66,8 @@ namespace Improbable.Gdk.Core
 
                 var worker = new Worker(config.WorkerType, connection, logger, origin);
                 logger.HandleLog(LogType.Log, new LogEvent("Successfully created a worker")
-                    .WithField("WorkerType", worker.WorkerType)
-                    .WithField("WorkerId", worker.WorkerId));
+                    .WithField("WorkerId", worker.WorkerId)
+                    .WithField(LoggingUtils.WorkerType, worker.WorkerType));
                 return worker;
             }
         }
@@ -98,8 +98,8 @@ namespace Improbable.Gdk.Core
 
                     var worker = new Worker(config.WorkerType, connection, logger, origin);
                     logger.HandleLog(LogType.Log, new LogEvent("Successfully created a worker")
-                        .WithField("WorkerType", worker.WorkerType)
-                        .WithField("WorkerId", worker.WorkerId));
+                        .WithField("WorkerId", worker.WorkerId)
+                        .WithField(LoggingUtils.WorkerType, worker.WorkerType));
                     return worker;
                 }
             }
@@ -137,7 +137,7 @@ namespace Improbable.Gdk.Core
             World.GetOrCreateManager<CleanReactiveComponentsSystem>();
             World.GetOrCreateManager<WorldCommandsCleanSystem>();
             World.GetOrCreateManager<WorldCommandsSendSystem>();
-            World.GetOrCreateManager<CommandRequestTrackerSystem>();            
+            World.GetOrCreateManager<CommandRequestTrackerSystem>();
         }
 
         public void Dispose()
