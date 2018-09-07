@@ -7,7 +7,7 @@ using UnityEngine.Experimental.PlayerLoop;
 namespace Improbable.Gdk.TransformSynchronization
 {
     [DisableAutoCreation]
-    [UpdateInGroup(typeof(FixedUpdate))]
+    [UpdateInGroup(typeof(SpatialOSUpdateGroup))]
     public class DefaultUpdateLatestTransformSystem : ComponentSystem
     {
         private struct RigidbodyData
@@ -48,17 +48,16 @@ namespace Improbable.Gdk.TransformSynchronization
                 rigidbodyData.TransformToSend[i] = transformToSend;
             }
 
-            //
-            // for (int i = 0; i < transformData.Length; ++i)
-            // {
-            //     var transform = transformData.Transform[i];
-            //     var transformToSend = new CurrentTransformToSend
-            //     {
-            //         Position = transform.position,
-            //         Orientation = transform.rotation
-            //     };
-            //     transformData.TransformToSend[i] = transformToSend;
-            // }
+            for (int i = 0; i < transformData.Length; ++i)
+            {
+                var transform = transformData.Transform[i];
+                var transformToSend = new CurrentTransformToSend
+                {
+                    Position = transform.position,
+                    Orientation = transform.rotation
+                };
+                transformData.TransformToSend[i] = transformToSend;
+            }
         }
     }
 }
