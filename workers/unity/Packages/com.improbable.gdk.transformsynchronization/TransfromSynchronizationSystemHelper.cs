@@ -14,6 +14,7 @@ namespace Improbable.Gdk.TransformSynchronization
             world.GetOrCreateManager<DefaultUpdateLatestTransformSystem>();
             world.GetOrCreateManager<UpdateTransformSystem>();
             world.GetOrCreateManager<UpdatePositionSystem>();
+            world.GetOrCreateManager<StopInterpolationWhenAuthoritativeSystem>();
             world.GetOrCreateManager<TickSystem>();
             //world.GetOrCreateManager<TickSystem>();
             // world.GetOrCreateManager<LocalTransformSyncSystem>();

@@ -17,7 +17,7 @@ namespace Improbable.Gdk.TransformSynchronization
             public ComponentDataArray<CurrentTransformToSend> TransformToSend;
 
             [ReadOnly] public ComponentDataArray<Authoritative<Generated.Improbable.Transform.Transform.Component>>
-                DenotesNotAuthoritative;
+                DenotesAuthoritative;
         }
 
         private struct TransformData
@@ -28,7 +28,7 @@ namespace Improbable.Gdk.TransformSynchronization
             public SubtractiveComponent<Rigidbody> DenotesNoRigidbody;
 
             [ReadOnly] public ComponentDataArray<Authoritative<Generated.Improbable.Transform.Transform.Component>>
-                DenotesNotAuthoritative;
+                DenotesAuthoritative;
         }
 
         [Inject] private RigidbodyData rigidbodyData;
