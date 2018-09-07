@@ -13,19 +13,41 @@ namespace Improbable.Gdk.TransformSynchronization
         {
             [ReadOnly] public readonly int Length;
             [ReadOnly] public EntityArray Entity;
+            [ReadOnly] public ComponentDataArray<Transform.Component> Transform;
             [ReadOnly] public ComponentDataArray<NewlyAddedSpatialOSEntity> DenotesNewEntity;
-            [ReadOnly] public ComponentDataArray<Transform.Component> DenotesHasTransform;
         }
 
         [Inject] private Data data;
+        [Inject] private WorkerSystem worker;
 
         protected override void OnUpdate()
         {
             for (int i = 0; i < data.Length; ++i)
             {
-                PostUpdateCommands.AddComponent<CurrentReceivedTransform>(data.Entity[i],
-                    new CurrentReceivedTransform());
-                PostUpdateCommands.AddComponent<CurrentTransformToSend>(data.Entity[i], new CurrentTransformToSend());
+                var defaultReceived = new CurrentReceivedTransform
+                {
+                    Position = data.Transform[i].Location.ToUnityVector3() + worker.Origin,
+                    Orientation = data.Transform[i].Rotation.ToUnityQuaternion()
+                };
+                var defaultToSend = new CurrentTransformToSend
+                {
+                    Position = data.Transform[i].Location.ToUnityVector3() - worker.Origin,
+                    Velocity = data.Transform[i].Velocity.ToUnityVector3(),
+                    Orientation = data.Transform[i].Rotation.ToUnityQuaternion()
+                };
+                var previousTransform = new LastTransformValue
+                {
+                    PreviousTransform = data.Transform[i]
+                };
+                var ticksSinceLastUpdate = new TicksSinceLastUpdate
+                {
+                    NumberOfTicks = 0
+                };
+                PostUpdateCommands.AddComponent(data.Entity[i], defaultReceived);
+                PostUpdateCommands.AddComponent(data.Entity[i], defaultToSend);
+                PostUpdateCommands.AddComponent(data.Entity[i], previousTransform);
+                PostUpdateCommands.AddComponent(data.Entity[i], ticksSinceLastUpdate);
+                PostUpdateCommands.AddBuffer<BufferedTransform>(data.Entity[i]);
             }
         }
     }

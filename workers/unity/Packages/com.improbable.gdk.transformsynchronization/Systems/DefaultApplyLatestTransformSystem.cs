@@ -33,21 +33,22 @@ namespace Improbable.Gdk.TransformSynchronization
 
         [Inject] private RigidbodyData rigidbodyData;
         [Inject] private TransformData transformData;
+        [Inject] private WorkerSystem worker;
 
         protected override void OnUpdate()
         {
             for (int i = 0; i < rigidbodyData.Length; ++i)
             {
-                var trasnform = rigidbodyData.CurrentTransform[i];
-                rigidbodyData.Rigidbody[i].MovePosition(trasnform.Position);
-                rigidbodyData.Rigidbody[i].MoveRotation(trasnform.Orientation);
+                var transform = rigidbodyData.CurrentTransform[i];
+                rigidbodyData.Rigidbody[i].MovePosition(transform.Position);
+                rigidbodyData.Rigidbody[i].MoveRotation(transform.Orientation);
             }
 
             for (int i = 0; i < transformData.Length; ++i)
             {
-                var trasnform = rigidbodyData.CurrentTransform[i];
-                transformData.Transform[i].localPosition = trasnform.Position;
-                transformData.Transform[i].localRotation = trasnform.Orientation;
+                var transform = transformData.CurrentTransform[i];
+                transformData.Transform[i].localPosition = transform.Position;
+                transformData.Transform[i].localRotation = transform.Orientation;
             }
         }
     }

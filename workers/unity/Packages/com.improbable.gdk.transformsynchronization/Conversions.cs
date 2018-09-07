@@ -14,8 +14,8 @@ namespace Improbable.Gdk.TransformSynchronization
 
         public static Generated.Improbable.Transform.Quaternion ToImprobableQuaternion(this Quaternion quaternion)
         {
-            return new Generated.Improbable.Transform.Quaternion(quaternion.x, quaternion.y, quaternion.z,
-                quaternion.w);
+            return new Generated.Improbable.Transform.Quaternion(quaternion.w, quaternion.x, quaternion.y,
+                quaternion.z);
         }
 
         public static Vector3 ToUnityVector3(this Location location)

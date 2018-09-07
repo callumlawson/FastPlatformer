@@ -1,3 +1,4 @@
+using Improbable.Gdk.Core;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -14,8 +15,11 @@ namespace Improbable.Gdk.TransformSynchronization
         {
             public readonly int Length;
             public BufferArray<BufferedTransform> TransformBuffer;
+            public ComponentDataArray<LastTransformValue> LastTransformValue;
+            public ComponentDataArray<TicksSinceLastUpdate> TicksSinceLastUpdate;
             [ReadOnly] public ComponentDataArray<Transform.ReceivedUpdates> Updates;
             [ReadOnly] public ComponentDataArray<Transform.Component> CurrentTransform;
+            [ReadOnly] public ComponentDataArray<NotAuthoritative<Transform.Component>> DenotesNotAuthoritative;
         }
 
         [Inject] private Data data;
@@ -27,13 +31,42 @@ namespace Improbable.Gdk.TransformSynchronization
             {
                 foreach (var update in data.Updates[i].Updates)
                 {
+                    var lastTransform = data.LastTransformValue[i].PreviousTransform;
+                    UpdateLastTransfrom(ref lastTransform, update);
+                    data.LastTransformValue[i] = new LastTransformValue
+                    {
+                        PreviousTransform = lastTransform
+                    };
+
+                    if (!update.PhysicsTick.HasValue)
+                    {
+                        continue;
+                    }
+
+                    data.TicksSinceLastUpdate[i] = new TicksSinceLastUpdate
+                    {
+                        NumberOfTicks = 0
+                    };
+
                     float tickSmearFactor =
-                        math.min(update.TicksPerSecond.Value / tickRateSystem.PhysicsTicksPerRealSecond,
+                        math.min(lastTransform.TicksPerSecond / tickRateSystem.PhysicsTicksPerRealSecond,
                             TransformSynchronizationConfig.MaxTickSmearFactor);
+                    tickSmearFactor = 1.0f;
+
+                    var newTransform = ToBufferedTransform(lastTransform);
 
                     var transformBuffer = data.TransformBuffer[i];
+
+                    if (transformBuffer.Length == TransformSynchronizationConfig.MaxLoadMatchedBufferSize)
+                    {
+                        // else check for the buffer being too large
+                        Debug.Log("full");
+                        transformBuffer.Clear();
+                    }
+
                     if (transformBuffer.Length == 0)
                     {
+                        //Debug.Log("empty");
                         // last update should be at the target buffer size
                         // if more then one transform
 
@@ -42,50 +75,78 @@ namespace Improbable.Gdk.TransformSynchronization
                         uint ticksToFill = math.max(
                             (uint) (TransformSynchronizationConfig.TargetLoadMatchedBufferSize * tickSmearFactor), 1);
 
-                        var newTransform = ToBufferedTransform(update);
-
                         if (ticksToFill > 1)
                         {
                             var currentTransform = ToBufferedTransformAtTick(data.CurrentTransform[i],
                                 newTransform.PhysicsTickId - ticksToFill + 1);
                             transformBuffer.Add(currentTransform);
 
-                            for (uint j = 1; j < ticksToFill - 1; ++j)
+                            for (uint j = 0; j < ticksToFill - 2; ++j)
                             {
-                                transformBuffer.Add(InterpolateValues(currentTransform, newTransform, j));
+                                transformBuffer.Add(InterpolateValues(currentTransform, newTransform, j + 1));
                             }
                         }
 
                         transformBuffer.Add(newTransform);
+                        //Debug.Log(transformBuffer.Length);
                     }
-                    // else check for the buffer being too large
                     // else add to the buffer
                     else
                     {
-                        var newTransformUpdate = ToBufferedTransform(update);
+                        //Debug.Log("not empty or full + " + transformBuffer.Length);
                         var lastTransformUpdate = transformBuffer[transformBuffer.Length - 1];
                         uint lastTickId = lastTransformUpdate.PhysicsTickId;
 
                         // Extend or contract the interpolation to compensate for differences in load
                         uint ticksToFill = math.max(
-                            (uint) ((newTransformUpdate.PhysicsTickId - lastTickId) * tickSmearFactor), 1);
-                        for (uint j = 1; j < ticksToFill; ++j)
+                            (uint) ((newTransform.PhysicsTickId - lastTickId) * tickSmearFactor), 1);
+                        for (uint j = 0; j < ticksToFill - 1; ++j)
                         {
-                            transformBuffer.Add(InterpolateValues(lastTransformUpdate, newTransformUpdate, j));
+                            transformBuffer.Add(InterpolateValues(lastTransformUpdate, newTransform, j + 1));
                         }
+
+                        transformBuffer.Add(newTransform);
                     }
                 }
             }
         }
 
-        private static BufferedTransform ToBufferedTransform(Transform.Update update)
+        private void UpdateLastTransfrom(ref Transform.Component lastTransform, Transform.Update update)
+        {
+            if (update.Location.HasValue)
+            {
+                lastTransform.Location = update.Location.Value;
+            }
+
+            if (update.Rotation.HasValue)
+            {
+                lastTransform.Rotation = update.Rotation.Value;
+            }
+
+            if (update.Velocity.HasValue)
+            {
+                lastTransform.Velocity = update.Velocity.Value;
+            }
+
+            if (update.TicksPerSecond.HasValue)
+            {
+                lastTransform.TicksPerSecond = update.TicksPerSecond.Value;
+            }
+
+            if (update.PhysicsTick.HasValue)
+            {
+                lastTransform.PhysicsTick = update.PhysicsTick.Value;
+            }
+        }
+
+        private static BufferedTransform ToBufferedTransform(Transform.Component transform)
         {
             return new BufferedTransform
             {
-                Position = update.Location.Value.ToUnityVector3(),
-                Velocity = update.Velocity.Value.ToUnityVector3(),
-                Orientation = update.Rotation.Value.ToUnityQuaternion(),
-                PhysicsTickId = update.PhysicsTick.Value
+                Position = transform.Location.ToUnityVector3(),
+                Velocity = transform.Velocity.ToUnityVector3(),
+                Orientation = transform.Rotation.ToUnityQuaternion(),
+                PhysicsTickId = transform.PhysicsTick
             };
         }
 

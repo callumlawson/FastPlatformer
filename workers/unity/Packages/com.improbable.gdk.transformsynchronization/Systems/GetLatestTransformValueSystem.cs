@@ -2,12 +2,13 @@
 using Improbable.Gdk.Core;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine.Experimental.PlayerLoop;
 
 namespace Improbable.Gdk.TransformSynchronization
 {
     [DisableAutoCreation]
-    [UpdateAfter(typeof(InterpolateTransformSystem))]
-    public class GetLatestTrasnformValueSystem : ComponentSystem
+    [UpdateInGroup(typeof(FixedUpdate))]
+    public class GetLatestTransformValueSystem : ComponentSystem
     {
         private struct Data
         {

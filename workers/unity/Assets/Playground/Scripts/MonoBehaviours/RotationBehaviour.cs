@@ -25,12 +25,12 @@ public class RotationBehaviour : MonoBehaviour
 
     void Update()
     {
-        SpatialQuaternion rot = writer.Data.Rotation;
-        uRot.Set(rot.X, rot.Y, rot.Z, rot.W);
-        uRot *= Quaternion.Euler((RotatingClockWise ? Vector3.up : Vector3.down) * Time.deltaTime * 20);
-        writer.Send(new Transform.Update
-        {
-            Rotation = new Option<SpatialQuaternion>(UnityToSpatialQuaternion(uRot))
-        });
+        // SpatialQuaternion rot = writer.Data.Rotation;
+        // uRot.Set(rot.X, rot.Y, rot.Z, rot.W);
+        // uRot *= Quaternion.Euler((RotatingClockWise ? Vector3.up : Vector3.down) * Time.deltaTime * 20);
+        // writer.Send(new Transform.Update
+        // {
+        //     Rotation = new Option<SpatialQuaternion>(UnityToSpatialQuaternion(uRot))
+        // });
     }
 }

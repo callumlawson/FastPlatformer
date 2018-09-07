@@ -13,6 +13,7 @@ namespace Improbable.Gdk.TransformSynchronization
         {
             [ReadOnly] public readonly int Length;
             [ReadOnly] public ComponentDataArray<CurrentTransformToSend> CurrentTransform;
+            public ComponentDataArray<TicksSinceLastUpdate> TicksSinceLastUpdate;
             public ComponentDataArray<Transform.Component> Transform;
 
             [ReadOnly] public ComponentDataArray<Authoritative<Transform.Component>> DenotesHasAuthority;
@@ -32,11 +33,16 @@ namespace Improbable.Gdk.TransformSynchronization
                     Location = (t.Position - worker.Origin).ToImprobableLocation(),
                     Rotation = t.Orientation.ToImprobableQuaternion(),
                     Velocity = t.Velocity.ToImprobableVelocity(),
-                    PhysicsTick = 0,
+                    PhysicsTick = data.Transform[i].PhysicsTick + data.TicksSinceLastUpdate[i].NumberOfTicks,
                     TicksPerSecond = tickRate.PhysicsTicksPerRealSecond
                 };
 
                 data.Transform[i] = transform;
+
+                data.TicksSinceLastUpdate[i] = new TicksSinceLastUpdate
+                {
+                    NumberOfTicks = 0
+                };
             }
         }
     }
