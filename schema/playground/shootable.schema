@@ -1,0 +1,17 @@
+package playground;
+
+type ShootableResponseType
+{
+
+}
+
+type ShootableRequestType
+{
+    float damage = 1;
+}
+
+component Shootable
+{
+    id = 13372;
+    command ShootableResponseType shoot_target(ShootableRequestType);
+}

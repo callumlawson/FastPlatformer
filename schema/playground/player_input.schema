@@ -1,9 +1,13 @@
 package playground;
 
+type Empty2 {}
+
 component PlayerInput
 {
     id = 12001;
     float horizontal = 1;
     float vertical = 2;
     bool running = 3;
+    event Empty2 fire_bullet;
+    event Empty2 fire_ray;
 }

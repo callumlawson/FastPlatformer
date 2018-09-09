@@ -34,6 +34,9 @@ namespace Playground
             var clientHeartbeat = PlayerHeartbeatClient.Component.CreateSchemaComponentData();
             var serverHeartbeat = PlayerHeartbeatServer.Component.CreateSchemaComponentData();
             var score = Score.Component.CreateSchemaComponentData(0);
+            var authServer = OnAuthServer.Component.CreateSchemaComponentData();
+            var health = Health.Component.CreateSchemaComponentData(100, 100);
+            var shootable = Shootable.Component.CreateSchemaComponentData();
 
             var entityBuilder = EntityBuilder.Begin()
                 .AddPosition(0, 0, 0, WorkerUtils.UnityGameLogic)
@@ -47,7 +50,11 @@ namespace Playground
                 .AddComponent(launcher, WorkerUtils.UnityGameLogic)
                 .AddComponent(clientHeartbeat, clientAttribute)
                 .AddComponent(serverHeartbeat, WorkerUtils.UnityGameLogic)
-                .AddComponent(score, WorkerUtils.UnityGameLogic);
+                .AddComponent(score, WorkerUtils.UnityGameLogic)
+                //My additions
+                .AddComponent(authServer, WorkerUtils.UnityGameLogic)
+                .AddComponent(shootable, WorkerUtils.UnityGameLogic)
+                .AddComponent(health, WorkerUtils.UnityGameLogic);
 
             return entityBuilder.Build();
         }

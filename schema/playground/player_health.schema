@@ -1,0 +1,8 @@
+package playground;
+
+component Health
+{
+    id = 13371;
+    float current = 1;
+    float max = 2;
+}

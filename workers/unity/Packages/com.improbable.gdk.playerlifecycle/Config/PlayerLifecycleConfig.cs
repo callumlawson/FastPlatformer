@@ -9,7 +9,7 @@ namespace Improbable.Gdk.PlayerLifecycle
     public static class PlayerLifecycleConfig
     {
         public const float PlayerHeartbeatIntervalSeconds = 5f;
-        public const int MaxNumFailedPlayerHeartbeats = 2;
+        public const int MaxNumFailedPlayerHeartbeats = 200;
 
         public static GetPlayerEntityTemplateDelegate CreatePlayerEntityTemplate;
 

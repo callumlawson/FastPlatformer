@@ -20,7 +20,9 @@ namespace Playground
         private struct PlayerInputData
         {
             public readonly int Length;
-            public ComponentDataArray<PlayerInput.Component> PlayerInput;
+            public ComponentDataArray<PlayerInput.Component> ThePlayerInput;
+            public ComponentDataArray<PlayerInput.EventSender.FireBullet> FireBulletEvent;
+            public ComponentDataArray<PlayerInput.EventSender.FireRay> FireRayEvent;
             public ComponentDataArray<CameraTransform> CameraTransform;
             public ComponentDataArray<Authoritative<PlayerInput.Component>> PlayerInputAuthority;
         }
@@ -39,7 +41,7 @@ namespace Playground
                 var input = Input.GetAxisRaw("Horizontal") * right + Input.GetAxisRaw("Vertical") * forward;
                 var isShiftDown = Input.GetKey(KeyCode.LeftShift);
 
-                var oldPlayerInput = playerInputData.PlayerInput[i];
+                var oldPlayerInput = playerInputData.ThePlayerInput[i];
 
                 if (Math.Abs(oldPlayerInput.Horizontal - input.x) > MinInputChange
                     || Math.Abs(oldPlayerInput.Vertical - input.z) > MinInputChange
@@ -51,7 +53,17 @@ namespace Playground
                         Vertical = input.z,
                         Running = isShiftDown
                     };
-                    playerInputData.PlayerInput[i] = newPlayerInput;
+                    playerInputData.ThePlayerInput[i] = newPlayerInput;
+                }
+
+                if (Input.GetMouseButtonDown(0))
+                {
+                    playerInputData.FireBulletEvent[i].Events.Add(new Empty2());
+                }
+
+                if (Input.GetMouseButtonDown(1))
+                {
+                    playerInputData.FireRayEvent[i].Events.Add(new Empty2());
                 }
             }
         }

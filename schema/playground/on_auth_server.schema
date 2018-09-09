@@ -1,0 +1,6 @@
+package playground;
+
+component OnAuthServer
+{
+    id = 13374;
+}
