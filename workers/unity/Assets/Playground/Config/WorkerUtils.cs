@@ -30,15 +30,7 @@ namespace Playground
             PlayerLifecycleHelper.AddClientSystems(world);
             GameObjectRepresentationHelper.AddSystems(world);
             GameObjectCreationHelper.EnableStandardGameObjectCreation(world);
-            world.GetOrCreateManager<ProcessColorChangeSystem>();
             world.GetOrCreateManager<LocalPlayerInputSync>();
-            world.GetOrCreateManager<MoveLocalPlayerSystem>();
-            world.GetOrCreateManager<InitCameraSystem>();
-            world.GetOrCreateManager<FollowCameraSystem>();
-            world.GetOrCreateManager<InitUISystem>();
-            world.GetOrCreateManager<UpdateUISystem>();
-            world.GetOrCreateManager<PlayerCommandsSystem>();
-            world.GetOrCreateManager<MetricSendSystem>();
         }
 
         public static void AddGameLogicSystems(World world)
@@ -48,13 +40,6 @@ namespace Playground
             PlayerLifecycleHelper.AddServerSystems(world);
             GameObjectRepresentationHelper.AddSystems(world);
             GameObjectCreationHelper.EnableStandardGameObjectCreation(world);
-            world.GetOrCreateManager<CubeMovementSystem>();
-            world.GetOrCreateManager<TriggerColorChangeSystem>();
-            world.GetOrCreateManager<ProcessLaunchCommandSystem>();
-            world.GetOrCreateManager<ProcessRechargeSystem>();
-            world.GetOrCreateManager<MetricSendSystem>();
-            world.GetOrCreateManager<ProcessScoresSystem>();
-            world.GetOrCreateManager<CollisionProcessSystem>();
         }
 
         private static void AddLifecycleSystems(World world)
