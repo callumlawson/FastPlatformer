@@ -1,8 +1,3 @@
-[Aa]ssets/Generated/Source.meta
-[Aa]ssets/Generated/Source/**/*.*
-[Aa]ssets/Plugins/Improbable/
-[Aa]ssets/Plugins/Improbable.meta
-
 # Standard ignore
 [Ll]ibrary/
 [Tt]emp/
@@ -11,8 +6,16 @@
 [Bb]uilds/
 [Ll]ogs/
 
+# Ignore futher folders here!
+
 # Never ignore Asset meta data
+
 ![Aa]ssets/**/*.meta
+
+[As]ssets/Generated/Source.meta
+[As]ssets/Generated/Source/**/*.*
+[As]ssets/Plugins/Improbable/
+[As]ssets/Plugins/Improbable.meta
 
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # [Aa]ssets/AssetStoreTools*
