@@ -12,12 +12,12 @@ namespace Playground.Scripts.MonoBehaviours
 
         private Vector3 moveDirection = Vector3.zero;
         private CharacterController controller;
-        private Rigidbody rigidbody;
+        private Rigidbody ourRigidbody;
 
         void Start()
         {
             controller = GetComponent<CharacterController>();
-            rigidbody = GetComponent<Rigidbody>();
+            ourRigidbody = GetComponent<Rigidbody>();
 
             // let the gameObject fall down
             gameObject.transform.position = new Vector3(0, 5, 0);
@@ -30,7 +30,7 @@ namespace Playground.Scripts.MonoBehaviours
                 // We are grounded, so recalculate
                 // move direction directly from axes
                 moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical"));
-                moveDirection = transform.TransformDirection(moveDirection);
+                //moveDirection = transform.TransformDirection(moveDirection);
                 moveDirection = moveDirection * Speed;
 
                 if (Input.GetButton("Jump"))
@@ -38,6 +38,9 @@ namespace Playground.Scripts.MonoBehaviours
                     moveDirection.y = JumpSpeed;
                 }
             }
+
+            // Update rotation
+            transform.rotation = Quaternion.LookRotation(new Vector3(moveDirection.x, 0, moveDirection.y).normalized);
 
             // Apply gravity
             moveDirection.y = moveDirection.y - Gravity * Time.deltaTime;
