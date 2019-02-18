@@ -1,6 +1,11 @@
-* text=auto
-*.meta text eol=lf
-*.prefab text eol=lf
-*.asset text eol=lf
 *.asmdef text eol=lf
 *.sh text eol=lf
+*.anim merge=unityyamlmerge eol=lf
+*.asset merge=unityyamlmerge eol=lf
+*.controller merge=unityyamlmerge eol=lf
+*.mat merge=unityyamlmerge eol=lf
+*.meta merge=unityyamlmerge eol=lf
+*.physicsMaterial merge=unityyamlmerge eol=lf
+*.physicsMaterial2D merge=unityyamlmerge eol=lf
+*.prefab merge=unityyamlmerge eol=lf
+*.unity merge=unityyamlmerge eol=lf
