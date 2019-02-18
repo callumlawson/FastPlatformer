@@ -2,18 +2,22 @@ using UnityEngine;
 
 namespace Playground.Scripts.MonoBehaviours
 {
-    public class CharacterMovement : MonoBehaviour
+    public class CharacterMovementController : MonoBehaviour
     {
         public float Speed = 3.0f;
         public float JumpSpeed = 8.0f;
         public float Gravity = 18.0f;
 
+        public Animator CharacterAnimator;
+
         private Vector3 moveDirection = Vector3.zero;
         private CharacterController controller;
+        private Rigidbody rigidbody;
 
         void Start()
         {
             controller = GetComponent<CharacterController>();
+            rigidbody = GetComponent<Rigidbody>();
 
             // let the gameObject fall down
             gameObject.transform.position = new Vector3(0, 5, 0);
@@ -40,6 +44,9 @@ namespace Playground.Scripts.MonoBehaviours
 
             // Move the controller
             controller.Move(moveDirection * Time.deltaTime);
+
+            // Update the animator
+            CharacterAnimator.SetFloat("Speed", controller.velocity.magnitude);
         }
     }
 }

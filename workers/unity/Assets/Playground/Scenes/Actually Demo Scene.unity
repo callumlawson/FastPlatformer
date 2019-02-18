@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.29676196, g: 0.6336347, b: 0.9960759, a: 1}
+  m_IndirectSpecularColor: {r: 0.29668143, g: 0.63382864, b: 0.99373525, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -342,12 +342,12 @@ PrefabInstance:
     - target: {fileID: 4054907830989825902, guid: 541a846c396608a4fa040e2f0a1d1c4b,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.000000002148244
+      value: 0.000000002150442
       objectReference: {fileID: 0}
     - target: {fileID: 4054907830989825902, guid: 541a846c396608a4fa040e2f0a1d1c4b,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: -3.908193e-11
+      value: 3.9121918e-11
       objectReference: {fileID: 0}
     - target: {fileID: 4054907830989825902, guid: 541a846c396608a4fa040e2f0a1d1c4b,
         type: 3}
@@ -412,7 +412,7 @@ PrefabInstance:
     - target: {fileID: 2899334751667848848, guid: 541a846c396608a4fa040e2f0a1d1c4b,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.0000000010599659
+      value: 0.0000000010860733
       objectReference: {fileID: 0}
     - target: {fileID: 2899334751667848848, guid: 541a846c396608a4fa040e2f0a1d1c4b,
         type: 3}
@@ -422,7 +422,7 @@ PrefabInstance:
     - target: {fileID: 2899334751667848848, guid: 541a846c396608a4fa040e2f0a1d1c4b,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 5.7703586e-10
+      value: 6.160777e-10
       objectReference: {fileID: 0}
     - target: {fileID: 2899334751667848848, guid: 541a846c396608a4fa040e2f0a1d1c4b,
         type: 3}
@@ -454,5 +454,21 @@ PrefabInstance:
       propertyPath: m_LocalRotation.w
       value: 0.99934006
       objectReference: {fileID: 0}
+    - target: {fileID: 892014860735949827, guid: 541a846c396608a4fa040e2f0a1d1c4b,
+        type: 3}
+      propertyPath: m_Interpolate
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8589097851506596291, guid: 541a846c396608a4fa040e2f0a1d1c4b,
+        type: 3}
+      propertyPath: CharacterAnimator
+      value: 
+      objectReference: {fileID: 1919708849}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 541a846c396608a4fa040e2f0a1d1c4b, type: 3}
+--- !u!95 &1919708849 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 4980317948518695772, guid: 541a846c396608a4fa040e2f0a1d1c4b,
+    type: 3}
+  m_PrefabInstance: {fileID: 765099043}
+  m_PrefabAsset: {fileID: 0}
