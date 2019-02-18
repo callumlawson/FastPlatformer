@@ -2,7 +2,8 @@
 *.asmdef text eol=lf
 *.sh text eol=lf
 *.anim merge=unityyamlmerge eol=lf
-*.asset merge=unityyamlmerge eol=lf
+*.asset text merge=unityyamlmerge eol=lf
+MainTerrain.asset binary
 *.controller merge=unityyamlmerge eol=lf
 *.mat merge=unityyamlmerge eol=lf
 *.meta merge=unityyamlmerge eol=lf
