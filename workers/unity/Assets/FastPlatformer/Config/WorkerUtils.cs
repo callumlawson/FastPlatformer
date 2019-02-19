@@ -1,6 +1,7 @@
 using Improbable.Gdk.GameObjectRepresentation;
 using Improbable.Gdk.GameObjectCreation;
 using System.Collections.Generic;
+using FastPlatformer.Scripts.ECSSystems.Player;
 using Improbable.Gdk.PlayerLifecycle;
 using Improbable.Gdk.TransformSynchronization;
 using Unity.Entities;

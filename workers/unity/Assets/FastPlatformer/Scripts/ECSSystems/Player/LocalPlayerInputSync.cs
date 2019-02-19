@@ -1,16 +1,15 @@
+using Gameschema.Untrusted;
 using Improbable.Gdk.Core;
 using Unity.Entities;
 
 #region Diagnostic control
-
 #pragma warning disable 649
 // ReSharper disable UnassignedReadonlyField
 // ReSharper disable UnusedMember.Global
 // ReSharper disable ClassNeverInstantiated.Global
-
 #endregion
 
-namespace Playground
+namespace FastPlatformer.Scripts.ECSSystems.Player
 {
     [UpdateInGroup(typeof(SpatialOSUpdateGroup))]
     internal class LocalPlayerInputSync : ComponentSystem

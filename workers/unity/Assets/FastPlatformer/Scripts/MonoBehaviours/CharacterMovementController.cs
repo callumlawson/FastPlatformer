@@ -9,28 +9,29 @@ namespace Playground.Scripts.MonoBehaviours
         public float Gravity = 18.0f;
 
         public Animator CharacterAnimator;
+        public Camera CharacterCamera;
+        public Rigidbody CharacterRigidbody;
+        public CharacterController CharacterController;
 
         private Vector3 moveDirection = Vector3.zero;
-        private CharacterController controller;
-        private Rigidbody ourRigidbody;
 
         void Start()
         {
-            controller = GetComponent<CharacterController>();
-            ourRigidbody = GetComponent<Rigidbody>();
-
             // let the gameObject fall down
             gameObject.transform.position = new Vector3(0, 5, 0);
         }
 
         void Update()
         {
-            if (controller.isGrounded)
+            if (CharacterController.isGrounded)
             {
                 // We are grounded, so recalculate
                 // move direction directly from axes
                 moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical"));
-                //moveDirection = transform.TransformDirection(moveDirection);
+                var cameraFacingDirection = CharacterCamera.transform.forward;
+                cameraFacingDirection.y = 0.0f;
+                var cameraRotaion = Quaternion.LookRotation(cameraFacingDirection);
+                moveDirection = cameraRotaion * moveDirection;
                 moveDirection = moveDirection * Speed;
 
                 if (Input.GetButton("Jump"))
@@ -40,16 +41,20 @@ namespace Playground.Scripts.MonoBehaviours
             }
 
             // Update rotation
-            transform.rotation = Quaternion.LookRotation(new Vector3(moveDirection.x, 0, moveDirection.y).normalized);
+            var facingVector = new Vector3(moveDirection.x, 0.0f, moveDirection.z);
+            if (facingVector.magnitude > 0.1f)
+            {
+                transform.rotation = Quaternion.LookRotation(facingVector);
+            }
 
             // Apply gravity
             moveDirection.y = moveDirection.y - Gravity * Time.deltaTime;
 
             // Move the controller
-            controller.Move(moveDirection * Time.deltaTime);
+            CharacterController.Move(moveDirection * Time.deltaTime);
 
             // Update the animator
-            CharacterAnimator.SetFloat("Speed", controller.velocity.magnitude);
+            CharacterAnimator.SetFloat("Speed", CharacterController.velocity.magnitude);
         }
     }
 }

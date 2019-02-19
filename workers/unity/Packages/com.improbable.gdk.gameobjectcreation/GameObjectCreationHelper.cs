@@ -17,7 +17,10 @@ namespace Improbable.Gdk.GameObjectCreation
                 throw new InvalidOperationException(WorkerNotCreatedErrorMessage);
             }
 
-            var creator = new GameObjectCreatorFromMetadata(workerSystem.WorkerType, workerSystem.Origin,
+            var creator = new GameObjectCreatorFromMetadata(
+                workerSystem.WorkerType,
+                workerSystem.Connection.GetWorkerId(),
+                workerSystem.Origin,
                 workerSystem.LogDispatcher);
             EnableStandardGameObjectCreation(world, creator, workerGameObject);
         }

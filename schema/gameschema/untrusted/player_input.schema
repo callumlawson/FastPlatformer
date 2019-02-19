@@ -1,4 +1,4 @@
-package playground;
+package gameschema.untrusted;
 
 component PlayerInput
 {
