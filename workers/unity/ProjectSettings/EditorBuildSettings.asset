@@ -12,9 +12,9 @@ EditorBuildSettings:
     path: Assets/FastPlatformer/Scenes/GameLogicScene.unity
     guid: f5fda56aad5d91d408ff123b26ab6ade
   - enabled: 0
-    path: Assets/FastPlatformer/Scenes/AndroidClientScene.unity
+    path: Assets/FastPlatformer/Scenes/Mobile/AndroidClientScene.unity
     guid: 82ccd0fd96a2ba24f88d0c7d01592f2e
   - enabled: 0
-    path: Assets/FastPlatformer/Scenes/iOSClientScene.unity
+    path: Assets/FastPlatformer/Scenes/Mobile/iOSClientScene.unity
     guid: 424c4b2c090874512badc5e7ee757d5f
   m_configObjects: {}
