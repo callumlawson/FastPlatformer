@@ -48,26 +48,6 @@
           "-logfile",
           "../../logs/external-default-unitygamelogic.log"
         ]
-      },
-      "macos": {
-        "command": "open",
-        "arguments": [
-          "-n",
-          "./build/worker/UnityGameLogic@Mac/UnityGameLogic@Mac.app",
-          "--args",
-          "+assemblyName",
-          "local_assembly",
-          "+workerType",
-          "UnityGameLogic",
-          "+infraServicesUrl",
-          "http://127.0.0.1:21000",
-          "+projectName",
-          "${IMPROBABLE_PROJECT_NAME}",
-          "-batchmode",
-          "-nographics",
-          "-logfile",
-          "../../logs/external-default-unitygamelogic.log"
-        ]
       }
     }
   },
@@ -75,28 +55,6 @@
     "windows": {
       "artifact_name": "UnityGameLogic@Windows.zip",
       "command": "UnityGameLogic@Windows.exe",
-      "arguments": [
-        "+workerType",
-        "UnityGameLogic",
-        "+workerId",
-        "${IMPROBABLE_WORKER_ID}",
-        "+projectName",
-        "${IMPROBABLE_PROJECT_NAME}",
-        "+receptionistHost",
-        "${IMPROBABLE_RECEPTIONIST_HOST}",
-        "+receptionistPort",
-        "${IMPROBABLE_RECEPTIONIST_PORT}",
-        "+linkProtocol",
-        "RakNet",
-        "-batchmode",
-        "-nographics",
-        "-logfile",
-        "${IMPROBABLE_LOG_FILE}"
-      ]
-    },
-    "macos": {
-      "artifact_name": "UnityGameLogic@Mac.zip",
-      "command": "UnityGameLogic@Mac.app/Contents/MacOS/UnityGameLogic@Mac",
       "arguments": [
         "+workerType",
         "UnityGameLogic",
