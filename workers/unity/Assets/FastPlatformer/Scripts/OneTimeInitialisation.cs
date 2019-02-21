@@ -1,9 +1,10 @@
+using FastPlatformer.Config.EntityTemplates;
 using Improbable.Gdk.Core;
 using Improbable.Gdk.PlayerLifecycle;
 using Unity.Entities;
 using UnityEngine;
 
-namespace Playground
+namespace FastPlatformer.Scripts
 {
     public static class OneTimeInitialisation
     {
