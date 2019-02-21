@@ -206,7 +206,7 @@ MonoBehaviour:
   AirAccelerationSpeed: 5
   Drag: 0.1
   AllowJumpingWhenSliding: 1
-  JumpSpeed: 10
+  JumpSpeed: 12
   JumpPreGroundingGraceTime: 0
   JumpPostGroundingGraceTime: 0
   IgnoredColliders: []
@@ -674,7 +674,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1615830522275281633}
-  m_LocalRotation: {x: -0.00777548, y: 0.14933534, z: 0.0011744016, w: 0.9887554}
+  m_LocalRotation: {x: -0.007775479, y: 0.14933531, z: 0.0011744018, w: 0.98875535}
   m_LocalPosition: {x: -0.0000009536775, y: 0, z: -0.0000038146964}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -1845,8 +1845,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9003980197921254117}
-  m_LocalRotation: {x: 0.02814613, y: 0.14927943, z: -0.004251041, w: 0.98838526}
-  m_LocalPosition: {x: -0.000002861032, y: 0, z: -0.00001144409}
+  m_LocalRotation: {x: 0.028146114, y: 0.14927943, z: -0.004251041, w: 0.98838526}
+  m_LocalPosition: {x: -0.000001907355, y: 0, z: -0.0000076293927}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1797194315812937016}
