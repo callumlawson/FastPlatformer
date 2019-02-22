@@ -11,14 +11,7 @@ namespace KinematicCharacterController.Examples
     public enum OrientationMethod
     {
         TowardsCamera,
-        TowardsMovement
-    }
-
-    public enum LastJumpType
-    {
-        Single,
-        Double,
-        Tripple
+        TowardsInput
     }
 
     public struct PlayerCharacterInputs
@@ -27,6 +20,7 @@ namespace KinematicCharacterController.Examples
         public float MoveAxisRight;
         public Quaternion CameraRotation;
         public bool JumpDown;
+        public bool Interact;
     }
 
     public class ExampleCharacterController : BaseCharacterController
@@ -35,11 +29,12 @@ namespace KinematicCharacterController.Examples
         public float MaxStableMoveSpeed = 10f;
         public float StableMovementSharpness = 15;
         public float OrientationSharpness = 10;
-        public OrientationMethod OrientationMethod = OrientationMethod.TowardsCamera;
+        public OrientationMethod OrientationMethod = OrientationMethod.TowardsInput;
 
         [Header("Air Movement")]
         public float MaxAirMoveSpeed = 10f;
         public float AirAccelerationSpeed = 5f;
+        public float AirControlFactor = 0.0f;
         public float Drag = 0.1f;
 
         [Header("Jumping")]
@@ -50,6 +45,31 @@ namespace KinematicCharacterController.Examples
         public float JumpPreGroundingGraceTime;
         public float JumpPostGroundingGraceTime;
         public float DoubleJumpTimeWindowSize;
+        public Vector3 HomeGravity = new Vector3(0, -30, 0);
+
+        [Header("PlanetPrototype")]
+        public Transform PlanetTransform;
+        private GravityType gravityType;
+
+        private enum LastJumpType
+        {
+            Single,
+            Double,
+            Tripple
+        }
+
+        public enum JumpState
+        {
+            Grounded,
+            Ascent,
+            Descent
+        }
+
+        private enum GravityType
+        {
+            World,
+            Object
+        }
 
         //Yes I know this shouldn't be here.
         [Header("JumpingSFX")]
@@ -69,15 +89,16 @@ namespace KinematicCharacterController.Examples
 
         private Collider[] _probedColliders = new Collider[8];
         private Vector3 _moveInputVector;
-        private Vector3 _lookInputVector;
+        private Vector3 lookInputVector;
         private Vector3 _internalVelocityAdd = Vector3.zero;
 
         //Jumping
         private bool jumpRequested;
         private bool jumpConsumed;
         private bool jumpedThisFrame;
-        private bool justLanded;
+        private bool justLanded; //remove in favour of Jump state.
         private LastJumpType lastJumpType;
+        public JumpState jumpState; //Public for debug
         private float timeSinceLastAbleToJump;
         private float timeSinceJumpRequested = Mathf.Infinity;
         private float timeSinceInitialJumpLanding = Mathf.Infinity;
@@ -156,10 +177,10 @@ namespace KinematicCharacterController.Examples
                     switch (OrientationMethod)
                     {
                         case OrientationMethod.TowardsCamera:
-                            _lookInputVector = cameraPlanarDirection;
+                            lookInputVector = cameraPlanarDirection;
                             break;
-                        case OrientationMethod.TowardsMovement:
-                            _lookInputVector = _moveInputVector.normalized;
+                        case OrientationMethod.TowardsInput:
+                            lookInputVector = _moveInputVector.normalized;
                             break;
                     }
 
@@ -168,6 +189,11 @@ namespace KinematicCharacterController.Examples
                     {
                         timeSinceJumpRequested = 0f;
                         jumpRequested = true;
+                    }
+
+                    if (inputs.Interact)
+                    {
+                        gravityType = gravityType == GravityType.World ? GravityType.Object : GravityType.World;
                     }
 
                     break;
@@ -181,6 +207,14 @@ namespace KinematicCharacterController.Examples
         /// </summary>
         public override void BeforeCharacterUpdate(float deltaTime)
         {
+            if (gravityType == GravityType.World || !PlanetTransform)
+            {
+                Gravity = HomeGravity;
+            }
+            else
+            {
+                Gravity = (PlanetTransform.position - Motor.InitialSimulationPosition).normalized * HomeGravity.magnitude;
+            }
         }
 
         /// <summary>
@@ -194,10 +228,17 @@ namespace KinematicCharacterController.Examples
             {
                 case CharacterState.Default:
                 {
-                    if (_lookInputVector != Vector3.zero && OrientationSharpness > 0f)
+                    //In air we face our velocity not our input - Should be jump direction
+                    if (!Motor.GroundingStatus.FoundAnyGround)
+                    {
+                        lookInputVector = Motor.Velocity;
+                    }
+
+                    if (lookInputVector != Vector3.zero && OrientationSharpness > 0f)
                     {
                         // Smoothly interpolate from current to target look direction
-                        Vector3 smoothedLookInputDirection = Vector3.Slerp(Motor.CharacterForward, _lookInputVector, 1 - Mathf.Exp(-OrientationSharpness * deltaTime)).normalized;
+                        Vector3 smoothedLookInputDirection =
+                            Vector3.Slerp(Motor.CharacterForward, lookInputVector, 1 - Mathf.Exp(-OrientationSharpness * deltaTime)).normalized;
 
                         // Set the current rotation (which will be used by the KinematicCharacterMotor)
                         currentRotation = Quaternion.LookRotation(smoothedLookInputDirection, Motor.CharacterUp);
@@ -224,6 +265,12 @@ namespace KinematicCharacterController.Examples
                 case CharacterState.Default:
                 {
                     Vector3 targetMovementVelocity;
+
+                    //Check jump status
+                    if (jumpState == JumpState.Ascent && Vector3.ProjectOnPlane(currentVelocity, Gravity).y < 0)
+                    {
+                        jumpState = JumpState.Descent;
+                    }
 
                     // Ground movement
                     if (Motor.GroundingStatus.IsStableOnGround)
@@ -257,18 +304,19 @@ namespace KinematicCharacterController.Examples
                     // Air movement
                     else
                     {
-                        // Add move input
                         if (_moveInputVector.sqrMagnitude > 0f)
                         {
-                            targetMovementVelocity = _moveInputVector * MaxAirMoveSpeed;
-
+                            targetMovementVelocity = _moveInputVector * AirControlFactor * MaxAirMoveSpeed;
+                            
                             // Prevent climbing on un-stable slopes with air movement
                             if (Motor.GroundingStatus.FoundAnyGround)
                             {
                                 Vector3 perpenticularObstructionNormal = Vector3.Cross(Vector3.Cross(Motor.CharacterUp, Motor.GroundingStatus.GroundNormal), Motor.CharacterUp).normalized;
                                 targetMovementVelocity = Vector3.ProjectOnPlane(targetMovementVelocity, perpenticularObstructionNormal);
                             }
-
+                            
+                            //Clamp the velocity diff you can achive while in the air. 
+                            
                             Vector3 velocityDiff = Vector3.ProjectOnPlane(targetMovementVelocity - currentVelocity, Gravity);
                             currentVelocity += velocityDiff * AirAccelerationSpeed * deltaTime;
                         }
@@ -280,8 +328,7 @@ namespace KinematicCharacterController.Examples
                         currentVelocity *= 1f / (1f + Drag * deltaTime);
                     }
 
-                    // Handle jumping
-                    jumpedThisFrame = false;
+                    // Handle jump timing - move this to After Character Update?
                     timeSinceJumpRequested += deltaTime;
                     if (justLanded)
                     {
@@ -293,51 +340,10 @@ namespace KinematicCharacterController.Examples
                         timeSinceInitialJumpLanding = 0;
                     }
 
+                    jumpedThisFrame = false;
                     if (jumpRequested)
                     {
-                        // See if we actually are allowed to jump
-                        if (!jumpConsumed && ((AllowJumpingWhenSliding ? Motor.GroundingStatus.FoundAnyGround : Motor.GroundingStatus.IsStableOnGround) || timeSinceLastAbleToJump <= JumpPostGroundingGraceTime))
-                        {
-                            // Calculate jump direction before ungrounding
-                            Vector3 jumpDirection = Motor.CharacterUp;
-                            if (Motor.GroundingStatus.FoundAnyGround && !Motor.GroundingStatus.IsStableOnGround)
-                            {
-                                jumpDirection = Motor.GroundingStatus.GroundNormal;
-                            }
-
-                            // Makes the character skip ground probing/snapping on its next update. 
-                            // If this line weren't here, the character would remain snapped to the ground when trying to jump. Try commenting this line out and see.
-                            Motor.ForceUnground();
-
-                            // Add to the return velocity and reset jump state
-                            float jumpSpeed;
-
-                            if (justLanded && lastJumpType == LastJumpType.Double)
-                            {
-                                lastJumpType = LastJumpType.Tripple;
-                                jumpSpeed = TrippleJumpSpeed;
-                                AudioSource.PlayOneShot(TrippleJump);
-                            }
-                            else if (justLanded && lastJumpType == LastJumpType.Single)
-                            {
-                                lastJumpType = LastJumpType.Double;
-                                jumpSpeed = DoubleJumpSpeed;
-                                AudioSource.PlayOneShot(DoubleJump);
-                            }
-                            else
-                            {
-                                lastJumpType = LastJumpType.Single;
-                                jumpSpeed = SingleJumpSpeed;
-                                AudioSource.PlayOneShot(SingleJump);
-                            }
-
-                            currentVelocity += (jumpDirection * jumpSpeed) - Vector3.Project(currentVelocity, Motor.CharacterUp);
-
-                            jumpRequested = false;
-                            justLanded = false;
-                            jumpConsumed = true;
-                            jumpedThisFrame = true;
-                        }
+                        TryDoJump(ref currentVelocity);
                     }
 
                     // Take into account additive velocity
@@ -348,6 +354,58 @@ namespace KinematicCharacterController.Examples
                     }
                     break;
                 }
+            }
+        }
+
+        private void TryDoJump(ref Vector3 currentVelocity)
+        {
+            // See if we actually are allowed to jump
+            if (!jumpConsumed &&
+                ((AllowJumpingWhenSliding ? Motor.GroundingStatus.FoundAnyGround : Motor.GroundingStatus.IsStableOnGround) ||
+                    timeSinceLastAbleToJump <= JumpPostGroundingGraceTime))
+            {
+                // Calculate jump direction before ungrounding
+                Vector3 jumpDirection = Motor.CharacterUp;
+                if (Motor.GroundingStatus.FoundAnyGround && !Motor.GroundingStatus.IsStableOnGround)
+                {
+                    jumpDirection = Motor.GroundingStatus.GroundNormal;
+                }
+
+                jumpDirection += lookInputVector;
+
+                // Makes the character skip ground probing/snapping on its next update. 
+                // If this line weren't here, the character would remain snapped to the ground when trying to jump. Try commenting this line out and see.
+                Motor.ForceUnground();
+
+                // Add to the return velocity and reset jump state
+                float jumpSpeed;
+
+                if (justLanded && lastJumpType == LastJumpType.Double)
+                {
+                    lastJumpType = LastJumpType.Tripple;
+                    jumpSpeed = TrippleJumpSpeed;
+                    AudioSource.PlayOneShot(TrippleJump);
+                }
+                else if (justLanded && lastJumpType == LastJumpType.Single)
+                {
+                    lastJumpType = LastJumpType.Double;
+                    jumpSpeed = DoubleJumpSpeed;
+                    AudioSource.PlayOneShot(DoubleJump);
+                }
+                else
+                {
+                    lastJumpType = LastJumpType.Single;
+                    jumpSpeed = SingleJumpSpeed;
+                    AudioSource.PlayOneShot(SingleJump);
+                }
+
+                currentVelocity += (jumpDirection * jumpSpeed) - Vector3.Project(currentVelocity, Motor.CharacterUp);
+
+                jumpState = JumpState.Ascent;
+                jumpRequested = false;
+                justLanded = false;
+                jumpConsumed = true;
+                jumpedThisFrame = true;
             }
         }
 
@@ -444,6 +502,7 @@ namespace KinematicCharacterController.Examples
         protected void OnLanded()
         {
             justLanded = true;
+            jumpState = JumpState.Grounded;
         }
 
         protected void OnLeaveStableGround()

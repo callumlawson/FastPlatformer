@@ -9,7 +9,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1398904762131290, guid: 83f834a4cba50954f81734b0d516e226, type: 3}
       propertyPath: m_Name
-      value: PlatformerCharacterRoot
+      value: PlatformerCharacter
       objectReference: {fileID: 0}
     - target: {fileID: 4898694727102280, guid: 83f834a4cba50954f81734b0d516e226, type: 3}
       propertyPath: m_LocalPosition.x

@@ -1,8 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using KinematicCharacterController;
-using KinematicCharacterController.Examples;
 
 namespace KinematicCharacterController.Examples
 {
@@ -40,9 +36,9 @@ namespace KinematicCharacterController.Examples
         private void HandleCameraInput()
         {
             // Create the look input vector for the camera
-            float mouseLookAxisUp = Input.GetAxisRaw(MouseYInput);
-            float mouseLookAxisRight = Input.GetAxisRaw(MouseXInput);
-            Vector3 lookInputVector = new Vector3(mouseLookAxisRight * MouseSensitivity, mouseLookAxisUp * MouseSensitivity, 0f);
+            var mouseLookAxisUp = Input.GetAxisRaw(MouseYInput);
+            var mouseLookAxisRight = Input.GetAxisRaw(MouseXInput);
+            var lookInputVector = new Vector3(mouseLookAxisRight * MouseSensitivity, mouseLookAxisUp * MouseSensitivity, 0f);
 
             // Prevent moving the camera while the cursor isn't locked
             if (Cursor.lockState != CursorLockMode.Locked)
@@ -53,7 +49,7 @@ namespace KinematicCharacterController.Examples
             // Input for zooming the camera (disabled in WebGL because it can cause problems)
             float scrollInput = -Input.GetAxis(MouseScrollInput);
 #if UNITY_WEBGL
-        scrollInput = 0f;
+            scrollInput = 0f;
 #endif
 
             // // Apply inputs to the camera
@@ -68,13 +64,15 @@ namespace KinematicCharacterController.Examples
 
         private void HandleCharacterInput()
         {
-            PlayerCharacterInputs characterInputs = new PlayerCharacterInputs();
-
-            // Build the CharacterInputs struct
-            characterInputs.MoveAxisForward = Input.GetAxisRaw(VerticalInput);
-            characterInputs.MoveAxisRight = Input.GetAxisRaw(HorizontalInput);
-            characterInputs.CameraRotation = CharacterCamera.transform.rotation;
-            characterInputs.JumpDown = Input.GetKeyDown(KeyCode.Space);
+            PlayerCharacterInputs characterInputs =
+                new PlayerCharacterInputs
+                {
+                    MoveAxisForward = Input.GetAxisRaw(VerticalInput),
+                    MoveAxisRight = Input.GetAxisRaw(HorizontalInput),
+                    CameraRotation = CharacterCamera.transform.rotation,
+                    JumpDown = Input.GetKeyDown(KeyCode.Space),
+                    Interact = Input.GetKeyDown(KeyCode.E)
+                };
 
             // Apply inputs to character
             Character.SetInputs(ref characterInputs);

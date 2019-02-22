@@ -24,8 +24,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1819612416189668022}
-  m_LocalRotation: {x: -0.05345157, y: 0.00000041723246, z: -0.00000013038515, w: 0.9985705}
-  m_LocalPosition: {x: -3.637979e-12, y: 0, z: -0.0000038146977}
+  m_LocalRotation: {x: -0.050103515, y: 0.00000044703484, z: -0.00000017881393, w: 0.99874413}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 3684402632273366188}
@@ -101,7 +101,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2382428881156556614}
   m_LocalRotation: {x: -0, y: -0.7071071, z: -0, w: 0.70710653}
-  m_LocalPosition: {x: 8.3852415, y: 1.1423719, z: 0.0000009536743}
+  m_LocalPosition: {x: 10.425035, y: 1.1423719, z: 0.0000009536743}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 7121438749083337728}
@@ -201,11 +201,11 @@ MonoBehaviour:
   m_SplineCurvature: 0.319
   m_Orbits:
   - m_Height: 4
-    m_Radius: 7
+    m_Radius: 9
   - m_Height: 2
-    m_Radius: 8.5
+    m_Radius: 10.5
   - m_Height: 1
-    m_Radius: 8
+    m_Radius: 10
   m_LegacyHeadingBias: 3.4028235e+38
   m_Rigs:
   - {fileID: 6734089003027145874}
@@ -269,7 +269,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 5
-  m_FollowOffset: {x: 0, y: 1.1423719, z: -8.385241}
+  m_FollowOffset: {x: 0, y: 1.1423719, z: -10.4250345}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -362,8 +362,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3917096243562189897}
-  m_LocalRotation: {x: -0.048315287, y: 0.00000017881392, z: 0.000000005587935, w: 0.9988321}
-  m_LocalPosition: {x: 1.6711314, y: 1.6423719, z: -14.1125145}
+  m_LocalRotation: {x: -0.031796023, y: -0.7063916, z: -0.031796023, w: 0.7063916}
+  m_LocalPosition: {x: 10.961036, y: 2.1723719, z: 2.9500017}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 5523159268676412615}
@@ -566,7 +566,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 5
-  m_FollowOffset: {x: 0, y: 1.1423719, z: -8.385241}
+  m_FollowOffset: {x: 0, y: 1.1423719, z: -10.4250345}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -774,6 +774,19 @@ MonoBehaviour:
   Character: {fileID: 6953577238884095786}
   CharacterCamera: {fileID: 6814474537292865339}
   MouseSensitivity: 0.01
+--- !u!114 &4483224975922758674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5526949228714436821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8487d54441cbe254da7b847f54108b3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ExampleCharacterController: {fileID: 6953577238884095786}
 --- !u!114 &6953577238884095786
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -787,11 +800,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxStableMoveSpeed: 10
-  StableMovementSharpness: 10
-  OrientationSharpness: 3
+  StableMovementSharpness: 7
+  OrientationSharpness: 5
   OrientationMethod: 1
   MaxAirMoveSpeed: 10
-  AirAccelerationSpeed: 3
+  AirAccelerationSpeed: 1
+  AirControlFactor: 1
   Drag: 0.1
   AllowJumpingWhenSliding: 0
   SingleJumpSpeed: 8
@@ -800,6 +814,8 @@ MonoBehaviour:
   JumpPreGroundingGraceTime: 0.15
   JumpPostGroundingGraceTime: 0.15
   DoubleJumpTimeWindowSize: 0.3
+  HomeGravity: {x: 0, y: -30, z: 0}
+  PlanetTransform: {fileID: 0}
   AudioSource: {fileID: 496129761461324953}
   SingleJump: {fileID: 8300000, guid: 7c7a8750316a9dd429e5bc892f8bde4f, type: 3}
   DoubleJump: {fileID: 8300000, guid: fcb947f8127ab0e449e28e22a6fb7dc5, type: 3}
@@ -809,6 +825,7 @@ MonoBehaviour:
   Gravity: {x: 0, y: -30, z: 0}
   MeshRoot: {fileID: 5528456267396647343}
   CameraFollowPoint: {fileID: 8710566948376223319}
+  jumpState: 0
 --- !u!114 &9068207369567759392
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -868,8 +885,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5534624918420313432}
-  m_LocalRotation: {x: -0.03532726, y: 0.00000041723246, z: -0.00000004656612, w: 0.9993758}
-  m_LocalPosition: {x: -3.637979e-12, y: 0, z: -0.0000038146977}
+  m_LocalRotation: {x: -0.0319766, y: 0.0000004172325, z: -0.000000044703484, w: 0.9994887}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 8353985130513930111}
@@ -944,8 +961,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5910950113708525447}
-  m_LocalRotation: {x: -0.017143287, y: 0.0000004172325, z: -0.00000037718564, w: 0.99985313}
-  m_LocalPosition: {x: -3.637979e-12, y: 0, z: -0.0000038146977}
+  m_LocalRotation: {x: -0.013791103, y: 0.0000004172325, z: -0.00000037718564, w: 0.999905}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 8445007485114544912}
@@ -1054,7 +1071,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 5
-  m_FollowOffset: {x: 0, y: 1.1423719, z: -8.385241}
+  m_FollowOffset: {x: 0, y: 1.1423719, z: -10.4250345}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -1198,33 +1215,26 @@ PrefabInstance:
       propertyPath: m_Interpolate
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3646466861929632789, guid: 73431d1854ba1424b918953cdb0b87cf,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 9
-      objectReference: {fileID: 0}
     - target: {fileID: 2908002873935433528, guid: 73431d1854ba1424b918953cdb0b87cf,
         type: 3}
       propertyPath: m_RootOrder
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: 3646466861929632789, guid: 73431d1854ba1424b918953cdb0b87cf,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1111178566213713122, guid: 73431d1854ba1424b918953cdb0b87cf,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 73431d1854ba1424b918953cdb0b87cf, type: 3}
---- !u!1 &5526949228714436821 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 635276595296062592, guid: 73431d1854ba1424b918953cdb0b87cf,
-    type: 3}
-  m_PrefabInstance: {fileID: 4927887664534348885}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &5528456267396647343 stripped
+--- !u!4 &5523159268676412615 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 637921356082376186, guid: 73431d1854ba1424b918953cdb0b87cf,
-    type: 3}
-  m_PrefabInstance: {fileID: 4927887664534348885}
-  m_PrefabAsset: {fileID: 0}
---- !u!54 &6544287360152443932 stripped
-Rigidbody:
-  m_CorrespondingSourceObject: {fileID: 2212011883457574985, guid: 73431d1854ba1424b918953cdb0b87cf,
+  m_CorrespondingSourceObject: {fileID: 632029723400355986, guid: 73431d1854ba1424b918953cdb0b87cf,
     type: 3}
   m_PrefabInstance: {fileID: 4927887664534348885}
   m_PrefabAsset: {fileID: 0}
@@ -1234,9 +1244,21 @@ CapsuleCollider:
     type: 3}
   m_PrefabInstance: {fileID: 4927887664534348885}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &5523159268676412615 stripped
+--- !u!54 &6544287360152443932 stripped
+Rigidbody:
+  m_CorrespondingSourceObject: {fileID: 2212011883457574985, guid: 73431d1854ba1424b918953cdb0b87cf,
+    type: 3}
+  m_PrefabInstance: {fileID: 4927887664534348885}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5526949228714436821 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 635276595296062592, guid: 73431d1854ba1424b918953cdb0b87cf,
+    type: 3}
+  m_PrefabInstance: {fileID: 4927887664534348885}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5528456267396647343 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 632029723400355986, guid: 73431d1854ba1424b918953cdb0b87cf,
+  m_CorrespondingSourceObject: {fileID: 637921356082376186, guid: 73431d1854ba1424b918953cdb0b87cf,
     type: 3}
   m_PrefabInstance: {fileID: 4927887664534348885}
   m_PrefabAsset: {fileID: 0}
