@@ -8,11 +8,12 @@ namespace KinematicCharacterController.Examples
         public Camera CharacterCamera;
         public float MouseSensitivity = 0.01f;
 
-        private const string MouseXInput = "Mouse X";
-        private const string MouseYInput = "Mouse Y";
+        private const string MouseXInput = "Look X";
+        private const string MouseYInput = "Look Y";
         private const string MouseScrollInput = "Mouse ScrollWheel";
         private const string HorizontalInput = "Horizontal";
         private const string VerticalInput = "Vertical";
+        private const string Jump = "Jump";
 
         private void Start()
         {
@@ -70,7 +71,7 @@ namespace KinematicCharacterController.Examples
                     MoveAxisForward = Input.GetAxisRaw(VerticalInput),
                     MoveAxisRight = Input.GetAxisRaw(HorizontalInput),
                     CameraRotation = CharacterCamera.transform.rotation,
-                    JumpDown = Input.GetKeyDown(KeyCode.Space),
+                    JumpDown = Input.GetButtonDown(Jump),
                     Interact = Input.GetKeyDown(KeyCode.E)
                 };
 
