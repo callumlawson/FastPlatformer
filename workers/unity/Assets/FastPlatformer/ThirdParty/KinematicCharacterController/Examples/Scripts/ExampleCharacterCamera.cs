@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using FastPlatformer.Scripts.MonoBehaviours;
 using UnityEngine;
 
 namespace KinematicCharacterController.Examples
@@ -38,7 +39,7 @@ namespace KinematicCharacterController.Examples
 
         public Transform Transform { get; private set; }
         public Vector3 PlanarDirection { get; private set; }
-        public ExampleCharacterController FollowCharacter { get; set; }
+        public PlatformerCharacterController FollowCharacter { get; set; }
         public float TargetDistance { get; set; }
 
         private List<Collider> _internalIgnoredColliders = new List<Collider>();
@@ -72,7 +73,7 @@ namespace KinematicCharacterController.Examples
         }
 
         // Set the transform that the camera will orbit around
-        public void SetFollowCharacter(ExampleCharacterController character)
+        public void SetFollowCharacter(PlatformerCharacterController character)
         {
             FollowCharacter = character;
             PlanarDirection = FollowCharacter.CameraFollowPoint.forward;

@@ -1,11 +1,12 @@
+using KinematicCharacterController.Examples;
 using UnityEngine;
 
-namespace KinematicCharacterController.Examples
+namespace FastPlatformer.Scripts.MonoBehaviours
 {
     public class ExamplePlayer : MonoBehaviour
     {
-        public ExampleCharacterController Character;
-        public Camera CharacterCamera;
+        public PlatformerCharacterController Character;
+        public ExampleCharacterCamera CharacterCamera;
         public float MouseSensitivity = 0.01f;
 
         private const string MouseXInput = "Look X";
@@ -20,7 +21,7 @@ namespace KinematicCharacterController.Examples
             Cursor.lockState = CursorLockMode.Locked;
 
             // Tell camera to follow transform
-            // CharacterCamera.SetFollowCharacter(Character);
+            CharacterCamera.SetFollowCharacter(Character);
         }
 
         private void Update()
@@ -37,9 +38,9 @@ namespace KinematicCharacterController.Examples
         private void HandleCameraInput()
         {
             // Create the look input vector for the camera
-            var mouseLookAxisUp = Input.GetAxisRaw(MouseYInput);
-            var mouseLookAxisRight = Input.GetAxisRaw(MouseXInput);
-            var lookInputVector = new Vector3(mouseLookAxisRight * MouseSensitivity, mouseLookAxisUp * MouseSensitivity, 0f);
+            float mouseLookAxisUp = Input.GetAxisRaw(MouseYInput);
+            float mouseLookAxisRight = Input.GetAxisRaw(MouseXInput);
+            Vector3 lookInputVector = new Vector3(mouseLookAxisRight * MouseSensitivity, mouseLookAxisUp * MouseSensitivity, 0f);
 
             // Prevent moving the camera while the cursor isn't locked
             if (Cursor.lockState != CursorLockMode.Locked)
@@ -50,23 +51,23 @@ namespace KinematicCharacterController.Examples
             // Input for zooming the camera (disabled in WebGL because it can cause problems)
             float scrollInput = -Input.GetAxis(MouseScrollInput);
 #if UNITY_WEBGL
-            scrollInput = 0f;
+        scrollInput = 0f;
 #endif
 
-            // // Apply inputs to the camera
-            // CharacterCamera.UpdateWithInput(Time.deltaTime, scrollInput, lookInputVector);
-            //
-            // // Handle toggling zoom level
-            // if (Input.GetMouseButtonDown(1))
-            // {
-            //     CharacterCamera.TargetDistance = (CharacterCamera.TargetDistance == 0f) ? CharacterCamera.DefaultDistance : 0f;
-            // }
+            // Apply inputs to the camera
+            CharacterCamera.UpdateWithInput(Time.deltaTime, scrollInput, lookInputVector);
+
+            // Handle toggling zoom level
+            if (Input.GetMouseButtonDown(1))
+            {
+                CharacterCamera.TargetDistance = (CharacterCamera.TargetDistance == 0f) ? CharacterCamera.DefaultDistance : 0f;
+            }
         }
 
         private void HandleCharacterInput()
         {
-            PlayerCharacterInputs characterInputs =
-                new PlayerCharacterInputs
+            PlatformerCharacterController.CharacterInputs characterInputs =
+                new PlatformerCharacterController.CharacterInputs
                 {
                     MoveAxisForward = Input.GetAxisRaw(VerticalInput),
                     MoveAxisRight = Input.GetAxisRaw(HorizontalInput),

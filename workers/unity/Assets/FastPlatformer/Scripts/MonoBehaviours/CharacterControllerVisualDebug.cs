@@ -5,13 +5,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 {
     public class CharacterControllerVisualDebug : MonoBehaviour
     {
-        public ExampleCharacterController ExampleCharacterController;
+        public PlatformerCharacterController ExampleCharacterController;
 
         void OnGUI()
         {
             // Make a background box
             GUI.Box(new Rect(10, 10, 200, 100), "CharacterDebug");
-            GUI.Label(new Rect(20, 40, 180, 20), $"<b>Jump Status:</b> {ExampleCharacterController.jumpState.ToString()}" );
+            GUI.Label(new Rect(20, 40, 180, 20), $"<b>Jump Status:</b> {ExampleCharacterController.currentJumpState.ToString()}" );
 //            GUI.Button(new Rect(20, 70, 80, 20), "Level 2");
         }
     }
