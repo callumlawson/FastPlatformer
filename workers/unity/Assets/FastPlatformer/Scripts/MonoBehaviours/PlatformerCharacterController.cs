@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using KinematicCharacterController;
 using UnityEngine;
@@ -6,7 +7,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 {
     public class PlatformerCharacterController : BaseCharacterController
     {
-        private enum LastJumpType
+        private enum JumpType
         {
             Single,
             Double,
@@ -32,12 +33,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             Default
         }
 
-        public enum OrientationMethod
-        {
-            TowardsCamera,
-            TowardsInput
-        }
-
         public struct CharacterInputs
         {
             public float MoveAxisForward;
@@ -52,7 +47,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float MaxStableMoveSpeed = 10f;
         public float StableMovementSharpness = 15;
         public float OrientationSharpness = 10;
-        public OrientationMethod CurrentOrientationMethod = OrientationMethod.TowardsInput;
 
         [Header("Air Movement")]
         public float MaxAirMoveSpeed = 10f;
@@ -91,7 +85,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public CharacterState CurrentCharacterState { get; private set; }
 
         private Vector3 moveInputVector;
-        private Vector3 lookInputVector;
         private Vector3 internalVelocityAdd = Vector3.zero;
 
         //Jumping
@@ -100,7 +93,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private bool jumpRequested;
         private bool jumpConsumed;
         private bool jumpedThisFrame;
-        private LastJumpType lastJumpType;
+        private JumpType lastJumpType;
         private float timeSinceLastAbleToJump;
         private float timeSinceJumpRequested = Mathf.Infinity;
         private float timeSinceJumpLanding = Mathf.Infinity;
@@ -173,16 +166,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     // Move and look inputs
                     this.moveInputVector = cameraPlanarRotation * moveInputVector;
 
-                    switch (CurrentOrientationMethod)
-                    {
-                        case OrientationMethod.TowardsCamera:
-                            lookInputVector = cameraPlanarDirection;
-                            break;
-                        case OrientationMethod.TowardsInput:
-                            lookInputVector = this.moveInputVector.normalized;
-                            break;
-                    }
-
                     // Jumping input
                     if (inputs.JumpDown)
                     {
@@ -227,17 +210,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 case CharacterState.Default:
                 {
-                    //In air we face our velocity not our input - Should be jump direction
-                    if (!Motor.GroundingStatus.FoundAnyGround)
-                    {
-                        lookInputVector = Motor.Velocity;
-                    }
-
-                    if (lookInputVector != Vector3.zero && OrientationSharpness > 0f)
+                    if (moveInputVector != Vector3.zero && OrientationSharpness > 0f)
                     {
                         // Smoothly interpolate from current to target look direction
                         Vector3 smoothedLookInputDirection =
-                            Vector3.Slerp(Motor.CharacterForward, lookInputVector, 1 - Mathf.Exp(-OrientationSharpness * deltaTime)).normalized;
+                            Vector3.Slerp(Motor.CharacterForward, moveInputVector, 1 - Mathf.Exp(-OrientationSharpness * deltaTime)).normalized;
 
                         // Set the current rotation (which will be used by the KinematicCharacterMotor)
                         currentRotation = Quaternion.LookRotation(smoothedLookInputDirection, Motor.CharacterUp);
@@ -386,44 +363,66 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
             // Add to the return velocity and reset jump state
             float jumpSpeed = 0.0f;
+            JumpType currentJumpType = JumpType.Single;
             if (currentJumpState == JumpState.JustLanded)
             {
                 switch (lastJumpType)
                 {
-                    case LastJumpType.Single:
+                    case JumpType.Single:
                     {
                         jumpSpeed = DoubleJumpSpeed;
                         AudioSource.PlayOneShot(DoubleJump);
-                        lastJumpType = LastJumpType.Double;
+                        currentJumpType = JumpType.Double;
                         break;
                     }
-                    case LastJumpType.Double:
+                    case JumpType.Double:
                     {
                         jumpSpeed = TrippleJumpSpeed;
                         AudioSource.PlayOneShot(TrippleJump);
-                        lastJumpType = LastJumpType.Tripple;
+                        currentJumpType = JumpType.Tripple;
                         break;
                     }
-                    case LastJumpType.Tripple:
+                    case JumpType.Tripple:
                     {
-                        lastJumpType = LastJumpType.Single;
                         jumpSpeed = SingleJumpSpeed;
                         AudioSource.PlayOneShot(SingleJump);
+                        currentJumpType = JumpType.Single;
                         break;
                     }
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
             else
             {
-                lastJumpType = LastJumpType.Single;
                 jumpSpeed = SingleJumpSpeed;
                 AudioSource.PlayOneShot(SingleJump);
+                currentJumpType = JumpType.Single;
             }
 
-            var jumpDirection = (upDirection).normalized;
+            //TODO - make Jump struct and make this an angle with proper maths.
+            //This isn't the way to do it' trajectory should be fixed based on jump type.
+            float steepnessFactor;
+            switch (currentJumpType)
+            {
+                case JumpType.Single:
+                    steepnessFactor = 5;
+                    break;
+                case JumpType.Double:
+                    steepnessFactor = 5;
+                    break;
+                case JumpType.Tripple:
+                    steepnessFactor = 0.5f;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            var jumpDirection = (upDirection * steepnessFactor + moveInputVector).normalized;
             currentVelocity += jumpDirection * jumpSpeed - Vector3.Project(currentVelocity, Motor.CharacterUp);
 
             currentJumpState = JumpState.Ascent;
+            lastJumpType = currentJumpType;
             jumpRequested = false;
             jumpConsumed = true;
             jumpedThisFrame = true;
