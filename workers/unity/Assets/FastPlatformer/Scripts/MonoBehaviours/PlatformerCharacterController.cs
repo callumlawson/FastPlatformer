@@ -372,10 +372,10 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private void DoJump(ref Vector3 currentVelocity)
         {
             // Calculate jump direction before ungrounding
-            Vector3 jumpDirection = Motor.CharacterUp;
+            Vector3 upDirection = Motor.CharacterUp;
             if (Motor.GroundingStatus.FoundAnyGround && !Motor.GroundingStatus.IsStableOnGround)
             {
-                jumpDirection = Motor.GroundingStatus.GroundNormal;
+                upDirection = Motor.GroundingStatus.GroundNormal;
             }
 
             //jumpDirection += lookInputVector;
@@ -392,16 +392,16 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 {
                     case LastJumpType.Single:
                     {
-                        lastJumpType = LastJumpType.Double;
                         jumpSpeed = DoubleJumpSpeed;
                         AudioSource.PlayOneShot(DoubleJump);
+                        lastJumpType = LastJumpType.Double;
                         break;
                     }
                     case LastJumpType.Double:
                     {
-                        lastJumpType = LastJumpType.Tripple;
                         jumpSpeed = TrippleJumpSpeed;
                         AudioSource.PlayOneShot(TrippleJump);
+                        lastJumpType = LastJumpType.Tripple;
                         break;
                     }
                     case LastJumpType.Tripple:
@@ -420,6 +420,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 AudioSource.PlayOneShot(SingleJump);
             }
 
+            var jumpDirection = (upDirection).normalized;
             currentVelocity += jumpDirection * jumpSpeed - Vector3.Project(currentVelocity, Motor.CharacterUp);
 
             currentJumpState = JumpState.Ascent;
@@ -523,6 +524,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private void OnLanded()
         {
             currentJumpState = JumpState.JustLanded;
+            timeSinceJumpLanding = 0;
         }
 
         private void OnLeaveStableGround()
