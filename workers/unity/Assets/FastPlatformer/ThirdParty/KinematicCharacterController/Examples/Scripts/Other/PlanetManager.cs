@@ -18,7 +18,7 @@ namespace KinematicCharacterController.Examples
         public Teleporter OnPlaygroundTeleportingZone;
         public Teleporter OnPlanetTeleportingZone;
 
-        private List<PlatformerCharacterController> _characterControllersOnPlanet = new List<PlatformerCharacterController>();
+        private List<AvatarCharacterController> _characterControllersOnPlanet = new List<AvatarCharacterController>();
         private Vector3 _savedGravity;
         private Quaternion _lastRotation;
 
@@ -43,19 +43,19 @@ namespace KinematicCharacterController.Examples
             _lastRotation = targetRotation;
 
             // Apply gravity to characters
-            foreach (PlatformerCharacterController cc in _characterControllersOnPlanet)
+            foreach (AvatarCharacterController cc in _characterControllersOnPlanet)
             {
                 cc.BaseGravity = (transform.position - cc.transform.position).normalized * GravityStrength;
             }
         }
 
-        void ControlGravity(PlatformerCharacterController cc)
+        void ControlGravity(AvatarCharacterController cc)
         {
             _savedGravity = cc.BaseGravity;
             _characterControllersOnPlanet.Add(cc);
         }
 
-        void UnControlGravity(PlatformerCharacterController cc)
+        void UnControlGravity(AvatarCharacterController cc)
         {
             cc.BaseGravity = _savedGravity;
             _characterControllersOnPlanet.Remove(cc);

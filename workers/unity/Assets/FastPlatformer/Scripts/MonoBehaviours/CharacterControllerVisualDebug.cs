@@ -5,7 +5,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 {
     public class CharacterControllerVisualDebug : MonoBehaviour
     {
-        public PlatformerCharacterController ExampleCharacterController;
+        public AvatarCharacterController ExampleCharacterController;
 
         void OnGUI()
         {

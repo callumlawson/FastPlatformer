@@ -5,7 +5,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 {
     public class ExamplePlayer : MonoBehaviour
     {
-        public PlatformerCharacterController Character;
+        public AvatarCharacterController Character;
         public ExampleCharacterCamera CharacterCamera;
         public float MouseSensitivity = 0.01f;
 
@@ -66,8 +66,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void HandleCharacterInput()
         {
-            PlatformerCharacterController.CharacterInputs characterInputs =
-                new PlatformerCharacterController.CharacterInputs
+            AvatarCharacterController.CharacterInputs characterInputs =
+                new AvatarCharacterController.CharacterInputs
                 {
                     MoveAxisForward = Input.GetAxisRaw(VerticalInput),
                     MoveAxisRight = Input.GetAxisRaw(HorizontalInput),

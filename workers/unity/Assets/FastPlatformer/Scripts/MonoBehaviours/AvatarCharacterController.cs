@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace FastPlatformer.Scripts.MonoBehaviours
 {
-    public class PlatformerCharacterController : BaseCharacterController
+    public class AvatarCharacterController : BaseCharacterController
     {
         private enum JumpType
         {

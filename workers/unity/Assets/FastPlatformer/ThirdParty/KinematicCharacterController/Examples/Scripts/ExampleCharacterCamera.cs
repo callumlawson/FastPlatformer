@@ -39,7 +39,7 @@ namespace KinematicCharacterController.Examples
 
         public Transform Transform { get; private set; }
         public Vector3 PlanarDirection { get; private set; }
-        public PlatformerCharacterController FollowCharacter { get; set; }
+        public AvatarCharacterController FollowCharacter { get; set; }
         public float TargetDistance { get; set; }
 
         private List<Collider> _internalIgnoredColliders = new List<Collider>();
@@ -73,7 +73,7 @@ namespace KinematicCharacterController.Examples
         }
 
         // Set the transform that the camera will orbit around
-        public void SetFollowCharacter(PlatformerCharacterController character)
+        public void SetFollowCharacter(AvatarCharacterController character)
         {
             FollowCharacter = character;
             PlanarDirection = FollowCharacter.CameraFollowPoint.forward;
