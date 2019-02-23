@@ -68,7 +68,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float JumpPreGroundingGraceTime;
         public float JumpPostGroundingGraceTime;
         public float DoubleJumpTimeWindowSize;
-        public Vector3 HomeGravity = new Vector3(0, -30, 0);
+        public Vector3 EarthGravity = new Vector3(0, -30, 0);
 
         [Header("PlanetPrototype")]
         public Transform PlanetTransform;
@@ -84,7 +84,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         [Header("Misc")]
         public List<Collider> IgnoredColliders = new List<Collider>();
         public bool OrientTowardsGravity = false;
-        public Vector3 Gravity = new Vector3(0, -30f, 0);
+        public Vector3 BaseGravity = new Vector3(0, -30f, 0);
         public Transform MeshRoot;
         public Transform CameraFollowPoint;
 
@@ -208,11 +208,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         {
             if (gravityType == GravityType.World || !PlanetTransform)
             {
-                Gravity = HomeGravity;
+                BaseGravity = EarthGravity;
             }
             else
             {
-                Gravity = (PlanetTransform.position - Motor.InitialSimulationPosition).normalized * HomeGravity.magnitude;
+                BaseGravity = (PlanetTransform.position - Motor.InitialSimulationPosition).normalized * EarthGravity.magnitude;
             }
         }
 
@@ -245,7 +245,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     if (OrientTowardsGravity)
                     {
                         // Rotate from current up to invert gravity
-                        currentRotation = Quaternion.FromToRotation((currentRotation * Vector3.up), -Gravity) * currentRotation;
+                        currentRotation = Quaternion.FromToRotation((currentRotation * Vector3.up), -BaseGravity) * currentRotation;
                     }
                     break;
                 }
@@ -263,10 +263,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 case CharacterState.Default:
                 {
-                    Vector3 targetMovementVelocity;
-
                     //Check jump status
-                    if (currentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(currentVelocity, Gravity).y < 0)
+                    if (currentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(currentVelocity, BaseGravity).y < 0)
                     {
                         currentJumpState = JumpState.Descent;
                     }
@@ -279,14 +277,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         {
                             // Take the normal from where we're coming from
                             Vector3 groundPointToCharacter = Motor.TransientPosition - Motor.GroundingStatus.GroundPoint;
-                            if (Vector3.Dot(currentVelocity, groundPointToCharacter) >= 0f)
-                            {
-                                effectiveGroundNormal = Motor.GroundingStatus.OuterGroundNormal;
-                            }
-                            else
-                            {
-                                effectiveGroundNormal = Motor.GroundingStatus.InnerGroundNormal;
-                            }
+                            effectiveGroundNormal = Vector3.Dot(currentVelocity, groundPointToCharacter) >= 0f
+                                ? Motor.GroundingStatus.OuterGroundNormal
+                                : Motor.GroundingStatus.InnerGroundNormal;
                         }
 
                         // Reorient velocity on slope
@@ -295,7 +288,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         // Calculate target velocity
                         var inputRight = Vector3.Cross(moveInputVector, Motor.CharacterUp);
                         var reorientedInput = Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
-                        targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
+                        var targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
                             
                         // Smooth movement Velocity
                         currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity, 1 - Mathf.Exp(-StableMovementSharpness * deltaTime));
@@ -303,25 +296,15 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     // Air movement
                     else
                     {
-                        if (moveInputVector.sqrMagnitude > 0f)
-                        {
-                            targetMovementVelocity = moveInputVector * AirControlFactor * MaxAirMoveSpeed;
-                            
-                            // Prevent climbing on un-stable slopes with air movement
-                            if (Motor.GroundingStatus.FoundAnyGround)
-                            {
-                                Vector3 perpenticularObstructionNormal = Vector3.Cross(Vector3.Cross(Motor.CharacterUp, Motor.GroundingStatus.GroundNormal), Motor.CharacterUp).normalized;
-                                targetMovementVelocity = Vector3.ProjectOnPlane(targetMovementVelocity, perpenticularObstructionNormal);
-                            }
-                            
-                            //Clamp the velocity diff you can achive while in the air. 
-                            
-                            Vector3 velocityDiff = Vector3.ProjectOnPlane(targetMovementVelocity - currentVelocity, Gravity);
-                            currentVelocity += velocityDiff * AirAccelerationSpeed * deltaTime;
-                        }
+                        ApplyAirMovement(ref currentVelocity, deltaTime);
 
                         // Gravity
-                        currentVelocity += Gravity * deltaTime;
+                        var gravity = BaseGravity * deltaTime;
+                        if (currentJumpState == JumpState.Descent)
+                        {
+                            gravity *= 2;
+                        }
+                        currentVelocity += gravity;
 
                         // Drag
                         currentVelocity *= 1f / (1f + Drag * deltaTime);
@@ -364,6 +347,28 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
         }
 
+        private void ApplyAirMovement(ref Vector3 currentVelocity, float deltaTime)
+        {
+            if (moveInputVector.sqrMagnitude > 0f)
+            {
+                var targetMovementVelocity = moveInputVector * AirControlFactor * MaxAirMoveSpeed;
+
+                // Prevent climbing on un-stable slopes with air movement
+                if (Motor.GroundingStatus.FoundAnyGround)
+                {
+                    Vector3 perpenticularObstructionNormal = Vector3
+                        .Cross(Vector3.Cross(Motor.CharacterUp, Motor.GroundingStatus.GroundNormal), Motor.CharacterUp)
+                        .normalized;
+                    targetMovementVelocity = Vector3.ProjectOnPlane(targetMovementVelocity, perpenticularObstructionNormal);
+                }
+
+                //Clamp the velocity diff you can achive while in the air. 
+
+                Vector3 velocityDiff = Vector3.ProjectOnPlane(targetMovementVelocity - currentVelocity, BaseGravity);
+                currentVelocity += velocityDiff * AirAccelerationSpeed * deltaTime;
+            }
+        }
+
         private void DoJump(ref Vector3 currentVelocity)
         {
             // Calculate jump direction before ungrounding
@@ -373,7 +378,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 jumpDirection = Motor.GroundingStatus.GroundNormal;
             }
 
-            jumpDirection += lookInputVector;
+            //jumpDirection += lookInputVector;
 
             // Makes the character skip ground probing/snapping on its next update. 
             // If this line weren't here, the character would remain snapped to the ground when trying to jump. Try commenting this line out and see.
