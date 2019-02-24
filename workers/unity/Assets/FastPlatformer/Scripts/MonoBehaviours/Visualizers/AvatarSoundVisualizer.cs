@@ -1,9 +1,13 @@
 using System.Collections.Generic;
+using Gameschema.Untrusted;
+using Improbable.Gdk.GameObjectRepresentation;
+using Improbable.Worker.CInterop;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace FastPlatformer.Scripts.MonoBehaviours
 {
-    public enum SoundEvent
+    public enum SoundEventType
     {
         Wa = 0,
         Woo = 1,
@@ -19,29 +23,45 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public AudioSource AudioSource;
 
         //TODO - Proper SFX loading system.
-        private Dictionary<SoundEvent, AudioClip> soundMapping;
+        private Dictionary<SoundEventType, AudioClip> soundMapping;
+
+        [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Reader eventReader;
 
         private void Awake()
         {
-            soundMapping = new Dictionary<SoundEvent, AudioClip>
+            soundMapping = new Dictionary<SoundEventType, AudioClip>
             {
-                { SoundEvent.Wa, Wa },
-                { SoundEvent.Woo, Woo },
-                { SoundEvent.Woohoo, Woohoo }
+                { SoundEventType.Wa, Wa },
+                { SoundEventType.Woo, Woo },
+                { SoundEventType.Woohoo, Woohoo }
             };
         }
 
-        public void PlaySoundEvent(SoundEvent soundEvent)
+        public void OnEnable()
+        {
+            if (eventReader != null)
+            {
+                eventReader.OnSoundEvent += soundEvent =>
+                {
+                    if (eventReader.Authority == Authority.NotAuthoritative)
+                    {
+                        PlaySoundEvent((SoundEventType) soundEvent.Eventid);
+                    }
+                };
+            }
+        }
+
+        public void PlaySoundEvent(SoundEventType soundEventType)
         {
             AudioClip clip;
-            var haveSound = soundMapping.TryGetValue(soundEvent, out clip);
+            var haveSound = soundMapping.TryGetValue(soundEventType, out clip);
             if (haveSound)
             {
                 AudioSource.PlayOneShot(clip);
             }
             else
             {
-                Debug.LogWarning($"Tried to play soundEvent {soundEvent.ToString()} but there was no mapped audio clip.");
+                Debug.LogWarning($"Tried to play soundEvent {soundEventType.ToString()} but there was no mapped audio clip.");
             }
         }
     }

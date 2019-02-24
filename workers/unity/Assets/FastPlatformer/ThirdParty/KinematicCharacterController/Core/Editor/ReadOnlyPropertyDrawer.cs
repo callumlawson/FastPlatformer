@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using Unity.Collections;
+using UnityEngine;
 using UnityEditor;
 
 namespace KinematicCharacterController

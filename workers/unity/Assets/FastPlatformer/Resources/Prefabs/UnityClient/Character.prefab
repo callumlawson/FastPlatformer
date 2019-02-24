@@ -7,14 +7,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 911889614744672311}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 804d08b0395a4f10a055e8791698aae3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AvatarAnimator: {fileID: 4980317948518695772}
-  AvatarRigidbody: {fileID: 892014860735949827}
-  AvatarRotationRoot: {fileID: 4924784183562204880}
 --- !u!1001 &910634864709055729
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4426,18 +4424,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 34f6f8ff026facf49bbc20f4663b8209, type: 3}
---- !u!54 &892014860735949827 stripped
-Rigidbody:
-  m_CorrespondingSourceObject: {fileID: 54653834711570674, guid: 34f6f8ff026facf49bbc20f4663b8209,
-    type: 3}
-  m_PrefabInstance: {fileID: 910634864709055729}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &4924784183562204880 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5258903139997598241, guid: 34f6f8ff026facf49bbc20f4663b8209,
-    type: 3}
-  m_PrefabInstance: {fileID: 910634864709055729}
-  m_PrefabAsset: {fileID: 0}
 --- !u!95 &4980317948518695772 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5313857629391697837, guid: 34f6f8ff026facf49bbc20f4663b8209,

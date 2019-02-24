@@ -1,12 +1,18 @@
 using System;
 using System.Collections.Generic;
+using Gameschema.Untrusted;
+using Improbable.Gdk.GameObjectRepresentation;
+using JetBrains.Annotations;
 using KinematicCharacterController;
 using UnityEngine;
+using AnimationEvent = Gameschema.Untrusted.AnimationEvent;
 
 namespace FastPlatformer.Scripts.MonoBehaviours
 {
     public class AvatarController : BaseCharacterController
     {
+        [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Writer eventWriter;
+
         private enum JumpType
         {
             Single,
@@ -44,13 +50,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             public bool Interact;
         }
 
-        [Header("SFX")]
+        [Header("Visualizers")]
         public AvatarSoundVisualizer SoundVisualizer;
-
-        [Header("Animation")]
         public AvatarAnimationVisualizer AnimationVisualizer;
-
-        [Header("Particles")]
         public AvatarParticleVisualizer ParticleVisualizer;
 
         //TODO Extract these variables!
@@ -77,8 +79,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float DoubleJumpTimeWindowSize;
         public JumpState CurrentJumpState;
         public Vector3 EarthGravity = new Vector3(0, -30, 0);
-
-        //Jumping
         private bool jumpTriggeredThisFrame;
         private bool jumpHeldThisFrame;
         private bool jumpConsumed;
@@ -97,55 +97,14 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public bool OrientTowardsGravity = true;
         public Vector3 BaseGravity = new Vector3(0, -30f, 0);
         public Transform CameraFollowPoint;
-        
-
         private Vector3 moveInputVector;
         private Vector3 internalVelocityAdd = Vector3.zero;
-        private CharacterState CurrentCharacterState { get; set; }
+        private CharacterState currentCharacterState;
 
         private void Start()
         {
             // Handle initial state
             TransitionToState(CharacterState.Default);
-        }
-
-        /// <summary>
-        /// Handles movement state transitions and enter/exit callbacks
-        /// </summary>
-        private void TransitionToState(CharacterState newState)
-        {
-            CharacterState tmpInitialState = CurrentCharacterState;
-            OnStateExit(tmpInitialState, newState);
-            CurrentCharacterState = newState;
-            OnStateEnter(newState, tmpInitialState);
-        }
-
-        /// <summary>
-        /// Event when entering a state
-        /// </summary>
-        private void OnStateEnter(CharacterState state, CharacterState fromState)
-        {
-            switch (state)
-            {
-                case CharacterState.Default:
-                {
-                    break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Event when exiting a state
-        /// </summary>
-        private void OnStateExit(CharacterState state, CharacterState toState)
-        {
-            switch (state)
-            {
-                case CharacterState.Default:
-                {
-                    break;
-                }
-            }
         }
 
         /// <summary>
@@ -164,7 +123,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
             var cameraPlanarRotation = Quaternion.LookRotation(cameraPlanarDirection, Motor.CharacterUp);
 
-            switch (CurrentCharacterState)
+            switch (currentCharacterState)
             {
                 case CharacterState.Default:
                 {
@@ -213,7 +172,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         /// </summary>
         public override void UpdateRotation(ref Quaternion currentRotation, float deltaTime)
         {
-            switch (CurrentCharacterState)
+            switch (currentCharacterState)
             {
                 case CharacterState.Default:
                 {
@@ -243,7 +202,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         /// </summary>
         public override void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)
         {
-            switch (CurrentCharacterState)
+            switch (currentCharacterState)
             {
                 case CharacterState.Default:
                 {
@@ -335,118 +294,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
         }
 
-        private void ApplyAirMovement(ref Vector3 currentVelocity, float deltaTime)
-        {
-            if (moveInputVector.sqrMagnitude > 0f)
-            {
-                var targetMovementVelocity = moveInputVector * AirControlFactor * MaxAirMoveSpeed;
-
-                // Prevent climbing on un-stable slopes with air movement
-                if (Motor.GroundingStatus.FoundAnyGround)
-                {
-                    Vector3 perpenticularObstructionNormal = Vector3
-                        .Cross(Vector3.Cross(Motor.CharacterUp, Motor.GroundingStatus.GroundNormal), Motor.CharacterUp)
-                        .normalized;
-                    targetMovementVelocity = Vector3.ProjectOnPlane(targetMovementVelocity, perpenticularObstructionNormal);
-                }
-
-                //Clamp the velocity diff you can achive while in the air. 
-
-                Vector3 velocityDiff = Vector3.ProjectOnPlane(targetMovementVelocity - currentVelocity, BaseGravity);
-                currentVelocity += velocityDiff * AirAccelerationSpeed * deltaTime;
-            }
-        }
-
-        private void DoJump(ref Vector3 currentVelocity)
-        {
-            // Calculate jump direction before ungrounding
-            Vector3 upDirection = Motor.CharacterUp;
-            if (Motor.GroundingStatus.FoundAnyGround && !Motor.GroundingStatus.IsStableOnGround)
-            {
-                upDirection = Motor.GroundingStatus.GroundNormal;
-            }
-
-            //jumpDirection += lookInputVector;
-
-            // Makes the character skip ground probing/snapping on its next update. 
-            // If this line weren't here, the character would remain snapped to the ground when trying to jump. Try commenting this line out and see.
-            Motor.ForceUnground();
-
-            // Add to the return velocity and reset jump state
-            float jumpSpeed;
-            JumpType currentJumpType;
-            if (CurrentJumpState == JumpState.JustLanded)
-            {
-                switch (lastJumpType)
-                {
-                    case JumpType.Single:
-                    {
-                        jumpSpeed = DoubleJumpSpeed;
-                        SoundVisualizer.PlaySoundEvent(SoundEvent.Woo);
-                        currentJumpType = JumpType.Double;
-                        break;
-                    }
-                    case JumpType.Double:
-                    {
-                        jumpSpeed = TrippleJumpSpeed;
-                        AnimationVisualizer.SetAnimationTrigger(AnimationTrigger.Dive);
-                        SoundVisualizer.PlaySoundEvent(SoundEvent.Woohoo);
-                        currentJumpType = JumpType.Tripple;
-                        break;
-                    }
-                    case JumpType.Tripple:
-                    {
-                        jumpSpeed = SingleJumpSpeed;
-                        SoundVisualizer.PlaySoundEvent(SoundEvent.Wa);
-                        currentJumpType = JumpType.Single;
-                        break;
-                    }
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-            else
-            {
-                jumpSpeed = SingleJumpSpeed;
-                SoundVisualizer.PlaySoundEvent(SoundEvent.Wa);
-                currentJumpType = JumpType.Single;
-            }
-
-            //TODO - make Jump struct and make this an angle with proper maths.
-            //This isn't the way to do it' trajectory should be fixed based on jump type.
-            float steepnessFactor;
-            switch (currentJumpType)
-            {
-                case JumpType.Single:
-                    steepnessFactor = 5;
-                    break;
-                case JumpType.Double:
-                    steepnessFactor = 5;
-                    break;
-                case JumpType.Tripple:
-                    steepnessFactor = 0.5f;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            var jumpDirection = (upDirection * steepnessFactor + moveInputVector).normalized;
-            currentVelocity += jumpDirection * jumpSpeed - Vector3.Project(currentVelocity, Motor.CharacterUp);
-
-            CurrentJumpState = JumpState.Ascent;
-            lastJumpType = currentJumpType;
-            jumpTriggeredThisFrame = false;
-            jumpConsumed = true;
-            jumpedThisFrame = true;
-        }
-
         /// <summary>
         /// (Called by KinematicCharacterMotor during its update cycle)
         /// This is called after the character has finished its movement update
         /// </summary>
         public override void AfterCharacterUpdate(float deltaTime)
         {
-            switch (CurrentCharacterState)
+            switch (currentCharacterState)
             {
                 case CharacterState.Default:
                 {
@@ -516,9 +370,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             //Nothing Yet
         }
 
+        public override void ProcessHitStabilityReport(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, Vector3 atCharacterPosition, Quaternion atCharacterRotation, ref HitStabilityReport hitStabilityReport)
+        {
+        }
+
         public void AddVelocity(Vector3 velocity)
         {
-            switch (CurrentCharacterState)
+            switch (currentCharacterState)
             {
                 case CharacterState.Default:
                 {
@@ -528,15 +386,116 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
         }
 
-        public override void ProcessHitStabilityReport(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, Vector3 atCharacterPosition, Quaternion atCharacterRotation, ref HitStabilityReport hitStabilityReport)
+        private void ApplyAirMovement(ref Vector3 currentVelocity, float deltaTime)
         {
+            if (moveInputVector.sqrMagnitude > 0f)
+            {
+                var targetMovementVelocity = moveInputVector * AirControlFactor * MaxAirMoveSpeed;
+
+                // Prevent climbing on un-stable slopes with air movement
+                if (Motor.GroundingStatus.FoundAnyGround)
+                {
+                    Vector3 perpenticularObstructionNormal = Vector3
+                        .Cross(Vector3.Cross(Motor.CharacterUp, Motor.GroundingStatus.GroundNormal), Motor.CharacterUp)
+                        .normalized;
+                    targetMovementVelocity = Vector3.ProjectOnPlane(targetMovementVelocity, perpenticularObstructionNormal);
+                }
+
+                //Clamp the velocity diff you can achive while in the air. 
+
+                Vector3 velocityDiff = Vector3.ProjectOnPlane(targetMovementVelocity - currentVelocity, BaseGravity);
+                currentVelocity += velocityDiff * AirAccelerationSpeed * deltaTime;
+            }
+        }
+
+        private void DoJump(ref Vector3 currentVelocity)
+        {
+            // Calculate jump direction before ungrounding
+            Vector3 upDirection = Motor.CharacterUp;
+            if (Motor.GroundingStatus.FoundAnyGround && !Motor.GroundingStatus.IsStableOnGround)
+            {
+                upDirection = Motor.GroundingStatus.GroundNormal;
+            }
+
+            //jumpDirection += lookInputVector;
+
+            // Makes the character skip ground probing/snapping on its next update. 
+            // If this line weren't here, the character would remain snapped to the ground when trying to jump. Try commenting this line out and see.
+            Motor.ForceUnground();
+
+            // Add to the return velocity and reset jump state
+            float jumpSpeed;
+            JumpType currentJumpType;
+            if (CurrentJumpState == JumpState.JustLanded)
+            {
+                switch (lastJumpType)
+                {
+                    case JumpType.Single:
+                    {
+                        jumpSpeed = DoubleJumpSpeed;
+                        PlaySoundEvent(SoundEventType.Woo);
+                        currentJumpType = JumpType.Double;
+                        break;
+                    }
+                    case JumpType.Double:
+                    {
+                        jumpSpeed = TrippleJumpSpeed;
+                        PlayAnimationEvent(AnimationEventType.Dive);
+                        PlaySoundEvent(SoundEventType.Woohoo);
+                        currentJumpType = JumpType.Tripple;
+                        break;
+                    }
+                    case JumpType.Tripple:
+                    {
+                        jumpSpeed = SingleJumpSpeed;
+                        PlaySoundEvent(SoundEventType.Wa);
+                        currentJumpType = JumpType.Single;
+                        break;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            else
+            {
+                jumpSpeed = SingleJumpSpeed;
+                PlaySoundEvent(SoundEventType.Wa);
+                currentJumpType = JumpType.Single;
+            }
+
+            //TODO - make Jump struct and make this an angle with proper maths.
+            //This isn't the way to do it' trajectory should be fixed based on jump type.
+            float steepnessFactor;
+            switch (currentJumpType)
+            {
+                case JumpType.Single:
+                    steepnessFactor = 5;
+                    break;
+                case JumpType.Double:
+                    steepnessFactor = 5;
+                    break;
+                case JumpType.Tripple:
+                    steepnessFactor = 0.5f;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            var jumpDirection = (upDirection * steepnessFactor + moveInputVector).normalized;
+            currentVelocity += jumpDirection * jumpSpeed - Vector3.Project(currentVelocity, Motor.CharacterUp);
+
+            CurrentJumpState = JumpState.Ascent;
+            lastJumpType = currentJumpType;
+            jumpTriggeredThisFrame = false;
+            jumpConsumed = true;
+            jumpedThisFrame = true;
         }
 
         private void OnLanded()
         {
             if (Motor.GroundingStatus.IsStableOnGround)
             {
-                ParticleVisualizer.PlayParticleEvent(AvatarParticleVisualizer.ParticleEvent.LandingPoof);
+                PlayParticleEvent(ParticleEventType.LandingPoof);
             }
             
             CurrentJumpState = JumpState.JustLanded;
@@ -546,6 +505,63 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private void OnLeaveStableGround()
         {
             //Nothing Yet
+        }
+
+        private void PlaySoundEvent(SoundEventType soundEventType)
+        {
+            eventWriter?.SendSoundEvent(new SoundEvent((uint) soundEventType));
+            SoundVisualizer.PlaySoundEvent(soundEventType);
+        }
+
+        private void PlayAnimationEvent(AnimationEventType animationEventType)
+        {
+            eventWriter?.SendAnimationEvent(new AnimationEvent((uint) animationEventType));
+            AnimationVisualizer.PlayAnimationEvent(animationEventType);
+        }
+
+        private void PlayParticleEvent(ParticleEventType particleEvent)
+        {
+            eventWriter?.SendParticleEvent(new ParticleEvent((uint)particleEvent));
+            ParticleVisualizer.PlayParticleEvent(particleEvent);
+        }
+
+        /// <summary>
+        /// Handles movement state transitions and enter/exit callbacks
+        /// </summary>
+        private void TransitionToState(CharacterState newState)
+        {
+            CharacterState tmpInitialState = currentCharacterState;
+            OnStateExit(tmpInitialState, newState);
+            currentCharacterState = newState;
+            OnStateEnter(newState, tmpInitialState);
+        }
+
+        /// <summary>
+        /// Event when entering a state
+        /// </summary>
+        private void OnStateEnter(CharacterState state, CharacterState fromState)
+        {
+            switch (state)
+            {
+                case CharacterState.Default:
+                {
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Event when exiting a state
+        /// </summary>
+        private void OnStateExit(CharacterState state, CharacterState toState)
+        {
+            switch (state)
+            {
+                case CharacterState.Default:
+                {
+                    break;
+                }
+            }
         }
     }
 }

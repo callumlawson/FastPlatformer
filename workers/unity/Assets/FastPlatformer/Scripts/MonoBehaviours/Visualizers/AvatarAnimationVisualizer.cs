@@ -1,8 +1,12 @@
+using Gameschema.Untrusted;
+using Improbable.Gdk.GameObjectRepresentation;
+using Improbable.Worker.CInterop;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace FastPlatformer.Scripts.MonoBehaviours
 {
-    public enum AnimationTrigger
+    public enum AnimationEventType
     {
         Dive = 0
     }
@@ -11,11 +15,25 @@ namespace FastPlatformer.Scripts.MonoBehaviours
     {
         public Animator AvatarAnimator;
 
-        //Handle events or local calls.
+        [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Reader eventReader;
 
-        public void SetAnimationTrigger(AnimationTrigger trigger)
+        public void OnEnable()
         {
-            AvatarAnimator.SetTrigger(trigger.ToString());
+            if (eventReader != null)
+            {
+                eventReader.OnAnimationEvent += animationEvent =>
+                {
+                    if (eventReader.Authority == Authority.NotAuthoritative)
+                    {
+                        PlayAnimationEvent((AnimationEventType) animationEvent.Eventid);
+                    }
+                };
+            }
+        }
+
+        public void PlayAnimationEvent(AnimationEventType animationEventType)
+        {
+            AvatarAnimator.SetTrigger(animationEventType.ToString());
         }
     }
 }

@@ -1,0 +1,21 @@
+package gameschema.untrusted;
+
+type AnimationEvent {
+    uint32 eventid = 1;
+}
+
+type ParticleEvent {
+    uint32 eventid = 1;
+}
+
+type SoundEvent {
+    uint32 eventid = 1;
+}
+
+component PlayerVisualizerEvents
+{
+    id = 12002;
+    event AnimationEvent animation_event;
+    event ParticleEvent particle_event;
+    event SoundEvent sound_event;
+}
