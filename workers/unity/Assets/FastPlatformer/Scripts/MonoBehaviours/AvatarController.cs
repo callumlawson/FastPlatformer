@@ -68,6 +68,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float Drag = 0.1f;
 
         [Header("Jumping")]
+        public const float CriticalSpeed = 5f; //Needs extracting into config objects! (like most of this stuff)
         public bool AllowJumpingWhenSliding;
         public float SingleJumpSpeed = 10f;
         public float DoubleJumpSpeed = 12f;
@@ -215,26 +216,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     // Ground movement
                     if (Motor.GroundingStatus.IsStableOnGround)
                     {
-                        Vector3 effectiveGroundNormal = Motor.GroundingStatus.GroundNormal;
-                        if (currentVelocity.sqrMagnitude > 0f && Motor.GroundingStatus.SnappingPrevented)
-                        {
-                            // Take the normal from where we're coming from
-                            Vector3 groundPointToCharacter = Motor.TransientPosition - Motor.GroundingStatus.GroundPoint;
-                            effectiveGroundNormal = Vector3.Dot(currentVelocity, groundPointToCharacter) >= 0f
-                                ? Motor.GroundingStatus.OuterGroundNormal
-                                : Motor.GroundingStatus.InnerGroundNormal;
-                        }
-
-                        // Reorient velocity on slope
-                        currentVelocity = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) * currentVelocity.magnitude;
-
-                        // Calculate target velocity
-                        var inputRight = Vector3.Cross(moveInputVector, Motor.CharacterUp);
-                        var reorientedInput = Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
-                        var targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
-                            
-                        // Smooth movement Velocity
-                        currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity, 1 - Mathf.Exp(-StableMovementSharpness * deltaTime));
+                        ApplyGroundMovement(ref currentVelocity, deltaTime);
                     }
                     // Air movement
                     else
@@ -289,6 +271,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         currentVelocity += internalVelocityAdd;
                         internalVelocityAdd = Vector3.zero;
                     }
+
+                    //Handle speed related vfx
+                    var speed = currentVelocity.magnitude;
+                    var isUnderCriticalSpeed = speed > 0.2f && speed < CriticalSpeed;
+                    ParticleVisualizer.SetParticleState(ParticleEventType.DustTrail, isUnderCriticalSpeed && Motor.GroundingStatus.FoundAnyGround);
+
                     break;
                 }
             }
@@ -304,28 +292,25 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 case CharacterState.Default:
                 {
-                    // Handle jump-related values
+                    // Handle jumping pre-ground grace period
+                    if (jumpTriggeredThisFrame && timeSinceJumpRequested > JumpPreGroundingGraceTime)
                     {
-                        // Handle jumping pre-ground grace period
-                        if (jumpTriggeredThisFrame && timeSinceJumpRequested > JumpPreGroundingGraceTime)
-                        {
-                            jumpTriggeredThisFrame = false;
-                        }
+                        jumpTriggeredThisFrame = false;
+                    }
 
-                        if (AllowJumpingWhenSliding ? Motor.GroundingStatus.FoundAnyGround : Motor.GroundingStatus.IsStableOnGround)
+                    if (AllowJumpingWhenSliding ? Motor.GroundingStatus.FoundAnyGround : Motor.GroundingStatus.IsStableOnGround)
+                    {
+                        // If we're on a ground surface, reset jumping values
+                        if (!jumpedThisFrame)
                         {
-                            // If we're on a ground surface, reset jumping values
-                            if (!jumpedThisFrame)
-                            {
-                                jumpConsumed = false;
-                            }
-                            timeSinceLastAbleToJump = 0f;
+                            jumpConsumed = false;
                         }
-                        else
-                        {
-                            // Keep track of time since we were last able to jump (for grace period)
-                            timeSinceLastAbleToJump += deltaTime;
-                        }
+                        timeSinceLastAbleToJump = 0f;
+                    }
+                    else
+                    {
+                        // Keep track of time since we were last able to jump (for grace period)
+                        timeSinceLastAbleToJump += deltaTime;
                     }
 
                     break;
@@ -386,6 +371,32 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
         }
 
+        private void ApplyGroundMovement(ref Vector3 currentVelocity, float deltaTime)
+        {
+            Vector3 effectiveGroundNormal = Motor.GroundingStatus.GroundNormal;
+            if (currentVelocity.sqrMagnitude > 0f && Motor.GroundingStatus.SnappingPrevented)
+            {
+                // Take the normal from where we're coming from
+                Vector3 groundPointToCharacter = Motor.TransientPosition - Motor.GroundingStatus.GroundPoint;
+                effectiveGroundNormal = Vector3.Dot(currentVelocity, groundPointToCharacter) >= 0f
+                    ? Motor.GroundingStatus.OuterGroundNormal
+                    : Motor.GroundingStatus.InnerGroundNormal;
+            }
+
+            // Reorient velocity on slope
+            currentVelocity = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) *
+                currentVelocity.magnitude;
+
+            // Calculate target velocity
+            var inputRight = Vector3.Cross(moveInputVector, Motor.CharacterUp);
+            var reorientedInput = Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
+            var targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
+
+            // Smooth movement Velocity
+            currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity,
+                1 - Mathf.Exp(-StableMovementSharpness * deltaTime));
+        }
+
         private void ApplyAirMovement(ref Vector3 currentVelocity, float deltaTime)
         {
             if (moveInputVector.sqrMagnitude > 0f)
@@ -433,22 +444,22 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     case JumpType.Single:
                     {
                         jumpSpeed = DoubleJumpSpeed;
-                        PlaySoundEvent(SoundEventType.Woo);
+                        PlayNetworkedSoundEvent(SoundEventType.Woo);
                         currentJumpType = JumpType.Double;
                         break;
                     }
                     case JumpType.Double:
                     {
                         jumpSpeed = TrippleJumpSpeed;
-                        PlayAnimationEvent(AnimationEventType.Dive);
-                        PlaySoundEvent(SoundEventType.Woohoo);
+                        PlayNetworkedAnimationEvent(AnimationEventType.Dive);
+                        PlayNetworkedSoundEvent(SoundEventType.Woohoo);
                         currentJumpType = JumpType.Tripple;
                         break;
                     }
                     case JumpType.Tripple:
                     {
                         jumpSpeed = SingleJumpSpeed;
-                        PlaySoundEvent(SoundEventType.Wa);
+                        PlayNetworkedSoundEvent(SoundEventType.Wa);
                         currentJumpType = JumpType.Single;
                         break;
                     }
@@ -459,7 +470,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             else
             {
                 jumpSpeed = SingleJumpSpeed;
-                PlaySoundEvent(SoundEventType.Wa);
+                PlayNetworkedSoundEvent(SoundEventType.Wa);
                 currentJumpType = JumpType.Single;
             }
 
@@ -472,7 +483,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     steepnessFactor = 5;
                     break;
                 case JumpType.Double:
-                    steepnessFactor = 5;
+                    steepnessFactor = 8;
                     break;
                 case JumpType.Tripple:
                     steepnessFactor = 0.5f;
@@ -495,7 +506,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         {
             if (Motor.GroundingStatus.IsStableOnGround)
             {
-                PlayParticleEvent(ParticleEventType.LandingPoof);
+                PlayNetworkedParticleEvent(ParticleEventType.LandingPoof);
             }
             
             CurrentJumpState = JumpState.JustLanded;
@@ -507,19 +518,19 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             //Nothing Yet
         }
 
-        private void PlaySoundEvent(SoundEventType soundEventType)
+        private void PlayNetworkedSoundEvent(SoundEventType soundEventType)
         {
             eventWriter?.SendSoundEvent(new SoundEvent((uint) soundEventType));
             SoundVisualizer.PlaySoundEvent(soundEventType);
         }
 
-        private void PlayAnimationEvent(AnimationEventType animationEventType)
+        private void PlayNetworkedAnimationEvent(AnimationEventType animationEventType)
         {
             eventWriter?.SendAnimationEvent(new AnimationEvent((uint) animationEventType));
             AnimationVisualizer.PlayAnimationEvent(animationEventType);
         }
 
-        private void PlayParticleEvent(ParticleEventType particleEvent)
+        private void PlayNetworkedParticleEvent(ParticleEventType particleEvent)
         {
             eventWriter?.SendParticleEvent(new ParticleEvent((uint)particleEvent));
             ParticleVisualizer.PlayParticleEvent(particleEvent);

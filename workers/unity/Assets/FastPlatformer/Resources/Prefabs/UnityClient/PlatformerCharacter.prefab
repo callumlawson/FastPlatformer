@@ -109,6 +109,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   LandingPoof: {fileID: 8317922256400240955}
+  DustTrail: {fileID: 5395217904680312793}
 --- !u!114 &2548109770759916625
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -494,3 +495,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ed80cfc1180ea6b4888116db903ec1a1, type: 3}
+--- !u!198 &5395217904680312793 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 2869452403957223135, guid: ed80cfc1180ea6b4888116db903ec1a1,
+    type: 3}
+  m_PrefabInstance: {fileID: 7858216043004481798}
+  m_PrefabAsset: {fileID: 0}

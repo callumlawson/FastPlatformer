@@ -3,32 +3,44 @@ using Improbable.Gdk.GameObjectRepresentation;
 using Improbable.Worker.CInterop;
 using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngineInternal;
 
 namespace FastPlatformer.Scripts.MonoBehaviours
 {
     public enum ParticleEventType
     {
-        LandingPoof = 0
+        LandingPoof = 0,
+        DustTrail = 1
     }
 
     public class AvatarParticleVisualizer : MonoBehaviour
     {
         public ParticleSystem LandingPoof;
+        public ParticleSystem DustTrail;
 
         [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Reader eventReader;
 
         public void OnEnable()
         {
-            if (eventReader != null)
+            if (eventReader != null && eventReader.Authority == Authority.NotAuthoritative)
             {
                 eventReader.OnParticleEvent += particleEvent =>
                 {
-                    if (eventReader.Authority == Authority.NotAuthoritative)
-                    {
-                        PlayParticleEvent((ParticleEventType) particleEvent.Eventid, true);
-                    }
+                    PlayParticleEvent((ParticleEventType) particleEvent.Eventid, true);
                 };
+            }
+        }
+
+        public void Update()
+        {
+            if (eventReader != null && eventReader.Authority == Authority.NotAuthoritative)
+            {
+                //Play dust if grounded and between certain speeds
+                if (Physics.Raycast(transform.position, -transform.up, 0.1f))
+                {
+                    var estimatedSpeed = EstimateSpeed();
+                    var isCriticalSpeed = estimatedSpeed > 0.2f && estimatedSpeed < AvatarController.CriticalSpeed;
+                    SetParticleState(ParticleEventType.DustTrail, isCriticalSpeed);
+                }
             }
         }
 
@@ -37,6 +49,21 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             if (particleEventType == ParticleEventType.LandingPoof)
             {
                 PlayLandingPoof(isNetworked);
+            }
+        }
+
+        public void SetParticleState(ParticleEventType particleEventType, bool playing)
+        {
+            if (particleEventType == ParticleEventType.DustTrail)
+            {
+                if (playing)
+                {
+                    DustTrail.Play();
+                }
+                else
+                {
+                    DustTrail.Stop();
+                }
             }
         }
 
@@ -56,6 +83,18 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     LandingPoof.Play();
                 }
             }
+        }
+
+        private Vector3? lastPosition;
+        private float EstimateSpeed()
+        {
+            var currentPosition = transform.position;
+            if (lastPosition.HasValue)
+            {
+                return Vector3.Distance(currentPosition, lastPosition.Value) / Time.deltaTime;
+            }
+            lastPosition = currentPosition;
+            return 0.0f;
         }
     }
 }
