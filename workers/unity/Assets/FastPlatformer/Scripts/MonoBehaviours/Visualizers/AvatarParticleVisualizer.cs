@@ -35,9 +35,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             if (eventReader != null && eventReader.Authority == Authority.NotAuthoritative)
             {
                 //Play dust if grounded and between certain speeds
-                if (Physics.Raycast(transform.position, -transform.up, 0.1f))
+                var rayOrigin = transform.position;
+                rayOrigin.y = rayOrigin.y + 0.2f;
+                if (Physics.Raycast(rayOrigin, -transform.up, 0.5f))
                 {
-                    var estimatedSpeed = EstimateSpeed();
+                    var estimatedSpeed = GetComponent<Rigidbody>().velocity.magnitude;
                     var isCriticalSpeed = estimatedSpeed > 0.2f && estimatedSpeed < AvatarController.CriticalSpeed;
                     SetParticleState(ParticleEventType.DustTrail, isCriticalSpeed);
                 }
@@ -83,18 +85,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     LandingPoof.Play();
                 }
             }
-        }
-
-        private Vector3? lastPosition;
-        private float EstimateSpeed()
-        {
-            var currentPosition = transform.position;
-            if (lastPosition.HasValue)
-            {
-                return Vector3.Distance(currentPosition, lastPosition.Value) / Time.deltaTime;
-            }
-            lastPosition = currentPosition;
-            return 0.0f;
         }
     }
 }

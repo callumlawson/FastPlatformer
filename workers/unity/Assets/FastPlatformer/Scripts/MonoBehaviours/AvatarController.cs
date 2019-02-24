@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Xml;
 using Gameschema.Untrusted;
 using Improbable.Gdk.GameObjectRepresentation;
 using JetBrains.Annotations;
@@ -22,10 +23,10 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         public enum JumpState
         {
-            JustLanded,
-            Grounded,
             Ascent,
-            Descent
+            Descent,
+            JustLanded,
+            Grounded
         }
 
         private enum GravityType
@@ -80,10 +81,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float DoubleJumpTimeWindowSize;
         public JumpState CurrentJumpState;
         public Vector3 EarthGravity = new Vector3(0, -30, 0);
+
+        private Vector3 jumpHeading;
         private bool jumpTriggeredThisFrame;
         private bool jumpHeldThisFrame;
         private bool jumpConsumed;
-        private bool jumpedThisFrame;
+        private bool jumpedLastFrame;
         private JumpType lastJumpType;
         private float timeSinceLastAbleToJump;
         private float timeSinceJumpRequested = Mathf.Infinity;
@@ -177,15 +180,26 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 case CharacterState.Default:
                 {
-                    if (moveInputVector != Vector3.zero && OrientationSharpness > 0f)
+                    if (CurrentJumpState != JumpState.Ascent && CurrentJumpState != JumpState.Descent)
                     {
-                        // Smoothly interpolate from current to target look direction
-                        Vector3 smoothedLookInputDirection =
-                            Vector3.Slerp(Motor.CharacterForward, moveInputVector, 1 - Mathf.Exp(-OrientationSharpness * deltaTime)).normalized;
+                        if (moveInputVector != Vector3.zero && OrientationSharpness > 0f)
+                        {
+                            // Smoothly interpolate from current to target look direction
+                            Vector3 smoothedLookInputDirection =
+                                Vector3.Slerp(Motor.CharacterForward, moveInputVector, 1 - Mathf.Exp(-OrientationSharpness * deltaTime)).normalized;
 
-                        // Set the current rotation (which will be used by the KinematicCharacterMotor)
-                        currentRotation = Quaternion.LookRotation(smoothedLookInputDirection, Motor.CharacterUp);
+                            // Set the current rotation (which will be used by the KinematicCharacterMotor)
+                            currentRotation = Quaternion.LookRotation(smoothedLookInputDirection, Motor.CharacterUp);
+                        }
                     }
+                    else
+                    {
+                        if (jumpedLastFrame)
+                        {
+                            currentRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(jumpHeading, Motor.CharacterUp), Motor.CharacterUp);
+                        }
+                    }
+
                     if (OrientTowardsGravity)
                     {
                         // Rotate from current up to invert gravity
@@ -251,7 +265,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         timeSinceJumpLanding = 0;
                     }
 
-                    jumpedThisFrame = false;
+                    jumpedLastFrame = false;
                     if (jumpTriggeredThisFrame)
                     {
                         // See if we actually are allowed to jump
@@ -301,7 +315,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     if (AllowJumpingWhenSliding ? Motor.GroundingStatus.FoundAnyGround : Motor.GroundingStatus.IsStableOnGround)
                     {
                         // If we're on a ground surface, reset jumping values
-                        if (!jumpedThisFrame)
+                        if (!jumpedLastFrame)
                         {
                             jumpConsumed = false;
                         }
@@ -474,32 +488,43 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 currentJumpType = JumpType.Single;
             }
 
-            //TODO - make Jump struct and make this an angle with proper maths.
-            //This isn't the way to do it' trajectory should be fixed based on jump type.
-            float steepnessFactor;
+            Vector3 jumpDirection;
             switch (currentJumpType)
             {
                 case JumpType.Single:
-                    steepnessFactor = 5;
+                    if (Vector3.Dot(currentVelocity, moveInputVector) < -0.8)
+                    {
+                        jumpHeading = currentVelocity;
+                        currentVelocity = -currentVelocity;
+                        jumpDirection = (upDirection * 5 + moveInputVector).normalized;
+                        PlayNetworkedAnimationEvent(AnimationEventType.Backflip);
+                    }
+                    else
+                    {
+                        jumpDirection = (upDirection * 5 + moveInputVector).normalized;
+                        jumpHeading = moveInputVector;
+                    }
                     break;
                 case JumpType.Double:
-                    steepnessFactor = 8;
+                    jumpDirection = (upDirection * 8 + moveInputVector).normalized;
+                    jumpHeading = moveInputVector;
                     break;
                 case JumpType.Tripple:
-                    steepnessFactor = 0.5f;
+                    jumpDirection = (upDirection * 0.5f + currentVelocity.normalized).normalized;
+                    jumpHeading = currentVelocity;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
 
-            var jumpDirection = (upDirection * steepnessFactor + moveInputVector).normalized;
             currentVelocity += jumpDirection * jumpSpeed - Vector3.Project(currentVelocity, Motor.CharacterUp);
 
+            
             CurrentJumpState = JumpState.Ascent;
             lastJumpType = currentJumpType;
             jumpTriggeredThisFrame = false;
             jumpConsumed = true;
-            jumpedThisFrame = true;
+            jumpedLastFrame = true;
         }
 
         private void OnLanded()

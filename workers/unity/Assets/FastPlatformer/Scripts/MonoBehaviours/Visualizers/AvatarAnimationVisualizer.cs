@@ -8,7 +8,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 {
     public enum AnimationEventType
     {
-        Dive = 0
+        Dive = 0,
+        Backflip = 1
     }
 
     public class AvatarAnimationVisualizer : MonoBehaviour
