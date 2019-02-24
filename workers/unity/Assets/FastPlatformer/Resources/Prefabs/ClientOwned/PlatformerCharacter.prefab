@@ -212,10 +212,10 @@ MonoBehaviour:
   SoundVisualizer: {fileID: 1785775485913548014}
   AnimationVisualizer: {fileID: 7439924520351279108}
   ParticleVisualizer: {fileID: 6122931425759340864}
-  MaxStableMoveSpeed: 10
-  StableMovementSharpness: 15
+  MaxStableMoveSpeed: 8
+  StableMovementSharpness: 6
   OrientationSharpness: 10
-  MaxAirMoveSpeed: 10
+  MaxAirMoveSpeed: 8
   AirAccelerationSpeed: 3
   AirControlFactor: 1
   Drag: 0.05
@@ -315,7 +315,7 @@ PrefabInstance:
     - target: {fileID: 632029723400355986, guid: 73431d1854ba1424b918953cdb0b87cf,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -0.094
       objectReference: {fileID: 0}
     - target: {fileID: 632029723400355986, guid: 73431d1854ba1424b918953cdb0b87cf,
         type: 3}
@@ -466,6 +466,11 @@ PrefabInstance:
         type: 3}
       propertyPath: Camera
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8912346842342755702, guid: 73431d1854ba1424b918953cdb0b87cf,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 73431d1854ba1424b918953cdb0b87cf, type: 3}
