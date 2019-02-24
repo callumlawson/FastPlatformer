@@ -16,16 +16,33 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public AudioClip Woo;
         public AudioClip Woohoo;
 
-        //TODO - Proper SFX loading system.
-        public Dictionary<SoundEvent, AudioClip> SoundMapping;
-
         public AudioSource AudioSource;
 
-        //Handle events or local calls.
+        //TODO - Proper SFX loading system.
+        private Dictionary<SoundEvent, AudioClip> soundMapping;
 
-        public void SetAnimationTrigger(AnimationTrigger trigger)
+        private void Awake()
         {
-            AudioSource.PlayOneShot();
+            soundMapping = new Dictionary<SoundEvent, AudioClip>
+            {
+                { SoundEvent.Wa, Wa },
+                { SoundEvent.Woo, Woo },
+                { SoundEvent.Woohoo, Woohoo }
+            };
+        }
+
+        public void PlaySoundEvent(SoundEvent soundEvent)
+        {
+            AudioClip clip;
+            var haveSound = soundMapping.TryGetValue(soundEvent, out clip);
+            if (haveSound)
+            {
+                AudioSource.PlayOneShot(clip);
+            }
+            else
+            {
+                Debug.LogWarning($"Tried to play soundEvent {soundEvent.ToString()} but there was no mapped audio clip.");
+            }
         }
     }
 }

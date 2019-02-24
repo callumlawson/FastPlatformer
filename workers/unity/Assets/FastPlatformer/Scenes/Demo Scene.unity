@@ -361,11 +361,6 @@ PrefabInstance:
       propertyPath: PlanetTransform
       value: 
       objectReference: {fileID: 836795486}
-    - target: {fileID: 6953577238884095786, guid: cdee3c3988717734792255c1c916cd18,
-        type: 3}
-      propertyPath: SingleJumpSpeed
-      value: 13
-      objectReference: {fileID: 0}
     - target: {fileID: 2382428881156556614, guid: cdee3c3988717734792255c1c916cd18,
         type: 3}
       propertyPath: m_IsActive

@@ -28,6 +28,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             Object
         }
 
+        //Not used yet. Next state - "sliding"
         public enum CharacterState
         {
             Default
@@ -41,6 +42,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             public bool JumpDown;
             public bool Interact;
         }
+
+        [Header("SFX")]
+        public AvatarSoundVisualizer SoundVisualizer;
+
+        [Header("Animation")]
+        public AvatarAnimationVisualizer AnimationVisualizer;
 
         //TODO Extract these variables!
         [Header("Stable Movement")]
@@ -62,34 +69,10 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float JumpPreGroundingGraceTime;
         public float JumpPostGroundingGraceTime;
         public float DoubleJumpTimeWindowSize;
+        public JumpState CurrentJumpState;
         public Vector3 EarthGravity = new Vector3(0, -30, 0);
 
-        [Header("PlanetPrototype")]
-        public Transform PlanetTransform;
-        private GravityType gravityType;
-
-        //Yes I know this shouldn't be here.
-        [Header("JumpingSFX")]
-        public AudioSource AudioSource;
-        public AudioClip SingleJump;
-        public AudioClip DoubleJump;
-        public AudioClip TrippleJump;
-
-        [Header("Misc")]
-        public List<Collider> IgnoredColliders = new List<Collider>();
-        public bool OrientTowardsGravity = false;
-        public Vector3 BaseGravity = new Vector3(0, -30f, 0);
-        public Transform MeshRoot;
-        public Transform CameraFollowPoint;
-
-        public CharacterState CurrentCharacterState { get; private set; }
-
-        private Vector3 moveInputVector;
-        private Vector3 internalVelocityAdd = Vector3.zero;
-
         //Jumping
-        public JumpState currentJumpState;
-
         private bool jumpRequested;
         private bool jumpConsumed;
         private bool jumpedThisFrame;
@@ -97,6 +80,21 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private float timeSinceLastAbleToJump;
         private float timeSinceJumpRequested = Mathf.Infinity;
         private float timeSinceJumpLanding = Mathf.Infinity;
+
+        [Header("TemporaryPlanetPrototype")]
+        public Transform PlanetTransform;
+        private GravityType gravityType;
+
+        [Header("Misc")]
+        public List<Collider> IgnoredColliders = new List<Collider>();
+        public bool OrientTowardsGravity = false;
+        public Vector3 BaseGravity = new Vector3(0, -30f, 0);
+        public Transform CameraFollowPoint;
+        
+
+        private Vector3 moveInputVector;
+        private Vector3 internalVelocityAdd = Vector3.zero;
+        private CharacterState CurrentCharacterState { get; set; }
 
         private void Start()
         {
@@ -107,7 +105,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         /// <summary>
         /// Handles movement state transitions and enter/exit callbacks
         /// </summary>
-        public void TransitionToState(CharacterState newState)
+        private void TransitionToState(CharacterState newState)
         {
             CharacterState tmpInitialState = CurrentCharacterState;
             OnStateExit(tmpInitialState, newState);
@@ -118,7 +116,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         /// <summary>
         /// Event when entering a state
         /// </summary>
-        public void OnStateEnter(CharacterState state, CharacterState fromState)
+        private void OnStateEnter(CharacterState state, CharacterState fromState)
         {
             switch (state)
             {
@@ -132,7 +130,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         /// <summary>
         /// Event when exiting a state
         /// </summary>
-        public void OnStateExit(CharacterState state, CharacterState toState)
+        private void OnStateExit(CharacterState state, CharacterState toState)
         {
             switch (state)
             {
@@ -149,22 +147,22 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public void SetInputs(ref CharacterInputs inputs)
         {
             // Clamp input
-            Vector3 moveInputVector = Vector3.ClampMagnitude(new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward), 1f);
+            var newInputVector = Vector3.ClampMagnitude(new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward), 1f);
 
             // Calculate camera direction and rotation on the character plane
-            Vector3 cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
+            var cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
             if (cameraPlanarDirection.sqrMagnitude == 0f)
             {
                 cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.up, Motor.CharacterUp).normalized;
             }
-            Quaternion cameraPlanarRotation = Quaternion.LookRotation(cameraPlanarDirection, Motor.CharacterUp);
+            var cameraPlanarRotation = Quaternion.LookRotation(cameraPlanarDirection, Motor.CharacterUp);
 
             switch (CurrentCharacterState)
             {
                 case CharacterState.Default:
                 {
                     // Move and look inputs
-                    this.moveInputVector = cameraPlanarRotation * moveInputVector;
+                    moveInputVector = cameraPlanarRotation * newInputVector;
 
                     // Jumping input
                     if (inputs.JumpDown)
@@ -241,9 +239,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 case CharacterState.Default:
                 {
                     //Check jump status
-                    if (currentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(currentVelocity, BaseGravity).y < 0)
+                    if (CurrentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(currentVelocity, BaseGravity).y < 0)
                     {
-                        currentJumpState = JumpState.Descent;
+                        CurrentJumpState = JumpState.Descent;
                     }
 
                     // Ground movement
@@ -277,7 +275,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
                         // Gravity
                         var gravity = BaseGravity * deltaTime;
-                        if (currentJumpState == JumpState.Descent)
+                        if (CurrentJumpState == JumpState.Descent)
                         {
                             gravity *= 2;
                         }
@@ -289,13 +287,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
                     // Handle jump timing - move this to After Character Update?
                     timeSinceJumpRequested += deltaTime;
-                    if (currentJumpState == JumpState.JustLanded)
+                    if (CurrentJumpState == JumpState.JustLanded)
                     {
                         timeSinceJumpLanding += deltaTime;
                     }
                     if (timeSinceJumpLanding > DoubleJumpTimeWindowSize)
                     {
-                        currentJumpState = JumpState.Grounded;
+                        CurrentJumpState = JumpState.Grounded;
                         timeSinceJumpLanding = 0;
                     }
 
@@ -362,30 +360,30 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             Motor.ForceUnground();
 
             // Add to the return velocity and reset jump state
-            float jumpSpeed = 0.0f;
-            JumpType currentJumpType = JumpType.Single;
-            if (currentJumpState == JumpState.JustLanded)
+            float jumpSpeed;
+            JumpType currentJumpType;
+            if (CurrentJumpState == JumpState.JustLanded)
             {
                 switch (lastJumpType)
                 {
                     case JumpType.Single:
                     {
                         jumpSpeed = DoubleJumpSpeed;
-                        AudioSource.PlayOneShot(DoubleJump);
+                        SoundVisualizer.PlaySoundEvent(SoundEvent.Woo);
                         currentJumpType = JumpType.Double;
                         break;
                     }
                     case JumpType.Double:
                     {
                         jumpSpeed = TrippleJumpSpeed;
-                        AudioSource.PlayOneShot(TrippleJump);
+                        SoundVisualizer.PlaySoundEvent(SoundEvent.Woohoo);
                         currentJumpType = JumpType.Tripple;
                         break;
                     }
                     case JumpType.Tripple:
                     {
                         jumpSpeed = SingleJumpSpeed;
-                        AudioSource.PlayOneShot(SingleJump);
+                        SoundVisualizer.PlaySoundEvent(SoundEvent.Wa);
                         currentJumpType = JumpType.Single;
                         break;
                     }
@@ -396,7 +394,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             else
             {
                 jumpSpeed = SingleJumpSpeed;
-                AudioSource.PlayOneShot(SingleJump);
+                SoundVisualizer.PlaySoundEvent(SoundEvent.Wa);
                 currentJumpType = JumpType.Single;
             }
 
@@ -421,7 +419,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             var jumpDirection = (upDirection * steepnessFactor + moveInputVector).normalized;
             currentVelocity += jumpDirection * jumpSpeed - Vector3.Project(currentVelocity, Motor.CharacterUp);
 
-            currentJumpState = JumpState.Ascent;
+            CurrentJumpState = JumpState.Ascent;
             lastJumpType = currentJumpType;
             jumpRequested = false;
             jumpConsumed = true;
@@ -522,7 +520,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void OnLanded()
         {
-            currentJumpState = JumpState.JustLanded;
+            CurrentJumpState = JumpState.JustLanded;
             timeSinceJumpLanding = 0;
         }
 
