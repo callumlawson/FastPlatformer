@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace FastPlatformer.Scripts.MonoBehaviours
 {
-    public class CharacterControllerVisualDebug : MonoBehaviour
+    public class AvatarControllerVisualDebug : MonoBehaviour
     {
-        public AvatarCharacterController ExampleCharacterController;
+        public AvatarController ExampleCharacterController;
 
         void OnGUI()
         {

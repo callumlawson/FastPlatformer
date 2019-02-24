@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace FastPlatformer.Scripts.MonoBehaviours
 {
-    public class AvatarCharacterController : BaseCharacterController
+    public class AvatarController : BaseCharacterController
     {
         private enum JumpType
         {
@@ -49,6 +49,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         [Header("Animation")]
         public AvatarAnimationVisualizer AnimationVisualizer;
 
+        [Header("Particles")]
+        public AvatarParticleVisualizer ParticleVisualizer;
+
         //TODO Extract these variables!
         [Header("Stable Movement")]
         public float MaxStableMoveSpeed = 10f;
@@ -58,7 +61,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         [Header("Air Movement")]
         public float MaxAirMoveSpeed = 10f;
         public float AirAccelerationSpeed = 5f;
-        public float AirControlFactor = 0.0f;
+        public float AirControlFactor = 1f;
         public float Drag = 0.1f;
 
         [Header("Jumping")]
@@ -87,7 +90,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         [Header("Misc")]
         public List<Collider> IgnoredColliders = new List<Collider>();
-        public bool OrientTowardsGravity = false;
+        public bool OrientTowardsGravity = true;
         public Vector3 BaseGravity = new Vector3(0, -30f, 0);
         public Transform CameraFollowPoint;
         
@@ -376,6 +379,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     case JumpType.Double:
                     {
                         jumpSpeed = TrippleJumpSpeed;
+                        AnimationVisualizer.SetAnimationTrigger(AnimationTrigger.Dive);
                         SoundVisualizer.PlaySoundEvent(SoundEvent.Woohoo);
                         currentJumpType = JumpType.Tripple;
                         break;
@@ -520,6 +524,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void OnLanded()
         {
+            if (Motor.GroundingStatus.IsStableOnGround)
+            {
+                ParticleVisualizer.PlayParticleEvent(AvatarParticleVisualizer.ParticleEvent.LandingPoof);
+            }
+            
             CurrentJumpState = JumpState.JustLanded;
             timeSinceJumpLanding = 0;
         }

@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace FastPlatformer.Scripts.MonoBehaviours
 {
-    public class ExamplePlayer : MonoBehaviour
+    public class PlayerInputHandler : MonoBehaviour
     {
-        public AvatarCharacterController Character;
+        public AvatarController Character;
         public ExampleCharacterCamera CharacterCamera;
         public float MouseSensitivity = 0.01f;
 
@@ -66,8 +66,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void HandleCharacterInput()
         {
-            AvatarCharacterController.CharacterInputs characterInputs =
-                new AvatarCharacterController.CharacterInputs
+            AvatarController.CharacterInputs characterInputs =
+                new AvatarController.CharacterInputs
                 {
                     MoveAxisForward = Input.GetAxisRaw(VerticalInput),
                     MoveAxisRight = Input.GetAxisRaw(HorizontalInput),

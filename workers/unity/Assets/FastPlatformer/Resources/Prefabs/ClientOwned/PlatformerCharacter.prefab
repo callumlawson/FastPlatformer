@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SoundVisualizer: {fileID: 7788947856088231892}
   AnimationVisualizer: {fileID: 5047366574802803067}
+  ParticleVisualizer: {fileID: 6193846711455274385}
   MaxStableMoveSpeed: 10
   StableMovementSharpness: 15
   OrientationSharpness: 10
@@ -73,9 +74,9 @@ MonoBehaviour:
   GroundDetectionExtraDistance: 0
   MaxStepHeight: 0.5
   MinRequiredStepDepth: 0.1
-  MaxStableSlopeAngle: 60
+  MaxStableSlopeAngle: 50
   MaxStableDistanceFromLedge: 0.5
-  PreventSnappingOnLedges: 0
+  PreventSnappingOnLedges: 1
   MaxStableDenivelationAngle: 180
   RigidbodyInteractionType: 0
   PreserveAttachedRigidbodyMomentum: 1
@@ -171,7 +172,7 @@ PrefabInstance:
         type: 3}
       propertyPath: LandingPoof
       value: 
-      objectReference: {fileID: 3813777777933503584}
+      objectReference: {fileID: 0}
     - target: {fileID: 2915158777180490625, guid: 73431d1854ba1424b918953cdb0b87cf,
         type: 3}
       propertyPath: AudioSource
@@ -247,6 +248,11 @@ PrefabInstance:
       propertyPath: m_Center.y
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 1267668171445907908, guid: 73431d1854ba1424b918953cdb0b87cf,
+        type: 3}
+      propertyPath: LandingPoof
+      value: 
+      objectReference: {fileID: 3966665768792503662}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 73431d1854ba1424b918953cdb0b87cf, type: 3}
 --- !u!1 &5526949228714436821 stripped
@@ -303,12 +309,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 4927887664534348885}
   m_PrefabAsset: {fileID: 0}
---- !u!198 &3813777777933503584 stripped
-ParticleSystem:
-  m_CorrespondingSourceObject: {fileID: 8110451959327631413, guid: 73431d1854ba1424b918953cdb0b87cf,
-    type: 3}
-  m_PrefabInstance: {fileID: 4927887664534348885}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &7788947856088231892 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2915158777180490625, guid: 73431d1854ba1424b918953cdb0b87cf,
@@ -339,3 +339,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 804d08b0395a4f10a055e8791698aae3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &6193846711455274385 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1267668171445907908, guid: 73431d1854ba1424b918953cdb0b87cf,
+    type: 3}
+  m_PrefabInstance: {fileID: 4927887664534348885}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32400db716114fb2a4af58544a2a149a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!198 &3966665768792503662 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 8317922256400240955, guid: 73431d1854ba1424b918953cdb0b87cf,
+    type: 3}
+  m_PrefabInstance: {fileID: 4927887664534348885}
+  m_PrefabAsset: {fileID: 0}
