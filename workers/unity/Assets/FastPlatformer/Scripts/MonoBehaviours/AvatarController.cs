@@ -39,7 +39,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             public float MoveAxisForward;
             public float MoveAxisRight;
             public Quaternion CameraRotation;
-            public bool JumpDown;
+            public bool JumpPress;
+            public bool JumpHold;
             public bool Interact;
         }
 
@@ -69,6 +70,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float SingleJumpSpeed = 10f;
         public float DoubleJumpSpeed = 12f;
         public float TrippleJumpSpeed = 15f;
+        public float JumpButtonHoldGravityModifier = 0.5f;
+        public float JumpDescentGravityModifier = 2.0f;
         public float JumpPreGroundingGraceTime;
         public float JumpPostGroundingGraceTime;
         public float DoubleJumpTimeWindowSize;
@@ -76,7 +79,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public Vector3 EarthGravity = new Vector3(0, -30, 0);
 
         //Jumping
-        private bool jumpRequested;
+        private bool jumpTriggeredThisFrame;
+        private bool jumpHeldThisFrame;
         private bool jumpConsumed;
         private bool jumpedThisFrame;
         private JumpType lastJumpType;
@@ -150,7 +154,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public void SetInputs(ref CharacterInputs inputs)
         {
             // Clamp input
-            var newInputVector = Vector3.ClampMagnitude(new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward), 1f);
+            var controllerInput = Vector3.ClampMagnitude(new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward), 1f);
 
             // Calculate camera direction and rotation on the character plane
             var cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
@@ -165,14 +169,16 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 case CharacterState.Default:
                 {
                     // Move and look inputs
-                    moveInputVector = cameraPlanarRotation * newInputVector;
+                    moveInputVector = cameraPlanarRotation * controllerInput;
 
                     // Jumping input
-                    if (inputs.JumpDown)
+                    if (inputs.JumpPress)
                     {
                         timeSinceJumpRequested = 0f;
-                        jumpRequested = true;
+                        jumpTriggeredThisFrame = true;
                     }
+
+                    jumpHeldThisFrame = inputs.JumpHold;
 
                     if (inputs.Interact)
                     {
@@ -242,7 +248,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 case CharacterState.Default:
                 {
                     //Check jump status
-                    if (CurrentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(currentVelocity, BaseGravity).y < 0)
+                    if (CurrentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(currentVelocity, Motor.CharacterForward).y < 0)
                     {
                         CurrentJumpState = JumpState.Descent;
                     }
@@ -280,7 +286,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         var gravity = BaseGravity * deltaTime;
                         if (CurrentJumpState == JumpState.Descent)
                         {
-                            gravity *= 2;
+                            gravity *= JumpDescentGravityModifier;
+                        }
+                        else if (CurrentJumpState == JumpState.Ascent && jumpHeldThisFrame)
+                        {
+                            gravity *= JumpButtonHoldGravityModifier;
                         }
                         currentVelocity += gravity;
 
@@ -301,7 +311,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     }
 
                     jumpedThisFrame = false;
-                    if (jumpRequested)
+                    if (jumpTriggeredThisFrame)
                     {
                         // See if we actually are allowed to jump
                         if (!jumpConsumed &&
@@ -425,7 +435,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
             CurrentJumpState = JumpState.Ascent;
             lastJumpType = currentJumpType;
-            jumpRequested = false;
+            jumpTriggeredThisFrame = false;
             jumpConsumed = true;
             jumpedThisFrame = true;
         }
@@ -443,9 +453,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     // Handle jump-related values
                     {
                         // Handle jumping pre-ground grace period
-                        if (jumpRequested && timeSinceJumpRequested > JumpPreGroundingGraceTime)
+                        if (jumpTriggeredThisFrame && timeSinceJumpRequested > JumpPreGroundingGraceTime)
                         {
-                            jumpRequested = false;
+                            jumpTriggeredThisFrame = false;
                         }
 
                         if (AllowJumpingWhenSliding ? Motor.GroundingStatus.FoundAnyGround : Motor.GroundingStatus.IsStableOnGround)

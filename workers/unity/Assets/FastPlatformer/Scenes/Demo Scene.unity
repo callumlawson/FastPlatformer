@@ -113,6 +113,50 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &524104764 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5526949228714436821, guid: cdee3c3988717734792255c1c916cd18,
+    type: 3}
+  m_PrefabInstance: {fileID: 925772194}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &524104765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524104764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8487d54441cbe254da7b847f54108b3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ExampleCharacterController: {fileID: 524104767}
+  CharacterMotor: {fileID: 524104771}
+--- !u!114 &524104767 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 509052253357365699, guid: cdee3c3988717734792255c1c916cd18,
+    type: 3}
+  m_PrefabInstance: {fileID: 925772194}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524104764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76020eee813ed7844bcea94c5d5ce76a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &524104771 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4120820544077632658, guid: cdee3c3988717734792255c1c916cd18,
+    type: 3}
+  m_PrefabInstance: {fileID: 925772194}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524104764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68a4499f5dd18a84fba27fb469430ac0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &836795486 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3458285813729242384, guid: 849b7fe21c599e842ae89f79f70c0f6d,
@@ -425,6 +469,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 509052253357365699, guid: cdee3c3988717734792255c1c916cd18,
+        type: 3}
+      propertyPath: JumpButtonHoldGravityModifier
+      value: 0.7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cdee3c3988717734792255c1c916cd18, type: 3}

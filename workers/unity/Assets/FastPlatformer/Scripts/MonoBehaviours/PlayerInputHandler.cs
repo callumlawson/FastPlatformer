@@ -72,7 +72,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     MoveAxisForward = Input.GetAxisRaw(VerticalInput),
                     MoveAxisRight = Input.GetAxisRaw(HorizontalInput),
                     CameraRotation = CharacterCamera.transform.rotation,
-                    JumpDown = Input.GetButtonDown(Jump),
+                    JumpPress = Input.GetButtonDown(Jump),
+                    JumpHold = Input.GetButton(Jump),
                     Interact = Input.GetKeyDown(KeyCode.E)
                 };
 

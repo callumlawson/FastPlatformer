@@ -26,11 +26,13 @@ MonoBehaviour:
   SingleJumpSpeed: 10
   DoubleJumpSpeed: 12
   TrippleJumpSpeed: 15
+  JumpButtonHoldGravityModifier: 0.5
+  JumpDescentGravityModifier: 1.5
   JumpPreGroundingGraceTime: 0.12
   JumpPostGroundingGraceTime: 0.12
   DoubleJumpTimeWindowSize: 0.2
   CurrentJumpState: 0
-  EarthGravity: {x: 0, y: -30, z: 0}
+  EarthGravity: {x: 0, y: -35, z: 0}
   PlanetTransform: {fileID: 0}
   IgnoredColliders: []
   OrientTowardsGravity: 0
