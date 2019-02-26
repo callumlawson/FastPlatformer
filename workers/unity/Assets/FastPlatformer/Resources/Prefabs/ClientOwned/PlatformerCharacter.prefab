@@ -315,12 +315,12 @@ MonoBehaviour:
   MaxAirMoveSpeed: 7
   AirAccelerationSpeed: 2
   AirControlFactor: 1
-  Drag: 0.05
+  Drag: 0.03
   AllowJumpingWhenSliding: 0
   SingleJumpSpeed: 11
   DoubleJumpSpeed: 13
   TrippleJumpSpeed: 20
-  JumpButtonHoldGravityModifier: 0.5
+  JumpButtonHoldGravityModifier: 0.6
   JumpDescentGravityModifier: 1.5
   JumpPreGroundingGraceTime: 0.12
   JumpPostGroundingGraceTime: 0.12
@@ -346,7 +346,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Character: {fileID: 509052253357365699}
   CharacterCamera: {fileID: 1927830825528054345}
-  MouseSensitivity: 0.01
+  MouseSensitivity: 0.02
 --- !u!114 &4120820544077632658
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -370,10 +370,10 @@ MonoBehaviour:
   GroundDetectionExtraDistance: 0
   MaxStepHeight: 0.5
   MinRequiredStepDepth: 0.1
-  MaxStableSlopeAngle: 50
+  MaxStableSlopeAngle: 45
   MaxStableDistanceFromLedge: 0.5
-  PreventSnappingOnLedges: 1
-  MaxStableDenivelationAngle: 180
+  PreventSnappingOnLedges: 0
+  MaxStableDenivelationAngle: 170
   RigidbodyInteractionType: 0
   PreserveAttachedRigidbodyMomentum: 1
   HasPlanarConstraint: 0
