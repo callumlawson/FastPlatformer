@@ -138,6 +138,7 @@ MonoBehaviour:
   Wa: {fileID: 8300000, guid: 7c7a8750316a9dd429e5bc892f8bde4f, type: 3}
   Woo: {fileID: 8300000, guid: fcb947f8127ab0e449e28e22a6fb7dc5, type: 3}
   Woohoo: {fileID: 8300000, guid: 4e339f5066e3aea488dda95047c92097, type: 3}
+  Hoo: {fileID: 8300000, guid: d53137aac27b008489b3b094a43ede18, type: 3}
   AudioSource: {fileID: 1033071910637260311}
 --- !u!95 &4647123515359120967
 Animator:

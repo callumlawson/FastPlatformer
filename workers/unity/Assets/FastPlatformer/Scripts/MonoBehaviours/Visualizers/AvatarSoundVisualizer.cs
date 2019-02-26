@@ -11,7 +11,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
     {
         Wa = 0,
         Woo = 1,
-        Woohoo = 2
+        Woohoo = 2,
+        Hoo = 3
     }
 
     public class AvatarSoundVisualizer : MonoBehaviour
@@ -19,6 +20,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public AudioClip Wa;
         public AudioClip Woo;
         public AudioClip Woohoo;
+        public AudioClip Hoo;
 
         public AudioSource AudioSource;
 
@@ -33,7 +35,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 { SoundEventType.Wa, Wa },
                 { SoundEventType.Woo, Woo },
-                { SoundEventType.Woohoo, Woohoo }
+                { SoundEventType.Woohoo, Woohoo },
+                {SoundEventType.Hoo, Hoo}
             };
         }
 

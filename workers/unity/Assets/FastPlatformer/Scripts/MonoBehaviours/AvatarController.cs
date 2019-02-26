@@ -18,10 +18,20 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         {
             Single,
             Double,
-            Tripple
+            Tripple,
+            Backflip,
+            CharacterHead
         }
 
-        public enum JumpState
+        private struct JumpData
+        {
+            public JumpType JumpType;
+            public float JumpSpeed;
+            public SoundEvent JumpSound;
+            public AnimationEvent JumpAnimation;
+        }
+
+        public enum JumpState //Add "JumpStartedLastFrame" and remove bool
         {
             Ascent,
             Descent,
@@ -82,15 +92,16 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public JumpState CurrentJumpState;
         public Vector3 EarthGravity = new Vector3(0, -30, 0);
 
-        private Vector3 jumpHeading;
         private bool jumpTriggeredThisFrame;
         private bool jumpHeldThisFrame;
+        private Vector3 jumpHeading;
         private bool jumpConsumed;
-        private bool jumpedLastFrame;
+        private bool jumpedStartedLastFrame;
         private JumpType lastJumpType;
         private float timeSinceLastAbleToJump;
         private float timeSinceJumpRequested = Mathf.Infinity;
         private float timeSinceJumpLanding = Mathf.Infinity;
+        private bool landedOnCharacterLastFrame;
 
         [Header("TemporaryPlanetPrototype")]
         public Transform PlanetTransform;
@@ -185,18 +196,10 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         if (moveInputVector != Vector3.zero && OrientationSharpness > 0f)
                         {
                             // Smoothly interpolate from current to target look direction
-                            Vector3 smoothedLookInputDirection =
-                                Vector3.Slerp(Motor.CharacterForward, moveInputVector, 1 - Mathf.Exp(-OrientationSharpness * deltaTime)).normalized;
+                            var smoothedLookInputDirection = Vector3.Slerp(Motor.CharacterForward, moveInputVector, 1 - Mathf.Exp(-OrientationSharpness * deltaTime)).normalized;
 
                             // Set the current rotation (which will be used by the KinematicCharacterMotor)
                             currentRotation = Quaternion.LookRotation(smoothedLookInputDirection, Motor.CharacterUp);
-                        }
-                    }
-                    else
-                    {
-                        if (jumpedLastFrame)
-                        {
-                            currentRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(jumpHeading, Motor.CharacterUp), Motor.CharacterUp);
                         }
                     }
 
@@ -204,6 +207,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     {
                         // Rotate from current up to invert gravity
                         currentRotation = Quaternion.FromToRotation((currentRotation * Vector3.up), -BaseGravity) * currentRotation;
+                    }
+
+                    if (jumpedStartedLastFrame)
+                    {
+                        currentRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(jumpHeading, Motor.CharacterUp), Motor.CharacterUp);
                     }
                     break;
                 }
@@ -221,7 +229,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 case CharacterState.Default:
                 {
-                    //Check jump status
+                    //Check jump lifecycle status
                     if (CurrentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(currentVelocity, Motor.CharacterForward).y < 0)
                     {
                         CurrentJumpState = JumpState.Descent;
@@ -265,8 +273,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         timeSinceJumpLanding = 0;
                     }
 
-                    jumpedLastFrame = false;
-                    if (jumpTriggeredThisFrame)
+                   
+                    if (jumpTriggeredThisFrame || landedOnCharacterLastFrame)
                     {
                         // See if we actually are allowed to jump
                         if (!jumpConsumed &&
@@ -286,10 +294,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         internalVelocityAdd = Vector3.zero;
                     }
 
-                    //Handle speed related vfx
+                    //Handle speed related vfx locally
                     var speed = currentVelocity.magnitude;
                     var isUnderCriticalSpeed = speed > 0.2f && speed < CriticalSpeed;
                     ParticleVisualizer.SetParticleState(ParticleEventType.DustTrail, isUnderCriticalSpeed && Motor.GroundingStatus.FoundAnyGround);
+
+                    jumpedStartedLastFrame = false;
+                    landedOnCharacterLastFrame = false;
 
                     break;
                 }
@@ -315,7 +326,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     if (AllowJumpingWhenSliding ? Motor.GroundingStatus.FoundAnyGround : Motor.GroundingStatus.IsStableOnGround)
                     {
                         // If we're on a ground surface, reset jumping values
-                        if (!jumpedLastFrame)
+                        if (!jumpedStartedLastFrame)
                         {
                             jumpConsumed = false;
                         }
@@ -420,7 +431,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 // Prevent climbing on un-stable slopes with air movement
                 if (Motor.GroundingStatus.FoundAnyGround)
                 {
-                    Vector3 perpenticularObstructionNormal = Vector3
+                    var perpenticularObstructionNormal = Vector3
                         .Cross(Vector3.Cross(Motor.CharacterUp, Motor.GroundingStatus.GroundNormal), Motor.CharacterUp)
                         .normalized;
                     targetMovementVelocity = Vector3.ProjectOnPlane(targetMovementVelocity, perpenticularObstructionNormal);
@@ -428,7 +439,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
                 //Clamp the velocity diff you can achive while in the air. 
 
-                Vector3 velocityDiff = Vector3.ProjectOnPlane(targetMovementVelocity - currentVelocity, BaseGravity);
+                var velocityDiff = Vector3.ProjectOnPlane(targetMovementVelocity - currentVelocity, BaseGravity);
                 currentVelocity += velocityDiff * AirAccelerationSpeed * deltaTime;
             }
         }
@@ -436,7 +447,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private void DoJump(ref Vector3 currentVelocity)
         {
             // Calculate jump direction before ungrounding
-            Vector3 upDirection = Motor.CharacterUp;
+            var upDirection = Motor.CharacterUp;
             if (Motor.GroundingStatus.FoundAnyGround && !Motor.GroundingStatus.IsStableOnGround)
             {
                 upDirection = Motor.GroundingStatus.GroundNormal;
@@ -451,40 +462,43 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             // Add to the return velocity and reset jump state
             float jumpSpeed;
             JumpType currentJumpType;
-            if (CurrentJumpState == JumpState.JustLanded)
+
+            if (Vector3.Dot(currentVelocity, moveInputVector) < -0.8)
             {
-                switch (lastJumpType)
+                currentJumpType = JumpType.Backflip;
+            }
+            else if (CurrentJumpState == JumpState.JustLanded)
+            {
+                if (landedOnCharacterLastFrame)
                 {
-                    case JumpType.Single:
+                    currentJumpType = JumpType.CharacterHead;
+                }
+                else
+                {
+                    switch (lastJumpType)
                     {
-                        jumpSpeed = DoubleJumpSpeed;
-                        PlayNetworkedSoundEvent(SoundEventType.Woo);
-                        currentJumpType = JumpType.Double;
-                        break;
+                        case JumpType.Single:
+                            currentJumpType = JumpType.Double;
+                            break;
+                        case JumpType.Double:
+                            currentJumpType = JumpType.Tripple;
+                            break;
+                        case JumpType.Tripple:
+                            currentJumpType = JumpType.Single;
+                            break;
+                        case JumpType.Backflip:
+                            currentJumpType = JumpType.Double;
+                            break;
+                        case JumpType.CharacterHead:
+                            currentJumpType = JumpType.Double;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
-                    case JumpType.Double:
-                    {
-                        jumpSpeed = TrippleJumpSpeed;
-                        PlayNetworkedAnimationEvent(AnimationEventType.Dive);
-                        PlayNetworkedSoundEvent(SoundEventType.Woohoo);
-                        currentJumpType = JumpType.Tripple;
-                        break;
-                    }
-                    case JumpType.Tripple:
-                    {
-                        jumpSpeed = SingleJumpSpeed;
-                        PlayNetworkedSoundEvent(SoundEventType.Wa);
-                        currentJumpType = JumpType.Single;
-                        break;
-                    }
-                    default:
-                        throw new ArgumentOutOfRangeException();
                 }
             }
             else
             {
-                jumpSpeed = SingleJumpSpeed;
-                PlayNetworkedSoundEvent(SoundEventType.Wa);
                 currentJumpType = JumpType.Single;
             }
 
@@ -492,39 +506,50 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             switch (currentJumpType)
             {
                 case JumpType.Single:
-                    if (Vector3.Dot(currentVelocity, moveInputVector) < -0.8)
-                    {
-                        jumpHeading = currentVelocity;
-                        currentVelocity = -currentVelocity;
-                        jumpDirection = (upDirection * 5 + moveInputVector).normalized;
-                        PlayNetworkedAnimationEvent(AnimationEventType.Backflip);
-                    }
-                    else
-                    {
-                        jumpDirection = (upDirection * 5 + moveInputVector).normalized;
-                        jumpHeading = moveInputVector;
-                    }
+                    jumpSpeed = SingleJumpSpeed;
+                    PlayNetworkedSoundEvent(SoundEventType.Wa);
+                    jumpDirection = (upDirection * 5 + moveInputVector).normalized;
+                    jumpHeading = moveInputVector;
                     break;
                 case JumpType.Double:
+                    jumpSpeed = DoubleJumpSpeed;
+                    PlayNetworkedSoundEvent(SoundEventType.Woo);
                     jumpDirection = (upDirection * 8 + moveInputVector).normalized;
                     jumpHeading = moveInputVector;
                     break;
                 case JumpType.Tripple:
-                    jumpDirection = (upDirection * 0.5f + currentVelocity.normalized).normalized;
                     jumpHeading = currentVelocity;
+                    jumpSpeed = TrippleJumpSpeed;
+                    PlayNetworkedSoundEvent(SoundEventType.Woohoo);
+                    PlayNetworkedAnimationEvent(AnimationEventType.Dive);
+                    jumpDirection = (upDirection * 0.5f + moveInputVector.normalized).normalized;
+                    break;
+                case JumpType.Backflip:
+                    jumpHeading = currentVelocity;
+                    currentVelocity = moveInputVector;
+                    jumpDirection = (upDirection * 5 + moveInputVector).normalized;
+                    jumpSpeed = DoubleJumpSpeed;
+                    PlayNetworkedSoundEvent(SoundEventType.Woo);
+                    PlayNetworkedAnimationEvent(AnimationEventType.Backflip);
+                    break;
+                case JumpType.CharacterHead:
+                    jumpSpeed = DoubleJumpSpeed * 1.8f;
+                    PlayNetworkedSoundEvent(SoundEventType.Hoo);
+                    PlayNetworkedAnimationEvent(AnimationEventType.Backflip);
+                    jumpDirection = (upDirection * 12 + moveInputVector).normalized;
+                    jumpHeading = moveInputVector;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
 
             currentVelocity += jumpDirection * jumpSpeed - Vector3.Project(currentVelocity, Motor.CharacterUp);
-
-            
             CurrentJumpState = JumpState.Ascent;
             lastJumpType = currentJumpType;
+
             jumpTriggeredThisFrame = false;
             jumpConsumed = true;
-            jumpedLastFrame = true;
+            jumpedStartedLastFrame = true;
         }
 
         private void OnLanded()
@@ -532,6 +557,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             if (Motor.GroundingStatus.IsStableOnGround)
             {
                 PlayNetworkedParticleEvent(ParticleEventType.LandingPoof);
+            }
+
+            var objectLandedOn = Motor.GroundingStatus.GroundCollider.gameObject;
+            if (objectLandedOn.layer == LayerMask.NameToLayer("Player"))
+            {
+                landedOnCharacterLastFrame = true;
             }
             
             CurrentJumpState = JumpState.JustLanded;
