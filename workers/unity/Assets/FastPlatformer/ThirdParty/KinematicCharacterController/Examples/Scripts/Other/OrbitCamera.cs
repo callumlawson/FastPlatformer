@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,8 +20,8 @@ namespace KinematicCharacterController.Examples
         public float DistanceMovementSharpness = 10f;
 
         [Header("Rotation")]
-        public bool InvertX = false;
-        public bool InvertY = false;
+        public bool InvertX;
+        public bool InvertY;
         [Range(-90f, 90f)]
         public float DefaultVerticalAngle = 20f;
         [Range(-90f, 90f)]
@@ -50,6 +50,11 @@ namespace KinematicCharacterController.Examples
         private RaycastHit[] _obstructions = new RaycastHit[MaxObstructions];
         private float _obstructionTime;
         private Vector3 _currentFollowPosition;
+
+        public OrbitCamera()
+        {
+            InvertY = false;
+        }
 
         private const int MaxObstructions = 32;
 
@@ -111,48 +116,46 @@ namespace KinematicCharacterController.Examples
                 _currentFollowPosition = Vector3.Lerp(_currentFollowPosition, FollowTransform.position, 1f - Mathf.Exp(-FollowingSharpness * deltaTime));
                 
                 // Calculate smoothed rotation
-                Quaternion planarRot = Quaternion.LookRotation(PlanarDirection, FollowTransform.up);
-                Quaternion verticalRot = Quaternion.Euler(_targetVerticalAngle, 0, 0);
-                Quaternion targetRotation = Quaternion.Slerp(Transform.rotation, planarRot * verticalRot, 1f - Mathf.Exp(-RotationSharpness * deltaTime));
+                var planarRot = Quaternion.LookRotation(PlanarDirection, FollowTransform.up);
+                var verticalRot = Quaternion.Euler(_targetVerticalAngle, 0, 0);
+                var targetRotation = Quaternion.Slerp(Transform.rotation, planarRot * verticalRot, 1f - Mathf.Exp(-RotationSharpness * deltaTime));
 
                 // Apply rotation
                 Transform.rotation = targetRotation;
 
                 // Handle obstructions
+                RaycastHit closestHit = new RaycastHit();
+                closestHit.distance = Mathf.Infinity;
+                _obstructionCount = Physics.SphereCastNonAlloc(_currentFollowPosition, ObstructionCheckRadius, -Transform.forward, _obstructions, TargetDistance, ObstructionLayers, QueryTriggerInteraction.Ignore);
+                for (int i = 0; i < _obstructionCount; i++)
                 {
-                    RaycastHit closestHit = new RaycastHit();
-                    closestHit.distance = Mathf.Infinity;
-                    _obstructionCount = Physics.SphereCastNonAlloc(_currentFollowPosition, ObstructionCheckRadius, -Transform.forward, _obstructions, TargetDistance, ObstructionLayers, QueryTriggerInteraction.Ignore);
-                    for (int i = 0; i < _obstructionCount; i++)
+                    bool isIgnored = false;
+                    for (int j = 0; j < IgnoredColliders.Length; j++)
                     {
-                        bool isIgnored = false;
-                        for (int j = 0; j < IgnoredColliders.Length; j++)
+                        if (IgnoredColliders[j] == _obstructions[i].collider)
                         {
-                            if (IgnoredColliders[j] == _obstructions[i].collider)
-                            {
-                                isIgnored = true;
-                                break;
-                            }
-                        }
-
-                        if (!isIgnored && _obstructions[i].distance < closestHit.distance && _obstructions[i].distance > 0)
-                        {
-                            closestHit = _obstructions[i];
+                            isIgnored = true;
+                            break;
                         }
                     }
 
-                    // If obstructions detecter
-                    if (closestHit.distance < Mathf.Infinity)
+                    if (!isIgnored && _obstructions[i].distance < closestHit.distance && _obstructions[i].distance > 0)
                     {
-                        _distanceIsObstructed = true;
-                        _currentDistance = Mathf.Lerp(_currentDistance, closestHit.distance, 1 - Mathf.Exp(-ObstructionSharpness * deltaTime));
+                        closestHit = _obstructions[i];
                     }
-                    // If no obstruction
-                    else
-                    {
-                        _distanceIsObstructed = false;
-                        _currentDistance = Mathf.Lerp(_currentDistance, TargetDistance, 1 - Mathf.Exp(-DistanceMovementSharpness * deltaTime));
-                    }
+                }
+
+                // If obstructions detecter
+                if (closestHit.distance < Mathf.Infinity)
+                {
+                    _distanceIsObstructed = true;
+                    _currentDistance = Mathf.Lerp(_currentDistance, closestHit.distance, 1 - Mathf.Exp(-ObstructionSharpness * deltaTime));
+                }
+                // If no obstruction
+                else
+                {
+                    _distanceIsObstructed = false;
+                    _currentDistance = Mathf.Lerp(_currentDistance, TargetDistance, 1 - Mathf.Exp(-DistanceMovementSharpness * deltaTime));
                 }
 
                 // Find the smoothed camera orbit position

@@ -9,8 +9,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public ExampleCharacterCamera CharacterCamera;
         public float MouseSensitivity = 0.01f;
 
-        private const string MouseXInput = "Look X";
-        private const string MouseYInput = "Look Y";
+        private const string LookXInput = "Look X";
+        private const string LookYInput = "Look Y";
         private const string MouseScrollInput = "Mouse ScrollWheel";
         private const string HorizontalInput = "Horizontal";
         private const string VerticalInput = "Vertical";
@@ -38,9 +38,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private void HandleCameraInput()
         {
             // Create the look input vector for the camera
-            float mouseLookAxisUp = Input.GetAxisRaw(MouseYInput);
-            float mouseLookAxisRight = Input.GetAxisRaw(MouseXInput);
-            Vector3 lookInputVector = new Vector3(mouseLookAxisRight * MouseSensitivity, mouseLookAxisUp * MouseSensitivity, 0f);
+            var mouseLookAxisUp = Input.GetAxisRaw(LookYInput);
+            var mouseLookAxisRight = Input.GetAxisRaw(LookXInput);
+            var lookInputVector = new Vector3(mouseLookAxisRight, mouseLookAxisUp, 0f);
 
             // Prevent moving the camera while the cursor isn't locked
             if (Cursor.lockState != CursorLockMode.Locked)
