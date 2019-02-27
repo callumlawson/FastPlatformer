@@ -317,10 +317,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     }
                     if (CurrentDashState == DashState.DashEnding)
                     {
-                        if (moveInputVector.magnitude < 0.5f)
-                        {
-                            currentVelocity *= 0.3f; // Replace with something better.
-                        }
+                        // If input is far from the target, boost the sharpness. 
+//                        var controlTargetDifferenceFactor = Vector3.Angle(currentVelocity, moveInputVector) / 180.0f + 1;
+//                        if (controlTargetDifferenceFactor > 100.0f || moveInputVector.magnitude < 0.6f)
+//                        {
+//                            currentVelocity *= 0.2f; // Replace with something better.
+//                        }
                         CurrentDashState = DashState.DashConsumed;
                     }
 
@@ -478,18 +480,18 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             var reorientedInput = Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
             var targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
 
+
+            // If input is far from the target, boost the sharpness. 
+            var controlTargetDifferenceFactor = Vector3.Angle(currentVelocity, targetMovementVelocity) / 180.0f + 1;
             // If controls are neutral, apply high drag
-            if (moveInputVector.magnitude < 0.2f)
+            if (moveInputVector.magnitude < 0.2f || controlTargetDifferenceFactor > 100.0f)
             {
                 currentVelocity *= 1f / (1f + NeutralStoppingDrag * deltaTime);
             }
 
-            // If input is far from the target, boost the sharpness. 
-            var controlTargetDifferenceFactor = Vector3.Angle(currentVelocity, targetMovementVelocity)/180.0f + 1;
-
             // Smooth movement Velocity
             currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity,
-                1 - Mathf.Exp(-StableMovementSharpness * deltaTime * controlTargetDifferenceFactor));
+                1 - Mathf.Exp(-StableMovementSharpness * deltaTime));
         }
 
         private void ApplyAirMovement(ref Vector3 currentVelocity, float deltaTime)
