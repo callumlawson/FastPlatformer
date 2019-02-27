@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Xml;
 using Gameschema.Untrusted;
 using Improbable.Gdk.GameObjectRepresentation;
 using JetBrains.Annotations;
@@ -23,27 +22,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             JumpPad
         }
 
-        private struct JumpData
+        private struct JumpData //TODO - refactor jumps out 
         {
             public JumpType JumpType;
             public float JumpSpeed;
             public SoundEvent JumpSound;
             public AnimationEvent JumpAnimation;
-        }
-
-        public enum JumpState
-        {
-            JumpStartedLastFrame,
-            Ascent,
-            Descent,
-            JustLanded,
-            Grounded
-        }
-
-        public enum DashState
-        {
-            Dashing,
-            NotDashing
         }
 
         private enum GravityType
@@ -52,10 +36,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             Object
         }
 
-        //Not used yet. Next state - "sliding"
+        //Not used yet. Next state - "ball mode"
         public enum CharacterState
         {
-            Default
+            Default,
+            Ball
         }
 
         public struct CharacterInputs
@@ -79,6 +64,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float MaxStableMoveSpeed = 10f;
         public float StableMovementSharpness = 15;
         public float OrientationSharpness = 10;
+        public float NeutralStoppingDrag = 0.5f;
 
         [Header("Air Movement")]
         public float MaxAirMoveSpeed = 10f;
@@ -86,8 +72,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float AirControlFactor = 1f;
         public float Drag = 0.1f;
 
+        public const float CriticalSpeed = 5f;
         [Header("Jumping")]
-        public const float CriticalSpeed = 5f; 
         public bool AllowJumpingWhenSliding;
         public float SingleJumpSpeed = 10f;
         public float DoubleJumpSpeed = 12f;
@@ -104,6 +90,14 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private bool jumpHeldThisFrame;
 
         //Internal state
+        public enum JumpState
+        {
+            JumpStartedLastFrame,
+            Ascent,
+            Descent,
+            JustLanded,
+            Grounded
+        }
         public JumpState CurrentJumpState; //Public for debug
         private JumpType lastJumpType;
         private Vector3 jumpHeading;
@@ -114,9 +108,18 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private bool landedOnJumpSurfaceLastFrame;
 
         [Header("Dashing")]
-        //Controls
-        private bool dashTriggeredThisFrame;
+        public float DashSpeed = 10;
+        public float DashDuration = 0.8f;
 
+        private float currentDashDuration;
+        public enum DashState
+        {
+            DashRequested,
+            Dashing,
+            DashEnding,
+            DashConsumed,
+            DashAvailible
+        }
         public DashState CurrentDashState;
 
         [Header("TemporaryPlanetPrototype")]
@@ -135,11 +138,14 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private int playerLayer;
         private int jumpSurfaceLayer;
 
-        private void Start()
+        private void Awake()
         {
             playerLayer = LayerMask.NameToLayer("Player");
             jumpSurfaceLayer = LayerMask.NameToLayer("JumpSurface");
+        }
 
+        private void Start()
+        {
             // Handle initial state
             TransitionToState(CharacterState.Default);
         }
@@ -164,10 +170,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 case CharacterState.Default:
                 {
-                    // Move and look inputs
                     moveInputVector = cameraPlanarRotation * controllerInput;
 
-                    // Jumping input
                     if (inputs.JumpPress)
                     {
                         timeSinceJumpRequested = 0f;
@@ -181,8 +185,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         gravityType = gravityType == GravityType.World ? GravityType.Object : GravityType.World;
                     }
 
+                    if (inputs.Dash && CurrentDashState == DashState.DashAvailible)
+                    {
+                        CurrentDashState = DashState.DashRequested;
+                    }
+
                     break;
-                }
+            }
             }
         }
 
@@ -199,6 +208,31 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             else
             {
                 BaseGravity = (PlanetTransform.position - Motor.InitialSimulationPosition).normalized * EarthGravity.magnitude;
+            }
+
+            timeSinceJumpRequested += deltaTime;
+            if (CurrentJumpState == JumpState.JustLanded)
+            {
+                timeSinceJumpLanding += deltaTime;
+            }
+            if (timeSinceJumpLanding > DoubleJumpTimeWindowSize)
+            {
+                CurrentJumpState = JumpState.Grounded;
+                timeSinceJumpLanding = 0;
+            }
+            if (CurrentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(Motor.BaseVelocity, Motor.CharacterForward).y < 0)
+            {
+                CurrentJumpState = JumpState.Descent;
+            }
+
+            if (CurrentDashState == DashState.Dashing)
+            {
+                currentDashDuration += deltaTime;
+            }
+            if (currentDashDuration >= DashDuration)
+            {
+                CurrentDashState = DashState.DashEnding;
+                currentDashDuration = 0.0f;
             }
         }
 
@@ -255,35 +289,42 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 case CharacterState.Default:
                 {
                     // Ground movement
-                    if (Motor.GroundingStatus.IsStableOnGround)
+                    if (CurrentDashState != DashState.Dashing)
                     {
-                        ApplyGroundMovement(ref currentVelocity, deltaTime);
-                    }
-                    // Air movement
-                    else
-                    {
-                        ApplyAirMovement(ref currentVelocity, deltaTime);
-                        ApplyGravityMovement(ref currentVelocity, deltaTime);
-                        // Drag
-                        currentVelocity *= 1f / (1f + Drag * deltaTime);
-                    }
-
-                    // Handle jump state;
-                    timeSinceJumpRequested += deltaTime;
-                    if (CurrentJumpState == JumpState.JustLanded)
-                    {
-                        timeSinceJumpLanding += deltaTime;
-                    }
-                    if (timeSinceJumpLanding > DoubleJumpTimeWindowSize)
-                    {
-                        CurrentJumpState = JumpState.Grounded;
-                        timeSinceJumpLanding = 0;
-                    }
-                    if (CurrentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(currentVelocity, Motor.CharacterForward).y < 0)
-                    {
-                        CurrentJumpState = JumpState.Descent;
+                        if (Motor.GroundingStatus.IsStableOnGround)
+                        {
+                            ApplyGroundMovement(ref currentVelocity, deltaTime);
+                        }
+                        // Air movement
+                        else
+                        {
+                            ApplyAirMovement(ref currentVelocity, deltaTime);
+                            ApplyGravityMovement(ref currentVelocity, deltaTime);
+                            // Drag
+                            currentVelocity *= 1f / (1f + Drag * deltaTime);
+                        }
                     }
 
+                    //Dashing
+                    if (CurrentDashState == DashState.DashRequested)
+                    {
+                        currentVelocity = moveInputVector.normalized * DashSpeed + Motor.CharacterUp.normalized * 0.3f;
+                        CurrentDashState = DashState.Dashing;
+                    }
+                    else if (CurrentDashState == DashState.Dashing)
+                    {
+                        Motor.ForceUnground();
+                    }
+                    if (CurrentDashState == DashState.DashEnding)
+                    {
+                        if (moveInputVector.magnitude < 0.5f)
+                        {
+                            currentVelocity *= 0.3f; // Replace with something better.
+                        }
+                        CurrentDashState = DashState.DashConsumed;
+                    }
+
+                    //Jumping
                     if (CurrentJumpState == JumpState.JumpStartedLastFrame)
                     {
                         CurrentJumpState = JumpState.Ascent;
@@ -366,6 +407,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         timeSinceLastAbleToJump += deltaTime;
                     }
 
+                    if (CurrentDashState == DashState.DashConsumed && Motor.GroundingStatus.IsStableOnGround)
+                    {
+                        CurrentDashState = DashState.DashAvailible;
+                    }
+
                     break;
                 }
             }
@@ -432,9 +478,18 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             var reorientedInput = Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
             var targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
 
+            // If controls are neutral, apply high drag
+            if (moveInputVector.magnitude < 0.2f)
+            {
+                currentVelocity *= 1f / (1f + NeutralStoppingDrag * deltaTime);
+            }
+
+            // If input is far from the target, boost the sharpness. 
+            var controlTargetDifferenceFactor = Vector3.Angle(currentVelocity, targetMovementVelocity)/180.0f + 1;
+
             // Smooth movement Velocity
             currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity,
-                1 - Mathf.Exp(-StableMovementSharpness * deltaTime));
+                1 - Mathf.Exp(-StableMovementSharpness * deltaTime * controlTargetDifferenceFactor));
         }
 
         private void ApplyAirMovement(ref Vector3 currentVelocity, float deltaTime)
@@ -489,7 +544,14 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         currentJumpType = JumpType.Double;
                         break;
                     case JumpType.Double:
-                        currentJumpType = JumpType.Tripple;
+                        if (Motor.BaseVelocity.magnitude > 3f) //Make critical threshold
+                        {
+                            currentJumpType = JumpType.Tripple;
+                        }
+                        else
+                        {
+                            currentJumpType = JumpType.Double;
+                        }
                         break;
                     case JumpType.Tripple:
                         currentJumpType = JumpType.Single;
@@ -581,6 +643,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
             
             CurrentJumpState = JumpState.JustLanded;
+
             timeSinceJumpLanding = 0;
         }
 

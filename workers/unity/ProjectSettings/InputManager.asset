@@ -247,10 +247,10 @@ InputManager:
     joyNum: 0
   - serializedVersion: 3
     m_Name: Dash
-    descriptiveName: KeyboardE
+    descriptiveName: LeftShift
     descriptiveNegativeName: 
     negativeButton: 
-    positiveButton: e
+    positiveButton: left shift
     altNegativeButton: 
     altPositiveButton: 
     gravity: 1000
