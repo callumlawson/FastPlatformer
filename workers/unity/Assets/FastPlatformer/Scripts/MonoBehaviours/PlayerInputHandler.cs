@@ -7,7 +7,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
     {
         public AvatarController Character;
         public ExampleCharacterCamera CharacterCamera;
-        public float MouseSensitivity = 0.01f;
 
         private const string LookXInput = "Look X";
         private const string LookYInput = "Look Y";
@@ -15,6 +14,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private const string HorizontalInput = "Horizontal";
         private const string VerticalInput = "Vertical";
         private const string Jump = "Jump";
+        private const string Dash = "Dash";
 
         private void Start()
         {
@@ -56,12 +56,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
             // Apply inputs to the camera
             CharacterCamera.UpdateWithInput(Time.deltaTime, scrollInput, lookInputVector);
-
-            // Handle toggling zoom level
-            if (Input.GetMouseButtonDown(1))
-            {
-                CharacterCamera.TargetDistance = (CharacterCamera.TargetDistance == 0f) ? CharacterCamera.DefaultDistance : 0f;
-            }
         }
 
         private void HandleCharacterInput()
@@ -74,6 +68,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     CameraRotation = CharacterCamera.transform.rotation,
                     JumpPress = Input.GetButtonDown(Jump),
                     JumpHold = Input.GetButton(Jump),
+                    Dash = Input.GetButtonDown(Dash),
                     Interact = Input.GetKeyDown(KeyCode.E)
                 };
 

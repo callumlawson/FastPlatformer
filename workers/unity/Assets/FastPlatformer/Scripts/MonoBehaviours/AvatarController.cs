@@ -20,7 +20,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             Double,
             Tripple,
             Backflip,
-            CharacterHead
+            JumpPad
         }
 
         private struct JumpData
@@ -31,12 +31,19 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             public AnimationEvent JumpAnimation;
         }
 
-        public enum JumpState //Add "JumpStartedLastFrame" and remove bool
+        public enum JumpState
         {
+            JumpStartedLastFrame,
             Ascent,
             Descent,
             JustLanded,
             Grounded
+        }
+
+        public enum DashState
+        {
+            Dashing,
+            NotDashing
         }
 
         private enum GravityType
@@ -58,6 +65,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             public Quaternion CameraRotation;
             public bool JumpPress;
             public bool JumpHold;
+            public bool Dash;
             public bool Interact;
         }
 
@@ -79,7 +87,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float Drag = 0.1f;
 
         [Header("Jumping")]
-        public const float CriticalSpeed = 5f; //Needs extracting into config objects! (like most of this stuff)
+        public const float CriticalSpeed = 5f; 
         public bool AllowJumpingWhenSliding;
         public float SingleJumpSpeed = 10f;
         public float DoubleJumpSpeed = 12f;
@@ -89,19 +97,27 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float JumpPreGroundingGraceTime;
         public float JumpPostGroundingGraceTime;
         public float DoubleJumpTimeWindowSize;
-        public JumpState CurrentJumpState;
         public Vector3 EarthGravity = new Vector3(0, -30, 0);
 
+        //Control state
         private bool jumpTriggeredThisFrame;
         private bool jumpHeldThisFrame;
+
+        //Internal state
+        public JumpState CurrentJumpState; //Public for debug
+        private JumpType lastJumpType;
         private Vector3 jumpHeading;
         private bool jumpConsumed;
-        private bool jumpedStartedLastFrame;
-        private JumpType lastJumpType;
         private float timeSinceLastAbleToJump;
         private float timeSinceJumpRequested = Mathf.Infinity;
         private float timeSinceJumpLanding = Mathf.Infinity;
-        private bool landedOnCharacterLastFrame;
+        private bool landedOnJumpSurfaceLastFrame;
+
+        [Header("Dashing")]
+        //Controls
+        private bool dashTriggeredThisFrame;
+
+        public DashState CurrentDashState;
 
         [Header("TemporaryPlanetPrototype")]
         public Transform PlanetTransform;
@@ -116,8 +132,14 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private Vector3 internalVelocityAdd = Vector3.zero;
         private CharacterState currentCharacterState;
 
+        private int playerLayer;
+        private int jumpSurfaceLayer;
+
         private void Start()
         {
+            playerLayer = LayerMask.NameToLayer("Player");
+            jumpSurfaceLayer = LayerMask.NameToLayer("JumpSurface");
+
             // Handle initial state
             TransitionToState(CharacterState.Default);
         }
@@ -209,9 +231,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         currentRotation = Quaternion.FromToRotation((currentRotation * Vector3.up), -BaseGravity) * currentRotation;
                     }
 
-                    if (jumpedStartedLastFrame)
+                    if (CurrentJumpState == JumpState.JumpStartedLastFrame)
                     {
-                        currentRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(jumpHeading, Motor.CharacterUp), Motor.CharacterUp);
+                        if (jumpHeading != Vector3.zero)
+                        {
+                            currentRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(jumpHeading, Motor.CharacterUp), Motor.CharacterUp);
+                        }
                     }
                     break;
                 }
@@ -229,12 +254,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 case CharacterState.Default:
                 {
-                    //Check jump lifecycle status
-                    if (CurrentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(currentVelocity, Motor.CharacterForward).y < 0)
-                    {
-                        CurrentJumpState = JumpState.Descent;
-                    }
-
                     // Ground movement
                     if (Motor.GroundingStatus.IsStableOnGround)
                     {
@@ -244,24 +263,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     else
                     {
                         ApplyAirMovement(ref currentVelocity, deltaTime);
-
-                        // Gravity
-                        var gravity = BaseGravity * deltaTime;
-                        if (CurrentJumpState == JumpState.Descent)
-                        {
-                            gravity *= JumpDescentGravityModifier;
-                        }
-                        else if (CurrentJumpState == JumpState.Ascent && jumpHeldThisFrame)
-                        {
-                            gravity *= JumpButtonHoldGravityModifier;
-                        }
-                        currentVelocity += gravity;
-
+                        ApplyGravityMovement(ref currentVelocity, deltaTime);
                         // Drag
                         currentVelocity *= 1f / (1f + Drag * deltaTime);
                     }
 
-                    // Handle jump timing - move this to After Character Update?
+                    // Handle jump state;
                     timeSinceJumpRequested += deltaTime;
                     if (CurrentJumpState == JumpState.JustLanded)
                     {
@@ -272,9 +279,16 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         CurrentJumpState = JumpState.Grounded;
                         timeSinceJumpLanding = 0;
                     }
+                    if (CurrentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(currentVelocity, Motor.CharacterForward).y < 0)
+                    {
+                        CurrentJumpState = JumpState.Descent;
+                    }
 
-                   
-                    if (jumpTriggeredThisFrame || landedOnCharacterLastFrame)
+                    if (CurrentJumpState == JumpState.JumpStartedLastFrame)
+                    {
+                        CurrentJumpState = JumpState.Ascent;
+                    }
+                    if (jumpTriggeredThisFrame || landedOnJumpSurfaceLastFrame)
                     {
                         // See if we actually are allowed to jump
                         if (!jumpConsumed &&
@@ -284,8 +298,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                                 timeSinceLastAbleToJump <= JumpPostGroundingGraceTime))
                         {
                             DoJump(ref currentVelocity);
+                            CurrentJumpState = JumpState.JumpStartedLastFrame;
+                            jumpTriggeredThisFrame = false;
+                            jumpConsumed = true;
                         }
                     }
+                    landedOnJumpSurfaceLastFrame = false;
 
                     // Take into account additive velocity
                     if (internalVelocityAdd.sqrMagnitude > 0f)
@@ -299,12 +317,25 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     var isUnderCriticalSpeed = speed > 0.2f && speed < CriticalSpeed;
                     ParticleVisualizer.SetParticleState(ParticleEventType.DustTrail, isUnderCriticalSpeed && Motor.GroundingStatus.FoundAnyGround);
 
-                    jumpedStartedLastFrame = false;
-                    landedOnCharacterLastFrame = false;
-
                     break;
                 }
             }
+        }
+
+        private void ApplyGravityMovement(ref Vector3 currentVelocity, float deltaTime)
+        {
+            var gravity = BaseGravity * deltaTime;
+            switch (CurrentJumpState)
+            {
+                case JumpState.Descent:
+                    gravity *= JumpDescentGravityModifier;
+                    break;
+                case JumpState.Ascent when jumpHeldThisFrame:
+                    gravity *= JumpButtonHoldGravityModifier;
+                    break;
+            }
+
+            currentVelocity += gravity;
         }
 
         /// <summary>
@@ -323,13 +354,10 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         jumpTriggeredThisFrame = false;
                     }
 
+                    //Move to on landed check?
                     if (AllowJumpingWhenSliding ? Motor.GroundingStatus.FoundAnyGround : Motor.GroundingStatus.IsStableOnGround)
                     {
-                        // If we're on a ground surface, reset jumping values
-                        if (!jumpedStartedLastFrame)
-                        {
-                            jumpConsumed = false;
-                        }
+                        jumpConsumed = false;
                         timeSinceLastAbleToJump = 0f;
                     }
                     else
@@ -340,19 +368,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
                     break;
                 }
-            }
-        }
-
-        public override void PostGroundingUpdate(float deltaTime)
-        {
-            // Handle landing and leaving ground
-            if (Motor.GroundingStatus.IsStableOnGround && !Motor.LastGroundingStatus.IsStableOnGround)
-            {
-                OnLanded();
-            }
-            else if (!Motor.GroundingStatus.IsStableOnGround && Motor.LastGroundingStatus.IsStableOnGround)
-            {
-                OnLeaveStableGround();
             }
         }
 
@@ -453,48 +468,40 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 upDirection = Motor.GroundingStatus.GroundNormal;
             }
 
-            //jumpDirection += lookInputVector;
-
             // Makes the character skip ground probing/snapping on its next update. 
-            // If this line weren't here, the character would remain snapped to the ground when trying to jump. Try commenting this line out and see.
             Motor.ForceUnground();
 
-            // Add to the return velocity and reset jump state
             float jumpSpeed;
             JumpType currentJumpType;
-
-            if (Vector3.Dot(currentVelocity, moveInputVector) < -0.8)
+            if (landedOnJumpSurfaceLastFrame)
+            {
+                currentJumpType = JumpType.JumpPad;
+            }
+            else if (Vector3.Dot(currentVelocity, moveInputVector) < -0.8)
             {
                 currentJumpType = JumpType.Backflip;
             }
             else if (CurrentJumpState == JumpState.JustLanded)
             {
-                if (landedOnCharacterLastFrame)
+                switch (lastJumpType)
                 {
-                    currentJumpType = JumpType.CharacterHead;
-                }
-                else
-                {
-                    switch (lastJumpType)
-                    {
-                        case JumpType.Single:
-                            currentJumpType = JumpType.Double;
-                            break;
-                        case JumpType.Double:
-                            currentJumpType = JumpType.Tripple;
-                            break;
-                        case JumpType.Tripple:
-                            currentJumpType = JumpType.Single;
-                            break;
-                        case JumpType.Backflip:
-                            currentJumpType = JumpType.Double;
-                            break;
-                        case JumpType.CharacterHead:
-                            currentJumpType = JumpType.Double;
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
+                    case JumpType.Single:
+                        currentJumpType = JumpType.Double;
+                        break;
+                    case JumpType.Double:
+                        currentJumpType = JumpType.Tripple;
+                        break;
+                    case JumpType.Tripple:
+                        currentJumpType = JumpType.Single;
+                        break;
+                    case JumpType.Backflip:
+                        currentJumpType = JumpType.Double;
+                        break;
+                    case JumpType.JumpPad:
+                        currentJumpType = JumpType.Double;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
             else
@@ -532,8 +539,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     PlayNetworkedSoundEvent(SoundEventType.Woo);
                     PlayNetworkedAnimationEvent(AnimationEventType.Backflip);
                     break;
-                case JumpType.CharacterHead:
-                    jumpSpeed = DoubleJumpSpeed * 1.8f;
+                case JumpType.JumpPad:
+                    jumpSpeed = DoubleJumpSpeed * 1.4f;
                     PlayNetworkedSoundEvent(SoundEventType.Hoo);
                     PlayNetworkedAnimationEvent(AnimationEventType.Backflip);
                     jumpDirection = (upDirection * 12 + moveInputVector).normalized;
@@ -544,12 +551,20 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
 
             currentVelocity += jumpDirection * jumpSpeed - Vector3.Project(currentVelocity, Motor.CharacterUp);
-            CurrentJumpState = JumpState.Ascent;
             lastJumpType = currentJumpType;
+        }
 
-            jumpTriggeredThisFrame = false;
-            jumpConsumed = true;
-            jumpedStartedLastFrame = true;
+        public override void PostGroundingUpdate(float deltaTime)
+        {
+            // Handle landing and leaving ground
+            if (Motor.GroundingStatus.IsStableOnGround && !Motor.LastGroundingStatus.IsStableOnGround)
+            {
+                OnLanded();
+            }
+            else if (!Motor.GroundingStatus.IsStableOnGround && Motor.LastGroundingStatus.IsStableOnGround)
+            {
+                //Leaving ground - not used yet!
+            }
         }
 
         private void OnLanded()
@@ -560,18 +575,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
 
             var objectLandedOn = Motor.GroundingStatus.GroundCollider.gameObject;
-            if (objectLandedOn.layer == LayerMask.NameToLayer("Player"))
+            if (objectLandedOn.layer == playerLayer || objectLandedOn.layer == jumpSurfaceLayer)
             {
-                landedOnCharacterLastFrame = true;
+                landedOnJumpSurfaceLastFrame = true;
             }
             
             CurrentJumpState = JumpState.JustLanded;
             timeSinceJumpLanding = 0;
-        }
-
-        private void OnLeaveStableGround()
-        {
-            //Nothing Yet
         }
 
         private void PlayNetworkedSoundEvent(SoundEventType soundEventType)

@@ -322,11 +322,12 @@ MonoBehaviour:
   TrippleJumpSpeed: 20
   JumpButtonHoldGravityModifier: 0.6
   JumpDescentGravityModifier: 1.5
-  JumpPreGroundingGraceTime: 0.12
-  JumpPostGroundingGraceTime: 0.12
+  JumpPreGroundingGraceTime: 0.11
+  JumpPostGroundingGraceTime: 0.11
   DoubleJumpTimeWindowSize: 0.085
-  CurrentJumpState: 0
   EarthGravity: {x: 0, y: -35, z: 0}
+  CurrentJumpState: 0
+  CurrentDashState: 0
   PlanetTransform: {fileID: 0}
   IgnoredColliders: []
   OrientTowardsGravity: 0
@@ -346,7 +347,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Character: {fileID: 509052253357365699}
   CharacterCamera: {fileID: 1927830825528054345}
-  MouseSensitivity: 0.02
 --- !u!114 &4120820544077632658
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -375,7 +375,7 @@ MonoBehaviour:
   PreventSnappingOnLedges: 0
   MaxStableDenivelationAngle: 170
   RigidbodyInteractionType: 0
-  PreserveAttachedRigidbodyMomentum: 1
+  PreserveAttachedRigidbodyMomentum: 0
   HasPlanarConstraint: 0
   PlanarConstraintAxis: {x: 0, y: 0, z: 1}
   StepHandling: 1
