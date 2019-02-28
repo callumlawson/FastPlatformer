@@ -302,6 +302,36 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: Cinemachine.CinemachineBrain+VcamActivatedEvent, Cinemachine, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
+--- !u!1 &5394102238660019781
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5336381405588863700}
+  m_Layer: 0
+  m_Name: CameraTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5336381405588863700
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5394102238660019781}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.77, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 5523159268676412615}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &509052253357365699
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -318,9 +348,9 @@ MonoBehaviour:
   AnimationVisualizer: {fileID: 7439924520351279108}
   ParticleVisualizer: {fileID: 6122931425759340864}
   MaxStableMoveSpeed: 7
-  StableMovementSharpness: 4
+  StableMovementSharpness: 8
   OrientationSharpness: 9
-  NeutralStoppingDrag: 0.8
+  NeutralStoppingDrag: 1
   MaxAirMoveSpeed: 7
   AirAccelerationSpeed: 2
   AirControlFactor: 1
@@ -407,36 +437,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ExampleCharacterController: {fileID: 509052253357365699}
   CharacterMotor: {fileID: 4120820544077632658}
---- !u!1 &5394102238660019781
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5336381405588863700}
-  m_Layer: 0
-  m_Name: CameraTarget
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5336381405588863700
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5394102238660019781}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.77, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 5523159268676412615}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &4927887664534348885
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -534,6 +534,11 @@ PrefabInstance:
       propertyPath: DustTrail
       value: 
       objectReference: {fileID: 1061993686941137804}
+    - target: {fileID: 1196367641995857173, guid: 73431d1854ba1424b918953cdb0b87cf,
+        type: 3}
+      propertyPath: Dash
+      value: 
+      objectReference: {fileID: 4991388168268687832}
     - target: {fileID: 2212011883457574985, guid: 73431d1854ba1424b918953cdb0b87cf,
         type: 3}
       propertyPath: m_Interpolate
@@ -563,6 +568,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalScale.z
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4764698568154629012, guid: 73431d1854ba1424b918953cdb0b87cf,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 73431d1854ba1424b918953cdb0b87cf, type: 3}
@@ -632,15 +642,21 @@ Animator:
     type: 3}
   m_PrefabInstance: {fileID: 4927887664534348885}
   m_PrefabAsset: {fileID: 0}
---- !u!198 &3966665768792503662 stripped
+--- !u!198 &4991388168268687832 stripped
 ParticleSystem:
-  m_CorrespondingSourceObject: {fileID: 8317922256400240955, guid: 73431d1854ba1424b918953cdb0b87cf,
+  m_CorrespondingSourceObject: {fileID: 83218389621230989, guid: 73431d1854ba1424b918953cdb0b87cf,
     type: 3}
   m_PrefabInstance: {fileID: 4927887664534348885}
   m_PrefabAsset: {fileID: 0}
 --- !u!198 &1061993686941137804 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 5395217904680312793, guid: 73431d1854ba1424b918953cdb0b87cf,
+    type: 3}
+  m_PrefabInstance: {fileID: 4927887664534348885}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &3966665768792503662 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 8317922256400240955, guid: 73431d1854ba1424b918953cdb0b87cf,
     type: 3}
   m_PrefabInstance: {fileID: 4927887664534348885}
   m_PrefabAsset: {fileID: 0}

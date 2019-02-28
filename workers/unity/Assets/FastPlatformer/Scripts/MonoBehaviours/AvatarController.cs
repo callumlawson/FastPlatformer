@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Gameschema.Untrusted;
+using Improbable;
+using Improbable.Gdk.Core;
 using Improbable.Gdk.GameObjectRepresentation;
+using Improbable.Gdk.TransformSynchronization;
 using JetBrains.Annotations;
 using KinematicCharacterController;
 using UnityEngine;
@@ -11,6 +14,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 {
     public class AvatarController : BaseCharacterController
     {
+        [UsedImplicitly, Require] private PlayerInput.Requirable.Writer playerInputWriter;
         [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Writer eventWriter;
 
         private enum JumpType
@@ -191,7 +195,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     }
 
                     break;
-            }
+                }
             }
         }
 
@@ -309,6 +313,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     if (CurrentDashState == DashState.DashRequested)
                     {
                         currentVelocity = moveInputVector.normalized * DashSpeed + Motor.CharacterUp.normalized * 0.3f;
+                        PlayNetworkedParticleEvent(ParticleEventType.Dash);
+                        PlayNetworkedSoundEvent(SoundEventType.Dash);
                         CurrentDashState = DashState.Dashing;
                     }
                     else if (CurrentDashState == DashState.Dashing)
@@ -440,7 +446,18 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         public override void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
         {
-            //Nothing Yet
+            //Shoving
+            if (CurrentDashState == DashState.Dashing && hitCollider.gameObject.layer == playerLayer && playerInputWriter != null)
+            {
+                var currentVelocity = Motor.Velocity;
+                var targetEntityId = hitCollider.attachedRigidbody.gameObject.GetComponent<SpatialOSComponent>().SpatialEntityId;
+                playerInputWriter.SendShoveEvent(new ShoveEvent(targetEntityId, new Vector3f(currentVelocity.x, currentVelocity.y, currentVelocity.z) * 1.3f));
+            }
+        }
+
+        public void ReceiveShove(Vector3 shoveVector)
+        {
+            AddVelocity(shoveVector);
         }
 
         public override void ProcessHitStabilityReport(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, Vector3 atCharacterPosition, Quaternion atCharacterRotation, ref HitStabilityReport hitStabilityReport)
@@ -480,14 +497,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             var reorientedInput = Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
             var targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
 
-
-            // If input is far from the target, boost the sharpness. 
-            var controlTargetDifferenceFactor = Vector3.Angle(currentVelocity, targetMovementVelocity) / 180.0f + 1;
-            // If controls are neutral, apply high drag
-            if (moveInputVector.magnitude < 0.2f || controlTargetDifferenceFactor > 100.0f)
-            {
-                currentVelocity *= 1f / (1f + NeutralStoppingDrag * deltaTime);
-            }
+            currentVelocity *= 1f / (1f + NeutralStoppingDrag * deltaTime);
 
             // Smooth movement Velocity
             currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity,

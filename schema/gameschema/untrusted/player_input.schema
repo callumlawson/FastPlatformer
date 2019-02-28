@@ -1,9 +1,14 @@
 package gameschema.untrusted;
 
+import "improbable/vector3.schema";
+
+type ShoveEvent { 
+    EntityId target_id = 1;
+    improbable.Vector3f shove_vector = 2;
+}
+
 component PlayerInput
 {
     id = 12001;
-    float horizontal = 1;
-    float vertical = 2;
-    bool running = 3;
+    event ShoveEvent shove_event;
 }

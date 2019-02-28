@@ -9,13 +9,15 @@ namespace FastPlatformer.Scripts.MonoBehaviours
     public enum ParticleEventType
     {
         LandingPoof = 0,
-        DustTrail = 1
+        DustTrail = 1,
+        Dash = 2
     }
 
     public class AvatarParticleVisualizer : MonoBehaviour
     {
         public ParticleSystem LandingPoof;
         public ParticleSystem DustTrail;
+        public ParticleSystem Dash;
 
         [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Reader eventReader;
 
@@ -48,9 +50,14 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         public void PlayParticleEvent(ParticleEventType particleEventType, bool isNetworked = false)
         {
-            if (particleEventType == ParticleEventType.LandingPoof)
+            switch (particleEventType)
             {
-                PlayLandingPoof(isNetworked);
+                case ParticleEventType.LandingPoof:
+                    PlayLandingPoof(isNetworked);
+                    break;
+                case ParticleEventType.Dash:
+                    Dash.Play();
+                    break;
             }
         }
 
@@ -77,8 +84,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
             else
             {
-                RaycastHit hit;
-                if (Physics.Raycast(transform.position, -transform.up, out hit, 5))
+                if (Physics.Raycast(transform.position, -transform.up, out var hit, 5))
                 {
                     var groundPoint = hit.point;
                     LandingPoof.transform.position = groundPoint;
