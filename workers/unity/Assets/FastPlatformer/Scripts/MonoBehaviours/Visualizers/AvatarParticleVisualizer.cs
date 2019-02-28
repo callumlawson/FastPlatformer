@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using Gameschema.Untrusted;
 using Improbable.Gdk.GameObjectRepresentation;
+using Improbable.Gdk.TransformSynchronization;
 using Improbable.Worker.CInterop;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -20,20 +22,32 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public ParticleSystem Dash;
 
         [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Reader eventReader;
+        private readonly Queue<ParticleEvent> networkedParticleEventQueue = new Queue<ParticleEvent>();
+        private TransformSynchronization transformSyncComponent;
+
+        public void Start()
+        {
+            transformSyncComponent = GetComponent<TransformSynchronization>();
+        }
 
         public void OnEnable()
         {
             if (eventReader != null && eventReader.Authority == Authority.NotAuthoritative)
             {
-                eventReader.OnParticleEvent += particleEvent =>
-                {
-                    PlayParticleEvent((ParticleEventType) particleEvent.Eventid, true);
-                };
+                eventReader.OnParticleEvent += particleEvent => networkedParticleEventQueue.Enqueue(particleEvent);
             }
         }
 
         public void Update()
         {
+            //Process event queue
+            var currentPhysicsTick = transformSyncComponent.TickNumber;
+            if (networkedParticleEventQueue.Count > 0 && networkedParticleEventQueue.Peek().PhysicsTick <= currentPhysicsTick)
+            {
+                PlayParticleEvent((ParticleEventType) networkedParticleEventQueue.Dequeue().Eventid, true);
+            }
+
+            //Dust effect (not working very well!)
             if (eventReader != null && eventReader.Authority == Authority.NotAuthoritative)
             {
                 //Play dust if grounded and between certain speeds

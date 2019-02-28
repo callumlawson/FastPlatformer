@@ -2,14 +2,17 @@ package gameschema.untrusted;
 
 type AnimationEvent {
     uint32 eventid = 1;
+    uint32 physics_tick = 2;
 }
 
 type ParticleEvent {
     uint32 eventid = 1;
+    uint32 physics_tick = 2;
 }
 
 type SoundEvent {
     uint32 eventid = 1;
+    uint32 physics_tick = 2;
 }
 
 component PlayerVisualizerEvents

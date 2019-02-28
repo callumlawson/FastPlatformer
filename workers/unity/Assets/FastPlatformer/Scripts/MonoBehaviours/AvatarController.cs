@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Gameschema.Untrusted;
 using Improbable;
-using Improbable.Gdk.Core;
 using Improbable.Gdk.GameObjectRepresentation;
 using Improbable.Gdk.TransformSynchronization;
 using JetBrains.Annotations;
@@ -16,6 +15,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
     {
         [UsedImplicitly, Require] private PlayerInput.Requirable.Writer playerInputWriter;
         [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Writer eventWriter;
+        private TransformSynchronization trasformSyncComponent;
 
         private enum JumpType
         {
@@ -150,8 +150,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void Start()
         {
-            // Handle initial state
             TransitionToState(CharacterState.Default);
+            trasformSyncComponent = GetComponent<TransformSynchronization>();
         }
 
         /// <summary>
@@ -292,9 +292,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 case CharacterState.Default:
                 {
-                    // Ground movement
                     if (CurrentDashState != DashState.Dashing)
                     {
+                        // Ground movement
                         if (Motor.GroundingStatus.IsStableOnGround)
                         {
                             ApplyGroundMovement(ref currentVelocity, deltaTime);
@@ -304,7 +304,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         {
                             ApplyAirMovement(ref currentVelocity, deltaTime);
                             ApplyGravityMovement(ref currentVelocity, deltaTime);
-                            // Drag
                             currentVelocity *= 1f / (1f + Drag * deltaTime);
                         }
                     }
@@ -323,12 +322,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     }
                     if (CurrentDashState == DashState.DashEnding)
                     {
-                        // If input is far from the target, boost the sharpness. 
-//                        var controlTargetDifferenceFactor = Vector3.Angle(currentVelocity, moveInputVector) / 180.0f + 1;
-//                        if (controlTargetDifferenceFactor > 100.0f || moveInputVector.magnitude < 0.6f)
-//                        {
-//                            currentVelocity *= 0.2f; // Replace with something better.
-//                        }
                         CurrentDashState = DashState.DashConsumed;
                     }
 
@@ -451,8 +444,17 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 var currentVelocity = Motor.Velocity;
                 var targetEntityId = hitCollider.attachedRigidbody.gameObject.GetComponent<SpatialOSComponent>().SpatialEntityId;
-                playerInputWriter.SendShoveEvent(new ShoveEvent(targetEntityId, new Vector3f(currentVelocity.x, currentVelocity.y, currentVelocity.z) * 1.3f));
+                playerInputWriter.SendShoveEvent(new ShoveEvent(
+                    targetEntityId,
+                    new Vector3f(currentVelocity.x, currentVelocity.y, currentVelocity.z) * 1.3f,
+                    trasformSyncComponent.TickNumber - 1)
+                );
             }
+        }
+
+        public override void ProcessHitStabilityReport(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, Vector3 atCharacterPosition, Quaternion atCharacterRotation, ref HitStabilityReport hitStabilityReport)
+        {
+            //Not used yet
         }
 
         public void ReceiveShove(Vector3 shoveVector)
@@ -460,11 +462,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             AddVelocity(shoveVector);
         }
 
-        public override void ProcessHitStabilityReport(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, Vector3 atCharacterPosition, Quaternion atCharacterRotation, ref HitStabilityReport hitStabilityReport)
-        {
-        }
-
-        public void AddVelocity(Vector3 velocity)
+        private void AddVelocity(Vector3 velocity)
         {
             switch (currentCharacterState)
             {
@@ -661,19 +659,19 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void PlayNetworkedSoundEvent(SoundEventType soundEventType)
         {
-            eventWriter?.SendSoundEvent(new SoundEvent((uint) soundEventType));
+            eventWriter?.SendSoundEvent(new SoundEvent((uint) soundEventType, trasformSyncComponent.TickNumber - 1));
             SoundVisualizer.PlaySoundEvent(soundEventType);
         }
 
         private void PlayNetworkedAnimationEvent(AnimationEventType animationEventType)
         {
-            eventWriter?.SendAnimationEvent(new AnimationEvent((uint) animationEventType));
+            eventWriter?.SendAnimationEvent(new AnimationEvent((uint) animationEventType, trasformSyncComponent.TickNumber - 1));
             AnimationVisualizer.PlayAnimationEvent(animationEventType);
         }
 
         private void PlayNetworkedParticleEvent(ParticleEventType particleEvent)
         {
-            eventWriter?.SendParticleEvent(new ParticleEvent((uint)particleEvent));
+            eventWriter?.SendParticleEvent(new ParticleEvent((uint) particleEvent, trasformSyncComponent.TickNumber - 1));
             ParticleVisualizer.PlayParticleEvent(particleEvent);
         }
 

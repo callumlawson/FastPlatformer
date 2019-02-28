@@ -5,6 +5,7 @@ import "improbable/vector3.schema";
 type ShoveEvent { 
     EntityId target_id = 1;
     improbable.Vector3f shove_vector = 2;
+    uint32 physics_tick = 3;
 }
 
 component PlayerInput
