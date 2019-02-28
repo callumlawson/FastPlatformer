@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: ClientInterpolation
   m_EditorClassIdentifier: 
   WorkerType: UnityClient
-  TargetBufferSize: 5
+  TargetBufferSize: 3
   MaxBufferSize: 10
