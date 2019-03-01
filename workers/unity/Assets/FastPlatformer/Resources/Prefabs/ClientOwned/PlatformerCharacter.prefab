@@ -348,8 +348,8 @@ MonoBehaviour:
   AnimationVisualizer: {fileID: 7439924520351279108}
   ParticleVisualizer: {fileID: 6122931425759340864}
   MaxStableMoveSpeed: 7
-  StableMovementSharpness: 8
-  OrientationSharpness: 9
+  StableMovementSharpness: 7
+  OrientationSharpness: 8
   NeutralStoppingDrag: 1
   MaxAirMoveSpeed: 7
   AirAccelerationSpeed: 2
@@ -368,7 +368,11 @@ MonoBehaviour:
   CurrentJumpState: 4
   DashSpeed: 15
   DashDuration: 0.16
-  CurrentDashState: 0
+  DashImpactStickDuration: 0.2
+  PostDashShoveGracePeriod: 0.3
+  PostShoveControlReductionMultiplier: 0.3
+  PostShoveControlReductionTime: 0.5
+  CurrentDashState: 4
   PlanetTransform: {fileID: 0}
   IgnoredColliders: []
   OrientTowardsGravity: 0
@@ -444,11 +448,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 635276595296062592, guid: 73431d1854ba1424b918953cdb0b87cf,
-        type: 3}
-      propertyPath: m_Name
-      value: PlatformerCharacter
-      objectReference: {fileID: 0}
     - target: {fileID: 6677438496206168251, guid: 73431d1854ba1424b918953cdb0b87cf,
         type: 3}
       propertyPath: AudioSource
@@ -458,6 +457,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 635276595296062592, guid: 73431d1854ba1424b918953cdb0b87cf,
+        type: 3}
+      propertyPath: m_Name
+      value: PlatformerCharacter
       objectReference: {fileID: 0}
     - target: {fileID: 1033071910637260311, guid: 73431d1854ba1424b918953cdb0b87cf,
         type: 3}
@@ -521,11 +525,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1196367641995857173, guid: 73431d1854ba1424b918953cdb0b87cf,
         type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1196367641995857173, guid: 73431d1854ba1424b918953cdb0b87cf,
-        type: 3}
       propertyPath: LandingPoof
       value: 
       objectReference: {fileID: 3966665768792503662}
@@ -539,6 +538,11 @@ PrefabInstance:
       propertyPath: Dash
       value: 
       objectReference: {fileID: 4991388168268687832}
+    - target: {fileID: 1196367641995857173, guid: 73431d1854ba1424b918953cdb0b87cf,
+        type: 3}
+      propertyPath: Impact
+      value: 
+      objectReference: {fileID: 338714035763891563}
     - target: {fileID: 2212011883457574985, guid: 73431d1854ba1424b918953cdb0b87cf,
         type: 3}
       propertyPath: m_Interpolate
@@ -573,6 +577,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_RootOrder
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8187732158863522705, guid: 73431d1854ba1424b918953cdb0b87cf,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 73431d1854ba1424b918953cdb0b87cf, type: 3}
@@ -657,6 +666,12 @@ ParticleSystem:
 --- !u!198 &3966665768792503662 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 8317922256400240955, guid: 73431d1854ba1424b918953cdb0b87cf,
+    type: 3}
+  m_PrefabInstance: {fileID: 4927887664534348885}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &338714035763891563 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 4670238475419396414, guid: 73431d1854ba1424b918953cdb0b87cf,
     type: 3}
   m_PrefabInstance: {fileID: 4927887664534348885}
   m_PrefabAsset: {fileID: 0}

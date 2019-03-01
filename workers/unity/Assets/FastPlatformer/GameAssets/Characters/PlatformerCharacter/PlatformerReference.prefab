@@ -198,21 +198,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76020eee813ed7844bcea94c5d5ce76a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SoundVisualizer: {fileID: 0}
+  AnimationVisualizer: {fileID: 0}
+  ParticleVisualizer: {fileID: 0}
   MaxStableMoveSpeed: 8
   StableMovementSharpness: 10
   OrientationSharpness: 3
-  OrientationMethod: 1
+  NeutralStoppingDrag: 0.5
   MaxAirMoveSpeed: 6
   AirAccelerationSpeed: 5
+  AirControlFactor: 1
   Drag: 0.1
   AllowJumpingWhenSliding: 1
-  JumpSpeed: 12
+  SingleJumpSpeed: 10
+  DoubleJumpSpeed: 12
+  TrippleJumpSpeed: 15
+  JumpButtonHoldGravityModifier: 0.5
+  JumpDescentGravityModifier: 2
   JumpPreGroundingGraceTime: 0
   JumpPostGroundingGraceTime: 0
+  DoubleJumpTimeWindowSize: 0
+  EarthGravity: {x: 0, y: -30, z: 0}
+  CurrentJumpState: 0
+  DashSpeed: 10
+  DashDuration: 0.8
+  DashImpactStickDuration: 0.1
+  CurrentDashState: 0
+  PlanetTransform: {fileID: 0}
   IgnoredColliders: []
   OrientTowardsGravity: 1
-  Gravity: {x: 0, y: -30, z: 0}
-  MeshRoot: {fileID: 4036232530805280}
+  BaseGravity: {x: 0, y: -30, z: 0}
   CameraFollowPoint: {fileID: 4718917724592500}
 --- !u!114 &114967586934651944
 MonoBehaviour:
@@ -262,8 +277,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Character: {fileID: 114565867274256808}
-  CharacterCamera: {fileID: 7743957685675962968}
-  MouseSensitivity: 0.01
+  CharacterCamera: {fileID: 0}
 --- !u!1 &1854746833484672
 GameObject:
   m_ObjectHideFlags: 0

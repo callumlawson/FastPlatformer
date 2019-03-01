@@ -214,5 +214,10 @@ PrefabInstance:
       propertyPath: RequiredWorkerConnection
       value: 
       objectReference: {fileID: 941066298}
+    - target: {fileID: 114958075083198408, guid: 5857884d058555d4282a1beb501099b9,
+        type: 3}
+      propertyPath: UseExternalIp
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5857884d058555d4282a1beb501099b9, type: 3}

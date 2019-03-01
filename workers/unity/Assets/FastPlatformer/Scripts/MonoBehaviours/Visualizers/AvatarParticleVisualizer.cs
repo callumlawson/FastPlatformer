@@ -12,7 +12,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
     {
         LandingPoof = 0,
         DustTrail = 1,
-        Dash = 2
+        Dash = 2,
+        Impact = 3
     }
 
     public class AvatarParticleVisualizer : MonoBehaviour
@@ -20,6 +21,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public ParticleSystem LandingPoof;
         public ParticleSystem DustTrail;
         public ParticleSystem Dash;
+        public ParticleSystem Impact;
 
         [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Reader eventReader;
         private readonly Queue<ParticleEvent> networkedParticleEventQueue = new Queue<ParticleEvent>();
@@ -62,6 +64,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
         }
 
+        //TODO make by name convention
         public void PlayParticleEvent(ParticleEventType particleEventType, bool isNetworked = false)
         {
             switch (particleEventType)
@@ -71,6 +74,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     break;
                 case ParticleEventType.Dash:
                     Dash.Play();
+                    break;
+                case ParticleEventType.Impact:
+                    Impact.Play();
                     break;
             }
         }

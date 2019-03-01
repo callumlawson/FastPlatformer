@@ -13,7 +13,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         Woo = 1,
         Woohoo = 2,
         Hoo = 3,
-        Dash = 4
+        Dash = 4,
+        Shove = 5
     }
 
     public class AvatarSoundVisualizer : MonoBehaviour
@@ -23,6 +24,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public AudioClip Woohoo;
         public AudioClip Hoo;
         public AudioClip Dash;
+        public AudioClip Shove;
 
         public AudioSource AudioSource;
 
@@ -40,6 +42,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 { SoundEventType.Woohoo, Woohoo },
                 { SoundEventType.Hoo, Hoo },
                 { SoundEventType.Dash, Dash },
+                { SoundEventType.Shove, Shove },
             };
         }
 
@@ -59,10 +62,10 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         public void PlaySoundEvent(SoundEventType soundEventType)
         {
-            AudioClip clip;
-            var haveSound = soundMapping.TryGetValue(soundEventType, out clip);
+            var haveSound = soundMapping.TryGetValue(soundEventType, out var clip);
             if (haveSound)
             {
+                AudioSource.pitch = 0.92f + Random.value * 0.16f;
                 AudioSource.PlayOneShot(clip);
             }
             else

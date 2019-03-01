@@ -111,16 +111,26 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private float timeSinceJumpLanding = Mathf.Infinity;
         private bool landedOnJumpSurfaceLastFrame;
 
-        [Header("Dashing")]
+        [Header("Dashing and Shoving")]
         public float DashSpeed = 10;
         public float DashDuration = 0.8f;
+        public float DashImpactStickDuration = 0.1f;
+        public float PostDashShoveGracePeriod = 0.3f;
+        public float PostShoveControlReductionMultiplier = 0.3f;
+        public float PostShoveControlReductionTime = 0.5f;
 
         private float currentDashDuration;
+        private float currentImpactStickDuration;
+        private bool dashJustEnded;
+        private float timeSinceDashEnded;
+        private bool justShoved;
+        private float timeSinceShoved;
+
         public enum DashState
         {
             DashRequested,
             Dashing,
-            DashEnding,
+            DashImpact,
             DashConsumed,
             DashAvailible
         }
@@ -138,6 +148,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private Vector3 moveInputVector;
         private Vector3 internalVelocityAdd = Vector3.zero;
         private CharacterState currentCharacterState;
+        private Vector3 currentCameraPlanarDirection;
 
         private int playerLayer;
         private int jumpSurfaceLayer;
@@ -169,6 +180,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.up, Motor.CharacterUp).normalized;
             }
             var cameraPlanarRotation = Quaternion.LookRotation(cameraPlanarDirection, Motor.CharacterUp);
+            currentCameraPlanarDirection = cameraPlanarRotation * Vector3.forward;
 
             switch (currentCharacterState)
             {
@@ -214,6 +226,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 BaseGravity = (PlanetTransform.position - Motor.InitialSimulationPosition).normalized * EarthGravity.magnitude;
             }
 
+            //Jumping
             timeSinceJumpRequested += deltaTime;
             if (CurrentJumpState == JumpState.JustLanded)
             {
@@ -229,15 +242,53 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 CurrentJumpState = JumpState.Descent;
             }
 
+            //Dashing
             if (CurrentDashState == DashState.Dashing)
             {
                 currentDashDuration += deltaTime;
             }
-            if (currentDashDuration >= DashDuration)
+            if (CurrentDashState == DashState.Dashing && currentDashDuration >= DashDuration)
             {
-                CurrentDashState = DashState.DashEnding;
-                currentDashDuration = 0.0f;
+                EndDash();
             }
+
+            if (CurrentDashState == DashState.DashImpact)
+            {
+                currentImpactStickDuration += deltaTime;
+            }
+            if (CurrentDashState == DashState.DashImpact && currentImpactStickDuration >= DashImpactStickDuration)
+            {
+                EndDash();
+            }
+
+            if (dashJustEnded)
+            {
+                timeSinceDashEnded += deltaTime;
+            }
+            if (dashJustEnded && timeSinceDashEnded >= PostDashShoveGracePeriod)
+            {
+                dashJustEnded = false;
+                timeSinceDashEnded = 0;
+            }
+
+            //Shoving
+            if (justShoved)
+            {
+                timeSinceShoved += deltaTime;
+            }
+            if (justShoved && timeSinceShoved >= PostShoveControlReductionTime)
+            {
+                justShoved = false;
+                timeSinceShoved = 0;
+            }
+        }
+
+        private void EndDash()
+        {
+            CurrentDashState = DashState.DashConsumed;
+            currentDashDuration = 0.0f;
+            currentImpactStickDuration = 0.0f;
+            dashJustEnded = true;
         }
 
         /// <summary>
@@ -292,6 +343,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 case CharacterState.Default:
                 {
+                    //Freeze when shoving
+                    if (CurrentDashState == DashState.DashImpact)
+                    {
+                        currentVelocity = Vector3.zero;
+                        return;
+                    }
+
                     if (CurrentDashState != DashState.Dashing)
                     {
                         // Ground movement
@@ -311,7 +369,16 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     //Dashing
                     if (CurrentDashState == DashState.DashRequested)
                     {
-                        currentVelocity = moveInputVector.normalized * DashSpeed + Motor.CharacterUp.normalized * 0.3f;
+                        Vector3 dashDireciton;
+                        if (moveInputVector.magnitude > 0.1f)
+                        {
+                            dashDireciton = moveInputVector.normalized;
+                        }
+                        else
+                        {
+                            dashDireciton = Motor.InitialTickRotation * Vector3.forward;
+                        }
+                        currentVelocity = dashDireciton * DashSpeed + Motor.CharacterUp.normalized * 0.3f;
                         PlayNetworkedParticleEvent(ParticleEventType.Dash);
                         PlayNetworkedSoundEvent(SoundEventType.Dash);
                         CurrentDashState = DashState.Dashing;
@@ -319,10 +386,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     else if (CurrentDashState == DashState.Dashing)
                     {
                         Motor.ForceUnground();
-                    }
-                    if (CurrentDashState == DashState.DashEnding)
-                    {
-                        CurrentDashState = DashState.DashConsumed;
                     }
 
                     //Jumping
@@ -440,15 +503,19 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public override void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
         {
             //Shoving
-            if (CurrentDashState == DashState.Dashing && hitCollider.gameObject.layer == playerLayer && playerInputWriter != null)
+            if ((CurrentDashState == DashState.Dashing || dashJustEnded) && hitCollider.gameObject.layer == playerLayer && playerInputWriter != null)
             {
                 var currentVelocity = Motor.Velocity;
                 var targetEntityId = hitCollider.attachedRigidbody.gameObject.GetComponent<SpatialOSComponent>().SpatialEntityId;
+                var shoveTick = trasformSyncComponent.TickNumber;
                 playerInputWriter.SendShoveEvent(new ShoveEvent(
                     targetEntityId,
                     new Vector3f(currentVelocity.x, currentVelocity.y, currentVelocity.z) * 1.3f,
-                    trasformSyncComponent.TickNumber - 1)
+                    shoveTick)
                 );
+                PlayNetworkedSoundEvent(SoundEventType.Shove);
+                PlayNetworkedParticleEvent(ParticleEventType.Impact);
+                CurrentDashState = DashState.DashImpact;
             }
         }
 
@@ -460,6 +527,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public void ReceiveShove(Vector3 shoveVector)
         {
             AddVelocity(shoveVector);
+            justShoved = true;
         }
 
         private void AddVelocity(Vector3 velocity)
@@ -495,11 +563,16 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             var reorientedInput = Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
             var targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
 
-            currentVelocity *= 1f / (1f + NeutralStoppingDrag * deltaTime);
+            if (!justShoved)
+            {
+                currentVelocity *= 1f / (1f + NeutralStoppingDrag * deltaTime);
+            }
+
+            var shovedControlModifier = justShoved ? PostShoveControlReductionMultiplier : 1.0f;
 
             // Smooth movement Velocity
             currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity,
-                1 - Mathf.Exp(-StableMovementSharpness * deltaTime));
+                1 - Mathf.Exp(-StableMovementSharpness * deltaTime * shovedControlModifier));
         }
 
         private void ApplyAirMovement(ref Vector3 currentVelocity, float deltaTime)
@@ -517,10 +590,10 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     targetMovementVelocity = Vector3.ProjectOnPlane(targetMovementVelocity, perpenticularObstructionNormal);
                 }
 
-                //Clamp the velocity diff you can achive while in the air. 
+                var shovedControlModifier = justShoved ? PostShoveControlReductionMultiplier : 1.0f;
 
                 var velocityDiff = Vector3.ProjectOnPlane(targetMovementVelocity - currentVelocity, BaseGravity);
-                currentVelocity += velocityDiff * AirAccelerationSpeed * deltaTime;
+                currentVelocity += velocityDiff * AirAccelerationSpeed * deltaTime * shovedControlModifier;
             }
         }
 
@@ -554,14 +627,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         currentJumpType = JumpType.Double;
                         break;
                     case JumpType.Double:
-                        if (Motor.BaseVelocity.magnitude > 3f) //Make critical threshold
-                        {
-                            currentJumpType = JumpType.Tripple;
-                        }
-                        else
-                        {
-                            currentJumpType = JumpType.Double;
-                        }
+                        currentJumpType = Motor.BaseVelocity.magnitude > CriticalSpeed ? JumpType.Tripple : JumpType.Single;
                         break;
                     case JumpType.Tripple:
                         currentJumpType = JumpType.Single;
