@@ -344,13 +344,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 case CharacterState.Default:
                 {
                     //Freeze when shoving
-                    if (CurrentDashState == DashState.DashImpact)
-                    {
-                        currentVelocity = Vector3.zero;
-                        return;
-                    }
+//                    if (CurrentDashState == DashState.DashImpact)
+//                    {
+//                        currentVelocity = Vector3.zero;
+//                    }
 
-                    if (CurrentDashState != DashState.Dashing)
+                    if (CurrentDashState != DashState.Dashing && CurrentDashState != DashState.DashImpact)
                     {
                         // Ground movement
                         if (Motor.GroundingStatus.IsStableOnGround)
@@ -503,7 +502,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public override void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
         {
             //Shoving
-            if ((CurrentDashState == DashState.Dashing || dashJustEnded) && hitCollider.gameObject.layer == playerLayer && playerInputWriter != null)
+            if (CurrentDashState != DashState.DashImpact &&
+               (CurrentDashState == DashState.Dashing || dashJustEnded) &&
+               hitCollider.gameObject.layer == playerLayer && playerInputWriter != null)
             {
                 var currentVelocity = Motor.Velocity;
                 var targetEntityId = hitCollider.attachedRigidbody.gameObject.GetComponent<SpatialOSComponent>().SpatialEntityId;
@@ -653,12 +654,14 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 case JumpType.Single:
                     jumpSpeed = SingleJumpSpeed;
                     PlayNetworkedSoundEvent(SoundEventType.Wa);
+                    PlayNetworkedAnimationEvent(AnimationEventType.Jump);
                     jumpDirection = (upDirection * 5 + moveInputVector).normalized;
                     jumpHeading = moveInputVector;
                     break;
                 case JumpType.Double:
                     jumpSpeed = DoubleJumpSpeed;
                     PlayNetworkedSoundEvent(SoundEventType.Woo);
+                    PlayNetworkedAnimationEvent(AnimationEventType.Jump);
                     jumpDirection = (upDirection * 8 + moveInputVector).normalized;
                     jumpHeading = moveInputVector;
                     break;
@@ -687,7 +690,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
+            
             currentVelocity += jumpDirection * jumpSpeed - Vector3.Project(currentVelocity, Motor.CharacterUp);
             lastJumpType = currentJumpType;
         }
@@ -716,6 +719,10 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             if (objectLandedOn.layer == playerLayer || objectLandedOn.layer == jumpSurfaceLayer)
             {
                 landedOnJumpSurfaceLastFrame = true;
+            }
+            else
+            {
+                PlayNetworkedAnimationEvent(AnimationEventType.Land);
             }
             
             CurrentJumpState = JumpState.JustLanded;
