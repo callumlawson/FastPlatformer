@@ -567,8 +567,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             var shovedControlModifier = justShoved ? PostShoveControlReductionMultiplier : 1.0f;
 
             // Smooth movement Velocity
-            currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity,
-                1 - Mathf.Exp(-StableMovementSharpness * deltaTime * shovedControlModifier));
+            currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity, 1 - Mathf.Exp(-StableMovementSharpness * deltaTime * shovedControlModifier));
 
             // Apply upwards slope penalty - needs revision
             var slopeAngleInDegrees = Vector3.Angle(Motor.CharacterUp, effectiveGroundNormal);
@@ -622,10 +621,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         {
             // Calculate jump direction before ungrounding
             var upDirection = Motor.CharacterUp;
-            if (Motor.GroundingStatus.FoundAnyGround && !Motor.GroundingStatus.IsStableOnGround)
-            {
-                upDirection = Motor.GroundingStatus.GroundNormal;
-            }
 
             // Makes the character skip ground probing/snapping on its next update. 
             Motor.ForceUnground();
@@ -704,7 +699,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     jumpSpeed = DoubleJumpSpeed * 1.4f;
                     PlayNetworkedSoundEvent(SoundEventType.Hoo);
                     PlayNetworkedAnimationEvent(AnimationEventType.Backflip);
-                    jumpDirection = (upDirection * 12 + moveInputVector).normalized;
+                    jumpDirection = upDirection.normalized;
                     jumpHeading = moveInputVector;
                     break;
                 default:
