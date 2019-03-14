@@ -26,14 +26,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             JumpPad
         }
 
-        private struct JumpData //TODO - refactor jumps out 
-        {
-            public JumpType JumpType;
-            public float JumpSpeed;
-            public SoundEvent JumpSound;
-            public AnimationEvent JumpAnimation;
-        }
-
         private enum GravityType
         {
             World,
@@ -69,6 +61,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float StableMovementSharpness = 15;
         public float OrientationSharpness = 10;
         public float NeutralStoppingDrag = 0.5f;
+        public AnimationCurve PowerToSlopeAngle = AnimationCurve.Linear(0, 1, 90, 0.1f);
 
         [Header("Air Movement")]
         public float MaxAirMoveSpeed = 10f;
@@ -543,25 +536,36 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
         }
 
+        public Vector3 surfaceVelocityVector;
+        public Vector3 AlongPlaneVector;
+        public Vector3 UpPlaneVector;
         private void ApplyGroundMovement(ref Vector3 currentVelocity, float deltaTime)
         {
-            Vector3 effectiveGroundNormal = Motor.GroundingStatus.GroundNormal;
+            var effectiveGroundNormal = Motor.GroundingStatus.GroundNormal;
             if (currentVelocity.sqrMagnitude > 0f && Motor.GroundingStatus.SnappingPrevented)
             {
                 // Take the normal from where we're coming from
-                Vector3 groundPointToCharacter = Motor.TransientPosition - Motor.GroundingStatus.GroundPoint;
+                var groundPointToCharacter = Motor.TransientPosition - Motor.GroundingStatus.GroundPoint;
                 effectiveGroundNormal = Vector3.Dot(currentVelocity, groundPointToCharacter) >= 0f
                     ? Motor.GroundingStatus.OuterGroundNormal
                     : Motor.GroundingStatus.InnerGroundNormal;
             }
 
+            var slopeAngleInDegrees = Vector3.Angle(Motor.CharacterUp, effectiveGroundNormal);
+
+            surfaceVelocityVector = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) * currentVelocity.magnitude;
+            AlongPlaneVector = Vector3.Cross(effectiveGroundNormal, Motor.CharacterUp);
+            UpPlaneVector = Vector3.Cross(AlongPlaneVector, effectiveGroundNormal);
+
             // Reorient velocity on slope
-            currentVelocity = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) *
-                currentVelocity.magnitude;
+            currentVelocity = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) * currentVelocity.magnitude;
 
             // Calculate target velocity
             var inputRight = Vector3.Cross(moveInputVector, Motor.CharacterUp);
             var reorientedInput = Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
+
+            var slopeSpeedFactor = PowerToSlopeAngle.Evaluate(slopeAngleInDegrees);
+
             var targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
 
             if (!justShoved)
@@ -574,6 +578,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             // Smooth movement Velocity
             currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity,
                 1 - Mathf.Exp(-StableMovementSharpness * deltaTime * shovedControlModifier));
+        }
+
+        private void OnDrawGizmos()
+        {
+            Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + surfaceVelocityVector * 10, Color.red);
+            Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + AlongPlaneVector * 20, Color.blue);
+            Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + UpPlaneVector * 20, Color.green);
         }
 
         private void ApplyAirMovement(ref Vector3 currentVelocity, float deltaTime)

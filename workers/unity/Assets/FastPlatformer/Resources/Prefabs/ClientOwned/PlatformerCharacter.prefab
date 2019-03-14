@@ -351,6 +351,30 @@ MonoBehaviour:
   StableMovementSharpness: 7
   OrientationSharpness: 8
   NeutralStoppingDrag: 1
+  PowerToSlopeAngle:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: -0.01
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 90
+      value: 0.1
+      inSlope: -0.01
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   MaxAirMoveSpeed: 7
   AirAccelerationSpeed: 2
   AirControlFactor: 1
@@ -378,6 +402,9 @@ MonoBehaviour:
   OrientTowardsGravity: 0
   BaseGravity: {x: 0, y: -30, z: 0}
   CameraFollowPoint: {fileID: 687}
+  surfaceVelocityVector: {x: 0, y: 0, z: 0}
+  AlongPlaneVector: {x: 0, y: 0, z: 0}
+  UpPlaneVector: {x: 0, y: 0, z: 0}
 --- !u!114 &1219
 MonoBehaviour:
   m_ObjectHideFlags: 0
