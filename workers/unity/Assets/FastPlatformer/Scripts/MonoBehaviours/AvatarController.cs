@@ -536,7 +536,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
         }
 
-        public Vector3 surfaceVelocityVector;
+        public Vector3 SurfaceVelocityVector;
         public Vector3 AlongPlaneVector;
         public Vector3 UpPlaneVector;
         private void ApplyGroundMovement(ref Vector3 currentVelocity, float deltaTime)
@@ -551,38 +551,47 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     : Motor.GroundingStatus.InnerGroundNormal;
             }
 
-            var slopeAngleInDegrees = Vector3.Angle(Motor.CharacterUp, effectiveGroundNormal);
-
-            surfaceVelocityVector = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) * currentVelocity.magnitude;
-            AlongPlaneVector = Vector3.Cross(effectiveGroundNormal, Motor.CharacterUp);
-            UpPlaneVector = Vector3.Cross(AlongPlaneVector, effectiveGroundNormal);
-
             // Reorient velocity on slope
             currentVelocity = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) * currentVelocity.magnitude;
 
             // Calculate target velocity
             var inputRight = Vector3.Cross(moveInputVector, Motor.CharacterUp);
             var reorientedInput = Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
-
-            var slopeSpeedFactor = PowerToSlopeAngle.Evaluate(slopeAngleInDegrees);
-
             var targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
 
+            //Shoving loss of traction
             if (!justShoved)
             {
                 currentVelocity *= 1f / (1f + NeutralStoppingDrag * deltaTime);
             }
-
             var shovedControlModifier = justShoved ? PostShoveControlReductionMultiplier : 1.0f;
 
             // Smooth movement Velocity
             currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity,
                 1 - Mathf.Exp(-StableMovementSharpness * deltaTime * shovedControlModifier));
+
+            // Apply upwards slope penalty - needs revision
+            var slopeAngleInDegrees = Vector3.Angle(Motor.CharacterUp, effectiveGroundNormal);
+            SurfaceVelocityVector = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) * currentVelocity.magnitude;
+            AlongPlaneVector = Vector3.Cross(effectiveGroundNormal, Motor.CharacterUp);
+            UpPlaneVector = Vector3.Cross(AlongPlaneVector, effectiveGroundNormal);
+
+            if (slopeAngleInDegrees > 5 && Vector3.Dot(currentVelocity, UpPlaneVector) > 1)
+            {
+                var slopeSpeedPenalityFactor = PowerToSlopeAngle.Evaluate(slopeAngleInDegrees);
+                var velocityComponentUpSlope = Vector3.Project(currentVelocity, UpPlaneVector);
+                var velocityPenalty = velocityComponentUpSlope * slopeSpeedPenalityFactor;
+                currentVelocity -= velocityPenalty;
+            }
         }
 
         private void OnDrawGizmos()
         {
-            Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + surfaceVelocityVector * 10, Color.red);
+            if (Motor == null)
+            {
+                return;
+            }
+            Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + SurfaceVelocityVector * 10, Color.red);
             Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + AlongPlaneVector * 20, Color.blue);
             Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + UpPlaneVector * 20, Color.green);
         }
