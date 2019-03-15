@@ -397,12 +397,13 @@ MonoBehaviour:
   PostShoveControlReductionMultiplier: 0.5
   PostShoveControlReductionTime: 0.4
   CurrentDashState: 4
-  PlanetTransform: {fileID: 0}
+  CurrentWallJumpState: 0
+  WallAtachmentDuration: 0.2
   IgnoredColliders: []
   OrientTowardsGravity: 0
   BaseGravity: {x: 0, y: -30, z: 0}
   CameraFollowPoint: {fileID: 687}
-  surfaceVelocityVector: {x: 0, y: 0, z: 0}
+  SurfaceVelocityVector: {x: 0, y: 0, z: 0}
   AlongPlaneVector: {x: 0, y: 0, z: 0}
   UpPlaneVector: {x: 0, y: 0, z: 0}
 --- !u!114 &1219
