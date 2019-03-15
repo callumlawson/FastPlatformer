@@ -526,12 +526,12 @@ PrefabInstance:
     - target: {fileID: 5523159268676412615, guid: cdee3c3988717734792255c1c916cd18,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 6.54
+      value: 0.261
       objectReference: {fileID: 0}
     - target: {fileID: 5523159268676412615, guid: cdee3c3988717734792255c1c916cd18,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.71
+      value: -2.678
       objectReference: {fileID: 0}
     - target: {fileID: 5523159268676412615, guid: cdee3c3988717734792255c1c916cd18,
         type: 3}
@@ -704,11 +704,6 @@ PrefabInstance:
     - target: {fileID: 1207, guid: cdee3c3988717734792255c1c916cd18, type: 3}
       propertyPath: PowerToSlopeAngle.m_Curve.Array.data[4].value
       value: 0.7994214
-      objectReference: {fileID: 0}
-    - target: {fileID: 5528456267396647343, guid: cdee3c3988717734792255c1c916cd18,
-        type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1.2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cdee3c3988717734792255c1c916cd18, type: 3}
