@@ -16,7 +16,6 @@ The GDK is composed of three layers:
 
 [Get started](https://docs.improbable.io/unity/alpha/content/get-started/get-started) with the SpatialOS GDK for Unity, by setting up the FPS Starter Project.
 
-
 ---
 
 * [Get started](https://docs.improbable.io/unity/alpha/content/get-started/get-started)
