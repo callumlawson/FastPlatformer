@@ -131,7 +131,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private float timeSinceShoved;
 
         //Freezing
-        [Header("Wall Jumping")] public WallJumpState CurrentWallJumpState;
+        [Header("Wall Jumping")]
+        public WallJumpState CurrentWallJumpState;
+        public float WallAtachmentDuration;
 
         public enum WallJumpState
         {
@@ -140,10 +142,10 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             Slipping
         }
 
-        public float WallAtachmentDuration;
         private float wallAtachmentTime;
 
-        [Header("Misc")] public List<Collider> IgnoredColliders = new List<Collider>();
+        [Header("Misc")]
+        public List<Collider> IgnoredColliders = new List<Collider>();
         public bool OrientTowardsGravity = true;
         public Vector3 BaseGravity = new Vector3(0, -30f, 0);
         public Transform CameraFollowPoint;
@@ -416,25 +418,21 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         CurrentJumpState = JumpState.Ascent;
                     }
 
-                    if (!jumpConsumed && (jumpTriggeredThisFrame || landedOnJumpSurfaceLastFrame))
+                    var canWallJump = jumpTriggeredThisFrame && (CurrentWallJumpState == WallJumpState.JustAttached ||
+                        CurrentWallJumpState == WallJumpState.Slipping);
+                    var canJump = !jumpConsumed && (jumpTriggeredThisFrame || landedOnJumpSurfaceLastFrame) && ((AllowJumpingWhenSliding
+                            ? Motor.GroundingStatus.FoundAnyGround
+                            : Motor.GroundingStatus.IsStableOnGround) ||
+                        timeSinceLastAbleToJump <= JumpPostGroundingGraceTime);
+
+                    if (canJump || canWallJump)
                     {
-                        var canWallJump = (CurrentWallJumpState == WallJumpState.JustAttached ||
-                            CurrentWallJumpState == WallJumpState.Slipping);
-
-                        var canJump = (AllowJumpingWhenSliding
-                                ? Motor.GroundingStatus.FoundAnyGround
-                                : Motor.GroundingStatus.IsStableOnGround) ||
-                            timeSinceLastAbleToJump <= JumpPostGroundingGraceTime;
-
-                        if (canJump || canWallJump)
-                        {
-                            preJumpVelocity = currentVelocity;
-                            DoJump(ref currentVelocity);
-                            CurrentJumpState = JumpState.JumpStartedLastFrame;
-                            CurrentWallJumpState = WallJumpState.Nothing;
-                            jumpTriggeredThisFrame = false;
-                            jumpConsumed = true;
-                        }
+                        preJumpVelocity = currentVelocity;
+                        DoJump(ref currentVelocity);
+                        CurrentJumpState = JumpState.JumpStartedLastFrame;
+                        CurrentWallJumpState = WallJumpState.Nothing;
+                        jumpTriggeredThisFrame = false;
+                        jumpConsumed = true;
                     }
 
                     landedOnJumpSurfaceLastFrame = false;
@@ -545,8 +543,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 CurrentWallJumpState != WallJumpState.Slipping &&
                 CurrentWallJumpState != WallJumpState.JustAttached &&
                 slopeAngleInDegrees > Motor.MaxStableSlopeAngle &&
-                Vector3.Dot(Motor.Velocity, hitNormal) < -0.3f &&
-                lateralVelocity.magnitude > CriticalSpeed)
+                Vector3.Dot(Motor.Velocity, hitNormal) < -0.3f //&&
+                // lateralVelocity.magnitude > 1
+                )
             {
                 CurrentWallJumpState = WallJumpState.JustAttached;
             }
@@ -648,8 +647,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 return;
             }
 
-            Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + SurfaceVelocityVector * 10,
-                Color.red);
+            Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + SurfaceVelocityVector * 10, Color.red);
             Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + AlongPlaneVector * 20, Color.blue);
             Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + UpPlaneVector * 20, Color.green);
         }
