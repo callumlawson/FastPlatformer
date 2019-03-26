@@ -53,28 +53,24 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             public bool Interact;
         }
 
-        [Header("Visualizers")]
-        public AvatarSoundVisualizer SoundVisualizer;
+        [Header("Visualizers")] public AvatarSoundVisualizer SoundVisualizer;
         public AvatarAnimationVisualizer AnimationVisualizer;
         public AvatarParticleVisualizer ParticleVisualizer;
 
         //TODO Extract these variables!
-        [Header("Stable Movement")]
-        public float MaxStableMoveSpeed = 10f;
+        [Header("Stable Movement")] public float MaxStableMoveSpeed = 10f;
         public float StableMovementSharpness = 15;
         public float OrientationSharpness = 10;
         public float NeutralStoppingDrag = 0.5f;
         public AnimationCurve PowerToSlopeAngle = AnimationCurve.Linear(0, 1, 90, 0.1f);
 
-        [Header("Air Movement")]
-        public float MaxAirMoveSpeed = 10f;
+        [Header("Air Movement")] public float MaxAirMoveSpeed = 10f;
         public float AirAccelerationSpeed = 5f;
         public float AirControlFactor = 1f;
         public float Drag = 0.1f;
 
         public const float CriticalSpeed = 5f;
-        [Header("Jumping")]
-        public bool AllowJumpingWhenSliding;
+        [Header("Jumping")] public bool AllowJumpingWhenSliding;
         public float SingleJumpSpeed = 10f;
         public float DoubleJumpSpeed = 12f;
         public float TrippleJumpSpeed = 15f;
@@ -98,6 +94,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             JustLanded,
             Grounded
         }
+
         public JumpState CurrentJumpState; //Public for debug
         private JumpType lastJumpType;
         private Vector3 jumpHeading;
@@ -108,13 +105,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private float timeSinceJumpLanding = Mathf.Infinity;
         private bool landedOnJumpSurfaceLastFrame;
 
-        [Header("Dashing and Shoving")]
-        public float DashSpeed = 10;
+        [Header("Dashing and Shoving")] public float DashSpeed = 10;
         public float DashDuration = 0.8f;
         public float DashImpactStickDuration = 0.1f;
         public float PostDashShoveGracePeriod = 0.3f;
         public float PostShoveControlReductionMultiplier = 0.3f;
         public float PostShoveControlReductionTime = 0.5f;
+
         public enum DashState
         {
             DashRequested,
@@ -123,6 +120,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             DashConsumed,
             DashAvailible
         }
+
         public DashState CurrentDashState;
 
         private float currentDashDuration;
@@ -133,19 +131,19 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private float timeSinceShoved;
 
         //Freezing
-        [Header("Wall Jumping")]
-        public WallJumpState CurrentWallJumpState;
+        [Header("Wall Jumping")] public WallJumpState CurrentWallJumpState;
+
         public enum WallJumpState
         {
             Nothing,
             JustAttached,
             Slipping
         }
+
         public float WallAtachmentDuration;
         private float wallAtachmentTime;
 
-        [Header("Misc")]
-        public List<Collider> IgnoredColliders = new List<Collider>();
+        [Header("Misc")] public List<Collider> IgnoredColliders = new List<Collider>();
         public bool OrientTowardsGravity = true;
         public Vector3 BaseGravity = new Vector3(0, -30f, 0);
         public Transform CameraFollowPoint;
@@ -175,14 +173,18 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public void SetInputs(ref CharacterInputs inputs)
         {
             // Clamp input
-            var controllerInput = Vector3.ClampMagnitude(new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward), 1f);
+            var controllerInput =
+                Vector3.ClampMagnitude(new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward), 1f);
 
             // Calculate camera direction and rotation on the character plane
-            var cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
+            var cameraPlanarDirection =
+                Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
             if (cameraPlanarDirection.sqrMagnitude == 0f)
             {
-                cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.up, Motor.CharacterUp).normalized;
+                cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.up, Motor.CharacterUp)
+                    .normalized;
             }
+
             var cameraPlanarRotation = Quaternion.LookRotation(cameraPlanarDirection, Motor.CharacterUp);
             currentCameraPlanarDirection = cameraPlanarRotation * Vector3.forward;
 
@@ -224,12 +226,15 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 timeSinceJumpLanding += deltaTime;
             }
+
             if (timeSinceJumpLanding > DoubleJumpTimeWindowSize)
             {
                 CurrentJumpState = JumpState.Grounded;
                 timeSinceJumpLanding = 0;
             }
-            if (CurrentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(Motor.BaseVelocity, Motor.CharacterForward).y < 0)
+
+            if (CurrentJumpState == JumpState.Ascent &&
+                Vector3.ProjectOnPlane(Motor.BaseVelocity, Motor.CharacterForward).y < 0)
             {
                 CurrentJumpState = JumpState.Descent;
             }
@@ -239,6 +244,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 currentDashDuration += deltaTime;
             }
+
             if (CurrentDashState == DashState.Dashing && currentDashDuration >= DashDuration)
             {
                 EndDash();
@@ -248,6 +254,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 currentImpactStickDuration += deltaTime;
             }
+
             if (CurrentDashState == DashState.DashImpact && currentImpactStickDuration >= DashImpactStickDuration)
             {
                 EndDash();
@@ -257,6 +264,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 timeSinceDashEnded += deltaTime;
             }
+
             if (dashJustEnded && timeSinceDashEnded >= PostDashShoveGracePeriod)
             {
                 dashJustEnded = false;
@@ -268,6 +276,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 timeSinceShoved += deltaTime;
             }
+
             if (justShoved && timeSinceShoved >= PostShoveControlReductionTime)
             {
                 justShoved = false;
@@ -279,6 +288,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 wallAtachmentTime = 0;
             }
+
             if (CurrentWallJumpState == WallJumpState.JustAttached)
             {
                 wallAtachmentTime += Time.deltaTime;
@@ -300,7 +310,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         /// <summary>
         /// (Called by KinematicCharacterMotor during its update cycle)
-        /// This is where you tell your character what its rotation should be right now. 
+        /// This is where you tell your character what its rotation should be right now.
         /// This is the ONLY place where you should set the character's rotation
         /// </summary>
         public override void UpdateRotation(ref Quaternion currentRotation, float deltaTime)
@@ -314,7 +324,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         if (moveInputVector != Vector3.zero && OrientationSharpness > 0f)
                         {
                             // Smoothly interpolate from current to target look direction
-                            var smoothedLookInputDirection = Vector3.Slerp(Motor.CharacterForward, moveInputVector, 1 - Mathf.Exp(-OrientationSharpness * deltaTime)).normalized;
+                            var smoothedLookInputDirection = Vector3.Slerp(Motor.CharacterForward, moveInputVector,
+                                1 - Mathf.Exp(-OrientationSharpness * deltaTime)).normalized;
 
                             // Set the current rotation (which will be used by the KinematicCharacterMotor)
                             currentRotation = Quaternion.LookRotation(smoothedLookInputDirection, Motor.CharacterUp);
@@ -324,16 +335,20 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     if (OrientTowardsGravity)
                     {
                         // Rotate from current up to invert gravity
-                        currentRotation = Quaternion.FromToRotation((currentRotation * Vector3.up), -BaseGravity) * currentRotation;
+                        currentRotation = Quaternion.FromToRotation((currentRotation * Vector3.up), -BaseGravity) *
+                            currentRotation;
                     }
 
                     if (CurrentJumpState == JumpState.JumpStartedLastFrame)
                     {
                         if (jumpHeading != Vector3.zero)
                         {
-                            currentRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(jumpHeading, Motor.CharacterUp), Motor.CharacterUp);
+                            currentRotation =
+                                Quaternion.LookRotation(Vector3.ProjectOnPlane(jumpHeading, Motor.CharacterUp),
+                                    Motor.CharacterUp);
                         }
                     }
+
                     break;
                 }
             }
@@ -341,7 +356,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         /// <summary>
         /// (Called by KinematicCharacterMotor during its update cycle)
-        /// This is where you tell your character what its velocity should be right now. 
+        /// This is where you tell your character what its velocity should be right now.
         /// This is the ONLY place where you can set the character's velocity
         /// </summary>
         public override void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)
@@ -378,6 +393,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         {
                             dashDireciton = Motor.InitialTickRotation * Vector3.forward;
                         }
+
                         currentVelocity = dashDireciton * DashSpeed + Motor.CharacterUp.normalized * 0.3f;
                         PlayNetworkedParticleEvent(ParticleEventType.Dash);
                         PlayNetworkedSoundEvent(SoundEventType.Dash);
@@ -399,14 +415,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     {
                         CurrentJumpState = JumpState.Ascent;
                     }
+
                     if (!jumpConsumed && (jumpTriggeredThisFrame || landedOnJumpSurfaceLastFrame))
                     {
-                        var canWallJump =
-//                            Vector3.Dot(Motor.Velocity, GetEffectiveGroundNormal(Motor.Velocity)) > 0.3f &&
-                            (CurrentWallJumpState == WallJumpState.JustAttached ||
-                                CurrentWallJumpState == WallJumpState.Slipping);
+                        var canWallJump = (CurrentWallJumpState == WallJumpState.JustAttached ||
+                            CurrentWallJumpState == WallJumpState.Slipping);
 
-                        var canJump = (AllowJumpingWhenSliding 
+                        var canJump = (AllowJumpingWhenSliding
                                 ? Motor.GroundingStatus.FoundAnyGround
                                 : Motor.GroundingStatus.IsStableOnGround) ||
                             timeSinceLastAbleToJump <= JumpPostGroundingGraceTime;
@@ -421,6 +436,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                             jumpConsumed = true;
                         }
                     }
+
                     landedOnJumpSurfaceLastFrame = false;
 
                     // Take into account additive velocity
@@ -433,7 +449,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     //Handle speed related vfx locally
                     var speed = currentVelocity.magnitude;
                     var isUnderCriticalSpeed = speed > 0.2f && speed < CriticalSpeed;
-                    ParticleVisualizer.SetParticleState(ParticleEventType.DustTrail, isUnderCriticalSpeed && Motor.GroundingStatus.FoundAnyGround);
+                    ParticleVisualizer.SetParticleState(ParticleEventType.DustTrail,
+                        isUnderCriticalSpeed && Motor.GroundingStatus.FoundAnyGround);
 
                     break;
                 }
@@ -473,7 +490,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     }
 
                     //Move to on landed check?
-                    if (AllowJumpingWhenSliding ? Motor.GroundingStatus.FoundAnyGround : Motor.GroundingStatus.IsStableOnGround)
+                    if (AllowJumpingWhenSliding
+                        ? Motor.GroundingStatus.FoundAnyGround
+                        : Motor.GroundingStatus.IsStableOnGround)
                     {
                         jumpConsumed = false;
                         timeSinceLastAbleToJump = 0f;
@@ -505,15 +524,18 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 return false;
             }
+
             return true;
         }
 
-        public override void OnGroundHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
+        public override void OnGroundHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint,
+            ref HitStabilityReport hitStabilityReport)
         {
             //Nothing yet
         }
 
-        public override void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
+        public override void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint,
+            ref HitStabilityReport hitStabilityReport)
         {
             //Wall jumping
             var lateralVelocity = preJumpVelocity;
@@ -531,11 +553,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
             //Shoving
             if (CurrentDashState != DashState.DashImpact &&
-               (CurrentDashState == DashState.Dashing || dashJustEnded) &&
-               hitCollider.gameObject.layer == playerLayer && playerInputWriter != null)
+                (CurrentDashState == DashState.Dashing || dashJustEnded) &&
+                hitCollider.gameObject.layer == playerLayer && playerInputWriter != null)
             {
                 var currentVelocity = Motor.Velocity;
-                var targetEntityId = hitCollider.attachedRigidbody.gameObject.GetComponent<SpatialOSComponent>().SpatialEntityId;
+                var targetEntityId = hitCollider.attachedRigidbody.gameObject.GetComponent<SpatialOSComponent>()
+                    .SpatialEntityId;
                 var shoveTick = trasformSyncComponent.TickNumber;
                 playerInputWriter.SendShoveEvent(new ShoveEvent(
                     targetEntityId,
@@ -548,7 +571,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             }
         }
 
-        public override void ProcessHitStabilityReport(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, Vector3 atCharacterPosition, Quaternion atCharacterRotation, ref HitStabilityReport hitStabilityReport)
+        public override void ProcessHitStabilityReport(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint,
+            Vector3 atCharacterPosition, Quaternion atCharacterRotation, ref HitStabilityReport hitStabilityReport)
         {
             //Not used yet
         }
@@ -574,16 +598,19 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public Vector3 SurfaceVelocityVector;
         public Vector3 AlongPlaneVector;
         public Vector3 UpPlaneVector;
+
         private void ApplyGroundMovement(ref Vector3 currentVelocity, float deltaTime)
         {
             var effectiveGroundNormal = GetEffectiveGroundNormal(currentVelocity);
 
             // Reorient velocity on slope
-            currentVelocity = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) * currentVelocity.magnitude;
+            currentVelocity = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) *
+                currentVelocity.magnitude;
 
             // Calculate target velocity
             var inputRight = Vector3.Cross(moveInputVector, Motor.CharacterUp);
-            var reorientedInput = Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
+            var reorientedInput =
+                Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
             var targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
 
             //Shoving loss of traction
@@ -591,14 +618,17 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 currentVelocity *= 1f / (1f + NeutralStoppingDrag * deltaTime);
             }
+
             var shovedControlModifier = justShoved ? PostShoveControlReductionMultiplier : 1.0f;
 
             // Smooth movement Velocity
-            currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity, 1 - Mathf.Exp(-StableMovementSharpness * deltaTime * shovedControlModifier));
+            currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity,
+                1 - Mathf.Exp(-StableMovementSharpness * deltaTime * shovedControlModifier));
 
             // Apply upwards slope penalty - needs revision
             var slopeAngleInDegrees = Vector3.Angle(Motor.CharacterUp, effectiveGroundNormal);
-            SurfaceVelocityVector = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) * currentVelocity.magnitude;
+            SurfaceVelocityVector = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) *
+                currentVelocity.magnitude;
             AlongPlaneVector = Vector3.Cross(effectiveGroundNormal, Motor.CharacterUp);
             UpPlaneVector = Vector3.Cross(AlongPlaneVector, effectiveGroundNormal);
 
@@ -617,7 +647,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 return;
             }
-            Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + SurfaceVelocityVector * 10, Color.red);
+
+            Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + SurfaceVelocityVector * 10,
+                Color.red);
             Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + AlongPlaneVector * 20, Color.blue);
             Debug.DrawLine(Motor.InitialTickPosition, Motor.InitialTickPosition + UpPlaneVector * 20, Color.green);
         }
@@ -634,7 +666,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     var perpenticularObstructionNormal = Vector3
                         .Cross(Vector3.Cross(Motor.CharacterUp, Motor.GroundingStatus.GroundNormal), Motor.CharacterUp)
                         .normalized;
-                    targetMovementVelocity = Vector3.ProjectOnPlane(targetMovementVelocity, perpenticularObstructionNormal);
+                    targetMovementVelocity =
+                        Vector3.ProjectOnPlane(targetMovementVelocity, perpenticularObstructionNormal);
                 }
 
                 var shovedControlModifier = justShoved ? PostShoveControlReductionMultiplier : 1.0f;
@@ -649,7 +682,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             // Calculate jump direction before ungrounding
             var upDirection = Motor.CharacterUp;
 
-            // Makes the character skip ground probing/snapping on its next update. 
+            // Makes the character skip ground probing/snapping on its next update.
             Motor.ForceUnground();
 
             float jumpSpeed;
@@ -670,7 +703,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                         currentJumpType = JumpType.Double;
                         break;
                     case JumpType.Double:
-                        currentJumpType = Motor.BaseVelocity.magnitude > CriticalSpeed ? JumpType.Tripple : JumpType.Single;
+                        currentJumpType = Motor.BaseVelocity.magnitude > CriticalSpeed
+                            ? JumpType.Tripple
+                            : JumpType.Single;
                         break;
                     case JumpType.Tripple:
                         currentJumpType = JumpType.Single;
@@ -732,7 +767,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
             currentVelocity += jumpDirection * jumpSpeed - Vector3.Project(currentVelocity, Motor.CharacterUp);
             lastJumpType = currentJumpType;
         }
@@ -766,7 +801,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 PlayNetworkedAnimationEvent(AnimationEventType.Land);
             }
-            
+
             CurrentJumpState = JumpState.JustLanded;
 
             timeSinceJumpLanding = 0;
@@ -783,6 +818,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     ? Motor.GroundingStatus.OuterGroundNormal
                     : Motor.GroundingStatus.InnerGroundNormal;
             }
+
             return effectiveGroundNormal;
         }
 
@@ -794,13 +830,15 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void PlayNetworkedAnimationEvent(AnimationEventType animationEventType)
         {
-            eventWriter?.SendAnimationEvent(new AnimationEvent((uint) animationEventType, trasformSyncComponent.TickNumber - 1));
+            eventWriter?.SendAnimationEvent(new AnimationEvent((uint) animationEventType,
+                trasformSyncComponent.TickNumber - 1));
             AnimationVisualizer.PlayAnimationEvent(animationEventType);
         }
 
         private void PlayNetworkedParticleEvent(ParticleEventType particleEvent)
         {
-            eventWriter?.SendParticleEvent(new ParticleEvent((uint) particleEvent, trasformSyncComponent.TickNumber - 1));
+            eventWriter?.SendParticleEvent(
+                new ParticleEvent((uint) particleEvent, trasformSyncComponent.TickNumber - 1));
             ParticleVisualizer.PlayParticleEvent(particleEvent);
         }
 
