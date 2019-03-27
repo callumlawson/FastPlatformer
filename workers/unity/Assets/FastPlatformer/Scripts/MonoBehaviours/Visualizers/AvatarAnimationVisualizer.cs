@@ -11,7 +11,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         Dive = 0,
         Backflip = 1,
         Jump = 2,
-        Land = 3
+        Land = 3,
+        TripleJump = 4,
+        DoubleJump = 5,
     }
 
     public class AvatarAnimationVisualizer : MonoBehaviour

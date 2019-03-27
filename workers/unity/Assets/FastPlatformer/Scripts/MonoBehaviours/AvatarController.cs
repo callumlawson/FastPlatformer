@@ -652,15 +652,15 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     jumpHeading = moveInputVector;
                     jumpSpeed = DoubleJumpSpeed;
                     PlayNetworkedSoundEvent(SoundEventType.Woo);
-                    PlayNetworkedAnimationEvent(AnimationEventType.Jump);
+                    PlayNetworkedAnimationEvent(AnimationEventType.DoubleJump);
                     jumpDirection = (upDirection * 8 + moveInputVector).normalized;
                     break;
                 case JumpType.Tripple:
                     jumpHeading = currentVelocity;
                     jumpSpeed = TrippleJumpSpeed;
                     PlayNetworkedSoundEvent(SoundEventType.Woohoo);
-                    PlayNetworkedAnimationEvent(AnimationEventType.Dive);
-                    jumpDirection = (upDirection * 0.5f + moveInputVector.normalized).normalized;
+                    PlayNetworkedAnimationEvent(AnimationEventType.TripleJump);
+                    jumpDirection = (upDirection * 3 + moveInputVector.normalized).normalized;
                     break;
                 case JumpType.Backflip:
                     jumpHeading = currentVelocity;
