@@ -153,7 +153,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private Vector3 internalVelocityAdd = Vector3.zero;
         private CharacterState currentCharacterState;
         private Vector3 currentCameraPlanarDirection;
-
+        private static readonly int Speed = Animator.StringToHash("Speed");
         private int playerLayer;
         private int jumpSurfaceLayer;
 
@@ -446,6 +446,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
                     //Handle speed related vfx locally
                     var speed = currentVelocity.magnitude;
+                    AnimationVisualizer.SetGroundSpeed((Motor.GroundingStatus.IsStableOnGround && Motor.LastGroundingStatus.IsStableOnGround) ? speed : 0.0f);
                     var isUnderCriticalSpeed = speed > 0.2f && speed < CriticalSpeed;
                     ParticleVisualizer.SetParticleState(ParticleEventType.DustTrail,
                         isUnderCriticalSpeed && Motor.GroundingStatus.FoundAnyGround);
@@ -543,8 +544,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 CurrentWallJumpState != WallJumpState.Slipping &&
                 CurrentWallJumpState != WallJumpState.JustAttached &&
                 slopeAngleInDegrees > Motor.MaxStableSlopeAngle &&
-                Vector3.Dot(Motor.Velocity, hitNormal) < -0.40f //&&
-                // lateralVelocity.magnitude > 1
+                Vector3.Dot(Motor.Velocity.normalized, hitNormal.normalized) < -0.5f
                 )
             {
                 CurrentWallJumpState = WallJumpState.JustAttached;

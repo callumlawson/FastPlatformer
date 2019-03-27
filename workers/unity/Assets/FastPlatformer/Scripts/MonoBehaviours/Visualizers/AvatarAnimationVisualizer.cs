@@ -18,7 +18,14 @@ namespace FastPlatformer.Scripts.MonoBehaviours
     {
         public Animator AvatarAnimator;
 
+        private void Start()
+        {
+            ourRigidbody = GetComponent<Rigidbody>();
+        }
+
         [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Reader eventReader;
+        private static readonly int Speed = Animator.StringToHash("Speed");
+        private Rigidbody ourRigidbody;
 
         public void OnEnable()
         {
@@ -32,6 +39,21 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     }
                 };
             }
+        }
+
+        public void Update()
+        {
+            //TODO: Grounding detection on non-player characters
+            // if (eventReader != null && eventReader.Authority == Authority.NotAuthoritative)
+            // {
+            //     var estimatedSpeed = ourRigidbody.velocity.magnitude;
+            //     SetGroundSpeed(estimatedSpeed);
+            // }
+        }
+
+        public void SetGroundSpeed(float speed)
+        {
+            AvatarAnimator.SetFloat(Speed, speed);
         }
 
         public void PlayAnimationEvent(AnimationEventType animationEventType)
