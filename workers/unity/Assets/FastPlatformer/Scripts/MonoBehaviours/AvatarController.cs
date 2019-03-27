@@ -543,7 +543,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 CurrentWallJumpState != WallJumpState.Slipping &&
                 CurrentWallJumpState != WallJumpState.JustAttached &&
                 slopeAngleInDegrees > Motor.MaxStableSlopeAngle &&
-                Vector3.Dot(Motor.Velocity, hitNormal) < -0.3f //&&
+                Vector3.Dot(Motor.Velocity, hitNormal) < -0.40f //&&
                 // lateralVelocity.magnitude > 1
                 )
             {
@@ -625,18 +625,19 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 1 - Mathf.Exp(-StableMovementSharpness * deltaTime * shovedControlModifier));
 
             // Apply upwards slope penalty - needs revision
-            var slopeAngleInDegrees = Vector3.Angle(Motor.CharacterUp, effectiveGroundNormal);
+            var slopeAngleInDegrees = Vector3.SignedAngle(Motor.CharacterUp, effectiveGroundNormal, -Motor.CharacterRight);
             SurfaceVelocityVector = Motor.GetDirectionTangentToSurface(currentVelocity, effectiveGroundNormal) *
                 currentVelocity.magnitude;
             AlongPlaneVector = Vector3.Cross(effectiveGroundNormal, Motor.CharacterUp);
             UpPlaneVector = Vector3.Cross(AlongPlaneVector, effectiveGroundNormal);
 
-            if (slopeAngleInDegrees > 5 && Vector3.Dot(currentVelocity, UpPlaneVector) > 1)
+            //Up Slope penalty
+            if (Math.Abs(slopeAngleInDegrees) > 8)
             {
-                var slopeSpeedPenalityFactor = PowerToSlopeAngle.Evaluate(slopeAngleInDegrees);
+                var slopeSpeedFactor = PowerToSlopeAngle.Evaluate(slopeAngleInDegrees);
                 var velocityComponentUpSlope = Vector3.Project(currentVelocity, UpPlaneVector);
-                var velocityPenalty = velocityComponentUpSlope * slopeSpeedPenalityFactor;
-                currentVelocity -= velocityPenalty;
+                var velocityPenalty = velocityComponentUpSlope * slopeSpeedFactor;
+                currentVelocity += velocityPenalty;
             }
         }
 
