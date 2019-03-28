@@ -11,8 +11,7 @@
         "Improbable.Gdk.Generated",
         "Improbable.Gdk.Mobile",
         "Improbable.Gdk.Mobile.Android",
-        "Improbable.Gdk.Mobile.iOS",
-        "Concentus"
+        "Improbable.Gdk.Mobile.iOS"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
