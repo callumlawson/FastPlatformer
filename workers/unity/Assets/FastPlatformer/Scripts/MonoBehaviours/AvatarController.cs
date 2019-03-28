@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Gameschema.Untrusted;
 using Improbable;
@@ -86,7 +87,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private bool jumpConsumed;
         private float timeSinceLastAbleToJump;
         private float timeSinceJumpRequested = Mathf.Infinity;
-        private float timeSinceJumpLanding = Mathf.Infinity;
         private bool landedOnJumpSurfaceLastFrame;
 
         [Header("Dashing and Shoving")] public float DashSpeed = 10;
@@ -193,16 +193,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
             //Jumping
             timeSinceJumpRequested += deltaTime;
-            if (CurrentJumpState == JumpState.JustLanded)
-            {
-                timeSinceJumpLanding += deltaTime;
-            }
-
-            if (timeSinceJumpLanding > DoubleJumpTimeWindowSize)
-            {
-                CurrentJumpState = JumpState.Grounded;
-                timeSinceJumpLanding = 0;
-            }
 
             if (CurrentJumpState == JumpState.Ascent &&
                 Vector3.ProjectOnPlane(Motor.BaseVelocity, Motor.CharacterForward).y < 0)
@@ -723,7 +713,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
             CurrentJumpState = JumpState.JustLanded;
 
-            timeSinceJumpLanding = 0;
+            StartCoroutine(CountdownTimer(DoubleJumpTimeWindowSize, () => CurrentJumpState = JumpState.Grounded));
         }
 
         private Vector3 GetEffectiveGroundNormal(Vector3 currentVelocity)
@@ -749,8 +739,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void PlayNetworkedAnimationEvent(AnimationEventType animationEventType)
         {
-            eventWriter?.SendAnimationEvent(new AnimationEvent((uint) animationEventType,
-                trasformSyncComponent.TickNumber - 1));
+            eventWriter?.SendAnimationEvent(new AnimationEvent((uint) animationEventType, trasformSyncComponent.TickNumber - 1));
             AnimationVisualizer.PlayAnimationEvent(animationEventType);
         }
 
@@ -759,6 +748,17 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             eventWriter?.SendParticleEvent(
                 new ParticleEvent((uint) particleEvent, trasformSyncComponent.TickNumber - 1));
             ParticleVisualizer.PlayParticleEvent(particleEvent);
+        }
+
+        private IEnumerator CountdownTimer(float timeInSeconds, Action onDone)
+        {
+            while (timeInSeconds > 0)
+            {
+                timeInSeconds -= Time.deltaTime;
+                yield return null;
+            }
+
+            onDone();
         }
 
         //Debug draw
