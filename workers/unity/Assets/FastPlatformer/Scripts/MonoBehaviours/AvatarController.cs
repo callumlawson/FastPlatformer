@@ -148,11 +148,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         /// </summary>
         public void SetInputs(PlayerInputHandler.CharacterInputs inputs)
         {
-            // Clamp input
-            var controllerInput =
-                Vector3.ClampMagnitude(new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward), 1f);
+            var controllerInput = Vector3.ClampMagnitude(new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward), 1f);
 
-            // Calculate camera direction and rotation on the character plane
             var cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
             if (Math.Abs(cameraPlanarDirection.sqrMagnitude) < 0.001f)
             {
@@ -163,17 +160,22 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
             moveInputVector = cameraPlanarRotation * controllerInput;
 
+            jumpHeldThisFrame = inputs.JumpHold;
+
             if (inputs.JumpPress)
             {
                 timeSinceJumpRequested = 0f;
                 jumpTriggeredThisFrame = true;
             }
 
-            jumpHeldThisFrame = inputs.JumpHold;
-
             if (inputs.Dash && CurrentDashState == DashState.DashAvailable)
             {
                 CurrentDashState = DashState.DashRequested;
+            }
+
+            if (inputs.GroundPound && CurrentGroundPoundState == GroundPoundState.Nothing)
+            {
+                CurrentGroundPoundState = GroundPoundState.PoundRequested;
             }
 
         }
@@ -377,14 +379,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             return true;
         }
 
-        public override void OnGroundHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint,
-            ref HitStabilityReport hitStabilityReport)
+        public override void OnGroundHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
         {
             //Nothing yet
         }
 
-        public override void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint,
-            ref HitStabilityReport hitStabilityReport)
+        public override void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
         {
             //Wall jumping
             var slopeAngleInDegrees = Vector3.Angle(Motor.CharacterUp, hitNormal);
