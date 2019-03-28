@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Timers;
+using FastPlatformer.Scripts.Util;
 using Gameschema.Untrusted;
 using Improbable;
 using Improbable.Gdk.GameObjectRepresentation;
@@ -194,21 +196,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             //Jumping
             timeSinceJumpRequested += deltaTime;
 
-            if (CurrentJumpState == JumpState.Ascent &&
-                Vector3.ProjectOnPlane(Motor.BaseVelocity, Motor.CharacterForward).y < 0)
+            if (CurrentJumpState == JumpState.Ascent && Vector3.ProjectOnPlane(Motor.BaseVelocity, Motor.CharacterForward).y < 0)
             {
                 CurrentJumpState = JumpState.Descent;
-            }
-
-            //Dashing
-            if (CurrentDashState == DashState.Dashing)
-            {
-                currentDashDuration += deltaTime;
-            }
-
-            if (CurrentDashState == DashState.Dashing && currentDashDuration >= DashDuration)
-            {
-                EndDash();
             }
 
             if (CurrentDashState == DashState.DashImpact)
@@ -219,17 +209,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             if (CurrentDashState == DashState.DashImpact && currentImpactStickDuration >= DashImpactStickDuration)
             {
                 EndDash();
-            }
-
-            if (dashJustEnded)
-            {
-                timeSinceDashEnded += deltaTime;
-            }
-
-            if (dashJustEnded && timeSinceDashEnded >= PostDashShoveGracePeriod)
-            {
-                dashJustEnded = false;
-                timeSinceDashEnded = 0;
             }
 
             //Shoving
@@ -267,6 +246,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             currentDashDuration = 0.0f;
             currentImpactStickDuration = 0.0f;
             dashJustEnded = true;
+            StartCoroutine(Timing.CountdownTimer(PostDashShoveGracePeriod, () => dashJustEnded = false));
         }
 
         /// <summary>
@@ -346,7 +326,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 currentVelocity = dashDireciton * DashSpeed + Motor.CharacterUp.normalized * 0.3f;
                 PlayNetworkedParticleEvent(ParticleEventType.Dash);
                 PlayNetworkedSoundEvent(SoundEventType.Dash);
+
                 CurrentDashState = DashState.Dashing;
+                StartCoroutine(Timing.CountdownTimer(DashDuration, EndDash));
             }
             else if (CurrentDashState == DashState.Dashing)
             {
@@ -713,7 +695,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
             CurrentJumpState = JumpState.JustLanded;
 
-            StartCoroutine(CountdownTimer(DoubleJumpTimeWindowSize, () => CurrentJumpState = JumpState.Grounded));
+            StartCoroutine(Timing.CountdownTimer(DoubleJumpTimeWindowSize, () => CurrentJumpState = JumpState.Grounded));
         }
 
         private Vector3 GetEffectiveGroundNormal(Vector3 currentVelocity)
@@ -748,17 +730,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             eventWriter?.SendParticleEvent(
                 new ParticleEvent((uint) particleEvent, trasformSyncComponent.TickNumber - 1));
             ParticleVisualizer.PlayParticleEvent(particleEvent);
-        }
-
-        private IEnumerator CountdownTimer(float timeInSeconds, Action onDone)
-        {
-            while (timeInSeconds > 0)
-            {
-                timeInSeconds -= Time.deltaTime;
-                yield return null;
-            }
-
-            onDone();
         }
 
         //Debug draw
