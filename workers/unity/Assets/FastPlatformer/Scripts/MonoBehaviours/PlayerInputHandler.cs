@@ -73,7 +73,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     JumpHold = Input.GetButton(JumpInput),
                     Dash = Input.GetButtonDown(DashInput),
                     Interact = Input.GetKeyDown(KeyCode.E),
-                    GroundPound = Input.GetButton(GroundPoundInput)
+                    GroundPound = Input.GetButtonDown(GroundPoundInput)
                 };
 
             // Apply inputs to character

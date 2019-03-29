@@ -132,6 +132,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private static readonly int Speed = Animator.StringToHash("Speed");
         private int playerLayer;
         private int jumpSurfaceLayer;
+        private Vector3 lastGroundedPoint;
 
         private void Awake()
         {
@@ -241,7 +242,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         /// </summary>
         public override void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)
         {
-            if (CurrentDashState != DashState.Dashing && CurrentDashState != DashState.DashImpact && CurrentGroundPoundState == GroundPoundState.Nothing)
+            if (Motor.GroundingStatus.FoundAnyGround)
+            {
+                lastGroundedPoint = Motor.InterpolatedPosition;
+            }
+
+            if (CurrentDashState != DashState.Dashing && CurrentDashState != DashState.DashImpact &&
+                (CurrentGroundPoundState == GroundPoundState.Nothing || CurrentGroundPoundState == GroundPoundState.PoundRequested))
             {
                 // Ground movement
                 if (Motor.GroundingStatus.IsStableOnGround)
@@ -318,7 +325,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void TryGroundPound(ref Vector3 currentVelocity)
         {
-            if (CurrentGroundPoundState == GroundPoundState.PoundRequested && !Motor.GroundingStatus.FoundAnyGround)
+            if (CurrentGroundPoundState == GroundPoundState.PoundRequested &&
+                !Motor.GroundingStatus.FoundAnyGround &&
+                Vector3.Distance(lastGroundedPoint, Motor.InterpolatedPosition) > 1)
             {
                 PlayNetworkedAnimationEvent(AnimationEventType.GroundPound);
                 CurrentGroundPoundState = GroundPoundState.Spin;
@@ -364,7 +373,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 currentVelocity = Vector3.zero;
             }
-            
+
             if (CurrentJumpState == JumpState.JumpStartedLastFrame)
             {
                 CurrentJumpState = JumpState.Ascent;
@@ -444,7 +453,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             if ((CurrentJumpState == JumpState.Ascent || CurrentJumpState == JumpState.Descent) &&
                 CurrentWallJumpState != WallJumpState.Slipping &&
                 CurrentWallJumpState != WallJumpState.JustAttached &&
-                slopeAngleInDegrees > Motor.MaxStableSlopeAngle &&
+                slopeAngleInDegrees > 85 &&
                 Vector3.Dot(Motor.Velocity.normalized, hitNormal.normalized) < -0.5f)
             {
                 CurrentWallJumpState = WallJumpState.JustAttached;
@@ -743,8 +752,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void PlayNetworkedParticleEvent(ParticleEventType particleEvent)
         {
-            eventWriter?.SendParticleEvent(
-                new ParticleEvent((uint) particleEvent, trasformSyncComponent.TickNumber - 1));
+            eventWriter?.SendParticleEvent( new ParticleEvent((uint) particleEvent, trasformSyncComponent.TickNumber - 1));
             ParticleVisualizer.PlayParticleEvent(particleEvent);
         }
     }
