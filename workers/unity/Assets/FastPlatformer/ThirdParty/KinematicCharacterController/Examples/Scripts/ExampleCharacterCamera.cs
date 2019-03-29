@@ -139,14 +139,14 @@ namespace KinematicCharacterController.Examples
                                 break;
                             }
                         }
-                        for (int j = 0; j < FollowCharacter.IgnoredColliders.Count; j++)
-                        {
-                            if (FollowCharacter.IgnoredColliders[j] == _obstructions[i].collider)
-                            {
-                                isIgnored = true;
-                                break;
-                            }
-                        }
+                        // for (int j = 0; j < FollowCharacter.IgnoredColliders.Count; j++)
+                        // {
+                        //     if (FollowCharacter.IgnoredColliders[j] == _obstructions[i].collider)
+                        //     {
+                        //         isIgnored = true;
+                        //         break;
+                        //     }
+                        // }
 
                         if (!isIgnored && _obstructions[i].distance < closestHit.distance && _obstructions[i].distance > 0)
                         {
