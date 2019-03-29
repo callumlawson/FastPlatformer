@@ -83,8 +83,8 @@ namespace KinematicCharacterController.Examples
             _internalIgnoredColliders.Clear();
             _internalIgnoredColliders.AddRange(FollowCharacter.GetComponentsInChildren<Collider>());
         }
-        
-        public void UpdateWithInput(float deltaTime, float zoomInput, Vector3 rotationInput)
+
+        public void UpdateWithInput(float deltaTime, Vector3 rotationInput)
         {
             if (FollowCharacter && FollowCharacter.CameraFollowPoint)
             {
@@ -97,6 +97,8 @@ namespace KinematicCharacterController.Examples
                     rotationInput.y *= -1f;
                 }
 
+                rotationInput = rotationInput * deltaTime;
+
                 // Process rotation input
                 Quaternion rotationFromInput = Quaternion.Euler(FollowCharacter.CameraFollowPoint.up * (rotationInput.x * RotationSpeed));
                 PlanarDirection = rotationFromInput * PlanarDirection;
@@ -105,16 +107,16 @@ namespace KinematicCharacterController.Examples
                 _targetVerticalAngle = Mathf.Clamp(_targetVerticalAngle, MinVerticalAngle, MaxVerticalAngle);
 
                 // Process distance input
-                if (_distanceIsObstructed && Mathf.Abs(zoomInput) > 0f)
+                if (_distanceIsObstructed)
                 {
                     TargetDistance = _currentDistance;
                 }
-                TargetDistance += zoomInput * DistanceMovementSpeed;
+                TargetDistance += DistanceMovementSpeed;
                 TargetDistance = Mathf.Clamp(TargetDistance, MinDistance, MaxDistance);
 
                 // Find the smoothed follow position
                 _currentFollowPosition = Vector3.Lerp(_currentFollowPosition, FollowCharacter.CameraFollowPoint.position, 1f - Mathf.Exp(-FollowingSharpness * deltaTime));
-                
+
                 // Calculate smoothed rotation
                 Quaternion planarRot = Quaternion.LookRotation(PlanarDirection, FollowCharacter.CameraFollowPoint.up);
                 Quaternion verticalRot = Quaternion.Euler(_targetVerticalAngle, 0, 0);

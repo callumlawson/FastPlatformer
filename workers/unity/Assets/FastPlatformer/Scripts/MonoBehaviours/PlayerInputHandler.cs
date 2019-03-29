@@ -22,7 +22,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private const string LookXInput = "Look X";
         private const string LookYInput = "Look Y";
-        private const string MouseScrollInput = "Mouse ScrollWheel";
         private const string HorizontalInput = "Horizontal";
         private const string VerticalInput = "Vertical";
         private const string JumpInput = "Jump";
@@ -51,7 +50,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             var mouseLookAxisUp = Input.GetAxisRaw(LookYInput);
             var mouseLookAxisRight = Input.GetAxisRaw(LookXInput);
             var lookInputVector = new Vector3(mouseLookAxisRight, mouseLookAxisUp, 0f);
-            var scrollInput = -Input.GetAxis(MouseScrollInput);
 
             // Prevent moving the camera while the cursor isn't locked
             if (Cursor.lockState != CursorLockMode.Locked)
@@ -59,7 +57,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 lookInputVector = Vector3.zero;
             }
 
-            CharacterCamera.UpdateWithInput(Time.deltaTime, scrollInput, lookInputVector);
+            CharacterCamera.UpdateWithInput(Time.deltaTime, lookInputVector);
         }
 
         private void HandleCharacterInput()

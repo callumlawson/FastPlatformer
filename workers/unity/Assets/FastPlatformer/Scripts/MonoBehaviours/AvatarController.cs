@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using FastPlatformer.Scripts.MonoBehaviours.Visualizers;
 using FastPlatformer.Scripts.Util;
 using Gameschema.Untrusted;
 using Improbable;
@@ -39,7 +40,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public float StableMovementSharpness = 15;
         public float OrientationSharpness = 10;
         public float NeutralStoppingDrag = 0.5f;
-        public const float CriticalSpeed = 5f;
+        public const float CriticalSpeed = 4.5f;
         public AnimationCurve PowerToSlopeAngle = AnimationCurve.Linear(0, 1, 90, 0.1f);
 
         [Header("Air Movement")] public float MaxAirMoveSpeed = 10f;
@@ -50,7 +51,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         [Header("Jumping")] public bool AllowJumpingWhenSliding;
         public float SingleJumpSpeed = 10f;
         public float DoubleJumpSpeed = 12f;
-        public float TrippleJumpSpeed = 15f;
+        public float TripleJumpSpeed = 15f;
         public float JumpButtonHoldGravityModifier = 0.5f;
         public float JumpDescentGravityModifier = 2.0f;
         public float JumpPreGroundingGraceTime;
@@ -658,14 +659,14 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                     jumpSpeed = DoubleJumpSpeed;
                     PlayNetworkedSoundEvent(SoundEventType.Woo);
                     PlayNetworkedAnimationEvent(AnimationEventType.DoubleJump);
-                    jumpDirection = (upDirection * 8 + moveInputVector).normalized;
+                    jumpDirection = (upDirection * 7 + moveInputVector).normalized;
                     break;
                 case JumpType.Tripple:
                     jumpHeading = currentVelocity;
-                    jumpSpeed = TrippleJumpSpeed;
+                    jumpSpeed = TripleJumpSpeed;
                     PlayNetworkedSoundEvent(SoundEventType.Woohoo);
                     PlayNetworkedAnimationEvent(AnimationEventType.TripleJump);
-                    jumpDirection = (upDirection * 3 + moveInputVector.normalized).normalized;
+                    jumpDirection = (upDirection * 6 + moveInputVector.normalized).normalized;
                     break;
                 case JumpType.Backflip:
                     jumpHeading = currentVelocity;
