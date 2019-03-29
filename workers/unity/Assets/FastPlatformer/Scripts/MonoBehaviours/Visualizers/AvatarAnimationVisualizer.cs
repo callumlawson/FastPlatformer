@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Gameschema.Untrusted;
 using Improbable.Gdk.GameObjectRepresentation;
 using Improbable.Gdk.TransformSynchronization;
-using Improbable.Worker.CInterop;
+using Improbable.PlayerLifecycle;
 using JetBrains.Annotations;
 using UnityEngine;
 using AnimationEvent = Gameschema.Untrusted.AnimationEvent;
@@ -25,9 +25,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
         public Animator AvatarAnimator;
 
         [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Reader eventReader;
+        [UsedImplicitly, Require] private OwningWorker.Requirable.Reader owningWorker;
 
         private readonly Queue<AnimationEvent> networkedAnimationEventQueue = new Queue<AnimationEvent>();
         private TransformSynchronization transformSyncComponent;
+        private SpatialOSComponent spatialOSComponent;
         private static readonly int Speed = Animator.StringToHash("Speed");
         private Rigidbody ourRigidbody;
 
@@ -39,7 +41,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         public void OnEnable()
         {
-            if (eventReader != null && eventReader.Authority == Authority.NotAuthoritative)
+            spatialOSComponent = GetComponent<SpatialOSComponent>();
+
+            if (eventReader != null && owningWorker.Data.WorkerId != spatialOSComponent.Worker.Connection.GetWorkerId())
             {
                 eventReader.OnAnimationEvent += animationEvent => networkedAnimationEventQueue.Enqueue(animationEvent);
             }
