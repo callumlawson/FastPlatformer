@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using Improbable.Gdk.Core;
-using Improbable.Worker.CInterop;
 using Improbable.Gdk.Subscriptions;
 using UnityEngine;
 
@@ -11,6 +11,8 @@ namespace Improbable.Gdk.GameObjectCreation
     /// </summary>
     public interface IEntityGameObjectCreator
     {
+        Dictionary<EntityId, GameObject> EntityIdToGameObject { get; }
+
         /// <summary>
         ///     Called when a new SpatialOS Entity is checked out by the worker.
         /// </summary>

@@ -12,9 +12,9 @@ namespace Improbable.Gdk.GameObjectCreation
     /// </summary>
     [DisableAutoCreation]
     [UpdateInGroup(typeof(GameObjectInitializationGroup))]
-    internal class GameObjectInitializationSystem : ComponentSystem
+    public class GameObjectInitializationSystem : ComponentSystem
     {
-        private readonly IEntityGameObjectCreator gameObjectCreator;
+        public readonly IEntityGameObjectCreator GameObjectCreator;
 
         private readonly GameObject workerGameObject;
 
@@ -25,7 +25,7 @@ namespace Improbable.Gdk.GameObjectCreation
 
         public GameObjectInitializationSystem(IEntityGameObjectCreator gameObjectCreator, GameObject workerGameObject)
         {
-            this.gameObjectCreator = gameObjectCreator;
+            this.GameObjectCreator = gameObjectCreator;
             this.workerGameObject = workerGameObject;
         }
 
@@ -50,7 +50,7 @@ namespace Improbable.Gdk.GameObjectCreation
 
             foreach (var entityId in entitySystem.GetEntitiesInView())
             {
-                gameObjectCreator.OnEntityRemoved(entityId);
+                GameObjectCreator.OnEntityRemoved(entityId);
             }
 
             base.OnDestroyManager();
@@ -61,7 +61,7 @@ namespace Improbable.Gdk.GameObjectCreation
             foreach (var entityId in entitySystem.GetEntitiesAdded())
             {
                 workerSystem.TryGetEntity(entityId, out var entity);
-                gameObjectCreator.OnEntityCreated(new SpatialOSEntity(entity, EntityManager), linker);
+                GameObjectCreator.OnEntityCreated(new SpatialOSEntity(entity, EntityManager), linker);
             }
 
             var removedEntities = entitySystem.GetEntitiesRemoved();
@@ -74,7 +74,7 @@ namespace Improbable.Gdk.GameObjectCreation
 
             foreach (var entityId in removedEntities)
             {
-                gameObjectCreator.OnEntityRemoved(entityId);
+                GameObjectCreator.OnEntityRemoved(entityId);
             }
         }
     }

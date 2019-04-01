@@ -11,12 +11,13 @@ namespace Improbable.Gdk.GameObjectCreation
 {
     public class GameObjectCreatorFromMetadata : IEntityGameObjectCreator
     {
+        public Dictionary<EntityId, GameObject> EntityIdToGameObject { get; }
+
         private readonly string workerType;
         private readonly string workerId;
         private readonly Vector3 workerOrigin;
         private readonly ILogDispatcher logger;
         private readonly Dictionary<VariantIdentifier, GameObject> cachedPrefabs = new Dictionary<VariantIdentifier, GameObject>();
-        private readonly Dictionary<EntityId, GameObject> entityIdToGameObject = new Dictionary<EntityId, GameObject>();
 
         private readonly Type[] componentsToAdd =
         {
@@ -26,6 +27,7 @@ namespace Improbable.Gdk.GameObjectCreation
 
         public GameObjectCreatorFromMetadata(string workerType, string workerId, Vector3 workerOrigin, ILogDispatcher logger)
         {
+            EntityIdToGameObject = new Dictionary<EntityId, GameObject>();
             this.workerType = workerType;
             this.workerId = workerId;
             this.workerOrigin = workerOrigin;
@@ -78,19 +80,24 @@ namespace Improbable.Gdk.GameObjectCreation
                 $"{prefab.name}(SpatialOS: {entity.SpatialOSEntityId}, Worker: {workerType} - Client Owned)" :
                 $"{prefab.name}(SpatialOS: {entity.SpatialOSEntityId}, Worker: {workerType})";
 
-            entityIdToGameObject.Add(entity.SpatialOSEntityId, gameObject);
+            EntityIdToGameObject.Add(entity.SpatialOSEntityId, gameObject);
             linker.LinkGameObjectToSpatialOSEntity(entity.SpatialOSEntityId, gameObject, componentsToAdd);
         }
 
         public void OnEntityRemoved(EntityId entityId)
         {
-            if (!entityIdToGameObject.TryGetValue(entityId, out var go))
+            if (!EntityIdToGameObject.TryGetValue(entityId, out var go))
             {
                 return;
             }
 
             Object.Destroy(go);
-            entityIdToGameObject.Remove(entityId);
+            EntityIdToGameObject.Remove(entityId);
+        }
+
+        public bool TryGetGameObjectFromSpatialOSEntityId(EntityId entityId, out GameObject linkedGameObject)
+        {
+            return EntityIdToGameObject.TryGetValue(entityId, out linkedGameObject);
         }
 
         private static GameObject LoadWorkerSpecificWithFallback(string workerSpecificPath, string fallbackPath)

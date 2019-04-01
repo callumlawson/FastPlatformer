@@ -1,16 +1,18 @@
 using System.Collections.Generic;
 using FastPlatformer.Scripts.MonoBehaviours;
+using FastPlatformer.Scripts.Util;
 using UnityEngine;
 using Gameschema.Untrusted;
-using Improbable.Gdk.Core;
 using Improbable.Gdk.Subscriptions;
 using Improbable.Gdk.TransformSynchronization;
 using Improbable.Worker.CInterop;
 using JetBrains.Annotations;
+using Unity.Entities;
 
 public class ShoveActuator : MonoBehaviour
 {
     [UsedImplicitly, Require] private PlayerInputReader eventReader;
+    [UsedImplicitly, Require] private World world;
 
     private LinkedEntityComponent spatialComponent;
     private TransformSynchronization transformSyncComponent;
@@ -40,19 +42,18 @@ public class ShoveActuator : MonoBehaviour
 
     private void OnShove(ShoveEvent shoveEvent)
     {
-        Debug.Log("Shove mechanic temporarily disabled");
+        var targetGameObjectEntityId = shoveEvent.TargetId;
+        spatialComponent.TryGetGameObjectForSpatialOSEntityId(world, targetGameObjectEntityId, out var linkedGameObject);
 
+        if (linkedGameObject == null)
+        {
+            return;
+        }
 
-        //
-        // var targetGameObjectEntityId = shoveEvent.TargetId;
-        // spatialComponent.TryGetGameObjectForSpatialOSEntityId(targetGameObjectEntityId, out var linkedGameObject);
-        // if (linkedGameObject != null)
-        // {
-        //     var targetAvatarController = linkedGameObject.GetComponent<AvatarController>();
-        //     if (targetAvatarController != null)
-        //     {
-        //         targetAvatarController.ReceiveShove(shoveEvent.ShoveVector.ToUnityVector());
-        //     }
-        // }
+        var targetAvatarController = linkedGameObject.GetComponent<AvatarController>();
+        if (targetAvatarController != null)
+        {
+            targetAvatarController.ReceiveShove(shoveEvent.ShoveVector.ToUnityVector());
+        }
     }
 }
