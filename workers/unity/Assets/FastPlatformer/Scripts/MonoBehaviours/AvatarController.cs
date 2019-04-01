@@ -740,20 +740,31 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void PlayNetworkedSoundEvent(SoundEventType soundEventType)
         {
-            eventWriter?.SendSoundEventEvent(new SoundEvent((uint) soundEventType, trasformSyncComponent.TickNumber - 1));
+            eventWriter?.SendSoundEventEvent(new SoundEvent((uint) soundEventType, GetEventTickNumber()));
             SoundVisualizer.PlaySoundEvent(soundEventType);
         }
 
         private void PlayNetworkedAnimationEvent(AnimationEventType animationEventType)
         {
-            eventWriter?.SendAnimationEventEvent(new AnimationEvent((uint) animationEventType, trasformSyncComponent.TickNumber - 1));
+            eventWriter?.SendAnimationEventEvent(new AnimationEvent((uint) animationEventType, GetEventTickNumber()));
             AnimationVisualizer.PlayAnimationEvent(animationEventType);
         }
 
         private void PlayNetworkedParticleEvent(ParticleEventType particleEvent)
         {
-            eventWriter?.SendParticleEventEvent( new ParticleEvent((uint) particleEvent, trasformSyncComponent.TickNumber - 1));
+            eventWriter?.SendParticleEventEvent(new ParticleEvent((uint) particleEvent, GetEventTickNumber()));
             ParticleVisualizer.PlayParticleEvent(particleEvent);
+        }
+
+        private uint GetEventTickNumber()
+        {
+            var tickNumber = trasformSyncComponent.TickNumber;
+            if (tickNumber > 0)
+            {
+                tickNumber -= 1;
+            }
+
+            return tickNumber;
         }
     }
 }
