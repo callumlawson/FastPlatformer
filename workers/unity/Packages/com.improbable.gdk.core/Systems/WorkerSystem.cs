@@ -12,24 +12,34 @@ namespace Improbable.Gdk.Core
     [DisableAutoCreation]
     public class WorkerSystem : ComponentSystem
     {
-        public readonly Connection Connection;
-        public readonly ILogDispatcher LogDispatcher;
-        public readonly string WorkerType;
-        public readonly Vector3 Origin;
-
         /// <summary>
         ///     An ECS entity that represents the Worker.
         /// </summary>
         public Entity WorkerEntity;
 
+        public readonly Connection Connection;
+        public readonly ILogDispatcher LogDispatcher;
+        public readonly string WorkerType;
+        public readonly Vector3 Origin;
+
+        internal MessagesToSend MessagesToSend;
+
+        internal readonly View View = new View();
+        internal readonly IConnectionHandler ConnectionHandler;
+
         internal readonly Dictionary<EntityId, Entity> EntityIdToEntity = new Dictionary<EntityId, Entity>();
 
-        public WorkerSystem(Connection connection, ILogDispatcher logDispatcher, string workerType, Vector3 origin)
+        internal ViewDiff Diff;
+
+        public WorkerSystem(IConnectionHandler connectionHandler, Connection connection, ILogDispatcher logDispatcher, string workerType, Vector3 origin)
         {
             Connection = connection;
             LogDispatcher = logDispatcher;
             WorkerType = workerType;
             Origin = origin;
+            ConnectionHandler = connectionHandler;
+
+            MessagesToSend = connectionHandler.GetMessagesToSendContainer();
         }
 
         /// <summary>
@@ -58,12 +68,39 @@ namespace Improbable.Gdk.Core
             return EntityIdToEntity.ContainsKey(entityId);
         }
 
+        public void SendLogMessage(string message, string loggerName, LogLevel logLevel, EntityId? entityId)
+        {
+            MessagesToSend.AddLogMessage(new LogMessageToSend(message, loggerName, logLevel, entityId?.Id));
+        }
+
+        public void SendMetrics(Metrics metrics)
+        {
+            MessagesToSend.AddMetrics(metrics);
+        }
+
+        internal void GetMessages()
+        {
+            ConnectionHandler.GetMessagesReceived(ref Diff);
+        }
+
+        internal void SendMessages()
+        {
+            ConnectionHandler.PushMessagesToSend(MessagesToSend);
+            MessagesToSend = ConnectionHandler.GetMessagesToSendContainer();
+        }
+
         protected override void OnCreateManager()
         {
             base.OnCreateManager();
             var entityManager = World.GetOrCreateManager<EntityManager>();
             WorkerEntity = entityManager.CreateEntity(typeof(OnConnected), typeof(WorkerEntityTag));
             Enabled = false;
+        }
+
+        protected override void OnDestroyManager()
+        {
+            ConnectionHandler.Dispose();
+            base.OnDestroyManager();
         }
 
         protected override void OnUpdate()

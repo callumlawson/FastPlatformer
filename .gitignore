@@ -4,6 +4,7 @@
 .spatialos/
 .idea/
 .vs/
+.gradle/
 .DS_Store
 
 #Unity Engine Gitignore (https://github.com/github/gitignore/blob/master/Unity.gitignore)
@@ -65,4 +66,3 @@ test-project/Assets/.Schema/from_gdk_packages
 !test-project/Assets/Generated/Source/improbable/gdk/tests/**/*.cs
 
 .shared-ci/
-

@@ -1,89 +1,108 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Improbable.CodeGeneration.FileHandling;
-using Improbable.CodeGeneration.Jobs;
-using Improbable.CodeGeneration.Model;
-using Improbable.CodeGeneration.Utils;
+using Improbable.Gdk.CodeGeneration.FileHandling;
+using Improbable.Gdk.CodeGeneration.Jobs;
+using Improbable.Gdk.CodeGeneration.Utils;
 
 namespace Improbable.Gdk.CodeGenerator
 {
     public class SingleGenerationJob : CodegenJob
     {
-        private readonly string relativeOutputPath;
-        private readonly string package;
-        private readonly List<UnityTypeDefinition> typesToGenerate;
-        private readonly List<UnityComponentDefinition> componentsToGenerate;
-        private readonly List<EnumDefinitionRaw> enumsToGenerate;
+        private readonly List<GenerationTarget<UnityComponentDetails>> componentsToGenerate;
 
-        private readonly HashSet<string> enumSet = new HashSet<string>();
+        private readonly List<GenerationTarget<UnityTypeDetails>> typesToGenerate;
 
-        private const string fileExtension = ".cs";
+        private readonly List<GenerationTarget<UnityEnumDetails>> enumsToGenerate;
 
-        public SingleGenerationJob(string outputDir, UnitySchemaFile schemaFile, IFileSystem fileSystem,
-            HashSet<string> enumSet) : base(
+        private const string FileExtension = ".cs";
+
+        public SingleGenerationJob(string outputDir, DetailsStore store, IFileSystem fileSystem) : base(
             outputDir, fileSystem)
         {
-            InputFiles = new List<string> { schemaFile.CompletePath };
+            InputFiles = store.SchemaFiles.ToList();
             OutputFiles = new List<string>();
 
-            relativeOutputPath = Formatting.GetNamespacePath(schemaFile.Package);
-            package = Formatting.CapitaliseQualifiedNameParts(schemaFile.Package);
+            var allNestedTypes = store.Types
+                .SelectMany(kv => store.GetNestedTypes(kv.Key))
+                .ToHashSet();
 
-            typesToGenerate = SelectTypesToGenerate(schemaFile);
+            typesToGenerate = store.Types
+                .Where(kv => !allNestedTypes.Contains(kv.Key))
+                .Select(kv => new GenerationTarget<UnityTypeDetails>(kv.Value, kv.Key.PackagePath))
+                .ToList();
 
-            foreach (var unityTypeDefinition in typesToGenerate)
+            enumsToGenerate = store.Enums
+                .Where(kv => !allNestedTypes.Contains(kv.Key))
+                .Select(kv => new GenerationTarget<UnityEnumDetails>(kv.Value, kv.Key.PackagePath))
+                .ToList();
+
+            componentsToGenerate = store.Components
+                .Select(kv => new GenerationTarget<UnityComponentDetails>(kv.Value, kv.Key.PackagePath))
+                .ToList();
+
+            foreach (var typeTarget in typesToGenerate)
             {
-                var fileName = Path.ChangeExtension(unityTypeDefinition.Name, fileExtension);
-                OutputFiles.Add(Path.Combine(relativeOutputPath, fileName));
+                var fileName = Path.ChangeExtension(typeTarget.Content.CapitalisedName, FileExtension);
+                OutputFiles.Add(Path.Combine(typeTarget.OutputPath, fileName));
             }
 
-            componentsToGenerate = schemaFile.ComponentDefinitions;
-            foreach (var component in componentsToGenerate)
+            foreach (var componentTarget in componentsToGenerate)
             {
-                OutputFiles.Add(Path.Combine(relativeOutputPath, Path.ChangeExtension(component.Name, fileExtension)));
+                var relativeOutputPath = componentTarget.OutputPath;
+                var componentName = componentTarget.Content.ComponentName;
 
-                if (component.CommandDefinitions.Count > 0)
+                OutputFiles.Add(Path.Combine(relativeOutputPath, Path.ChangeExtension(componentTarget.Content.ComponentName, FileExtension)));
+
+                if (componentTarget.Content.CommandDetails.Count > 0)
                 {
                     OutputFiles.Add(Path.Combine(relativeOutputPath,
-                        Path.ChangeExtension($"{component.Name}CommandPayloads", fileExtension)));
+                        Path.ChangeExtension($"{componentName}CommandPayloads", FileExtension)));
                     OutputFiles.Add(Path.Combine(relativeOutputPath,
-                        Path.ChangeExtension($"{component.Name}CommandComponents", fileExtension)));
+                        Path.ChangeExtension($"{componentName}CommandComponents", FileExtension)));
                     OutputFiles.Add(Path.Combine(relativeOutputPath,
-                        Path.ChangeExtension($"{component.Name}CommandStorage", fileExtension)));
+                        Path.ChangeExtension($"{componentName}CommandSenderReceiver", FileExtension)));
+                    OutputFiles.Add(Path.Combine(relativeOutputPath,
+                        Path.ChangeExtension($"{componentName}ReactiveCommandComponents", FileExtension)));
+                    OutputFiles.Add(Path.Combine(relativeOutputPath,
+                        Path.ChangeExtension($"{componentName}CommandDiffDeserializer", FileExtension)));
+                    OutputFiles.Add(Path.Combine(relativeOutputPath,
+                        Path.ChangeExtension($"{componentName}CommandDiffStorage", FileExtension)));
+                    OutputFiles.Add(Path.Combine(relativeOutputPath,
+                        Path.ChangeExtension($"{componentName}CommandMetaDataStorage", FileExtension)));
                 }
 
-                if (component.EventDefinitions.Count > 0)
+                if (componentTarget.Content.EventDetails.Count > 0)
                 {
                     OutputFiles.Add(Path.Combine(relativeOutputPath,
-                        Path.ChangeExtension($"{component.Name}Events", fileExtension)));
+                        Path.ChangeExtension($"{componentName}Events", FileExtension)));
                 }
 
                 OutputFiles.Add(Path.Combine(relativeOutputPath,
-                    Path.ChangeExtension($"{component.Name}Translation", fileExtension)));
+                    Path.ChangeExtension($"{componentName}UpdateSender", FileExtension)));
                 OutputFiles.Add(Path.Combine(relativeOutputPath,
-                    Path.ChangeExtension($"{component.Name}Providers", fileExtension)));
+                    Path.ChangeExtension($"{componentName}ReactiveHandlers", FileExtension)));
                 OutputFiles.Add(Path.Combine(relativeOutputPath,
-                    Path.ChangeExtension($"{component.Name}GameObjectComponentDispatcher", fileExtension)));
+                    Path.ChangeExtension($"{componentName}EcsViewManager", FileExtension)));
                 OutputFiles.Add(Path.Combine(relativeOutputPath,
-                    Path.ChangeExtension($"{component.Name}ReaderWriter", fileExtension)));
-
-                if (component.CommandDefinitions.Count > 0)
-                {
-                    OutputFiles.Add(Path.Combine(relativeOutputPath,
-                        Path.ChangeExtension($"{component.Name}MonoBehaviourCommandHandlers", fileExtension)));
-                }
+                    Path.ChangeExtension($"{componentName}ComponentDiffStorage", FileExtension)));
+                OutputFiles.Add(Path.Combine(relativeOutputPath,
+                    Path.ChangeExtension($"{componentName}ComponentDiffDeserializer", FileExtension)));
+                OutputFiles.Add(Path.Combine(relativeOutputPath,
+                    Path.ChangeExtension($"{componentName}ReactiveComponents", FileExtension)));
+                OutputFiles.Add(Path.Combine(relativeOutputPath,
+                    Path.ChangeExtension($"{componentName}Providers", FileExtension)));
+                OutputFiles.Add(Path.Combine(relativeOutputPath,
+                    Path.ChangeExtension($"{componentName}ComponentReaderWriter", FileExtension)));
+                OutputFiles.Add(Path.Combine(relativeOutputPath,
+                    Path.ChangeExtension($"{componentName}ViewStorage", FileExtension)));
             }
 
-            enumsToGenerate = new List<EnumDefinitionRaw>();
-            enumsToGenerate.AddRange(schemaFile.EnumDefinitions);
-            foreach (var unityEnum in enumsToGenerate)
+            foreach (var enumTarget in enumsToGenerate)
             {
-                var fileName = Path.ChangeExtension(unityEnum.name, fileExtension);
-                OutputFiles.Add(Path.Combine(relativeOutputPath, fileName));
+                var fileName = Path.ChangeExtension(enumTarget.Content.TypeName, FileExtension);
+                OutputFiles.Add(Path.Combine(enumTarget.OutputPath, fileName));
             }
-
-            this.enumSet = enumSet;
         }
 
         protected override void RunImpl()
@@ -94,119 +113,155 @@ namespace Improbable.Gdk.CodeGenerator
             var commandPayloadGenerator = new UnityCommandPayloadGenerator();
             var commandComponentsGenerator = new UnityCommandComponentsGenerator();
             var blittableComponentGenerator = new UnityComponentDataGenerator();
-            var componentConversionGenerator = new UnityComponentConversionGenerator();
+            var componentReactiveHandlersGenerator = new UnityReactiveComponentHandlersGenerator();
+            var componentSenderGenerator = new UnityComponentSenderGenerator();
+            var ecsViewManagerGenerator = new UnityEcsViewManagerGenerator();
             var referenceTypeProviderGenerator = new UnityReferenceTypeProviderGenerator();
-            var commandStorageGenerator = new UnityCommandStorageGenerator();
-            var gameObjectComponentDispatcherGenerator = new UnityGameObjectComponentDispatcherGenerator();
-            var gameObjectCommandHandlersGenerator = new UnityGameObjectCommandHandlersGenerator();
-            var readerWriterGenerator = new UnityReaderWriterGenerator();
+            var componentReaderWriterGenerator = new UnityComponentReaderWriterGenerator();
+            var commandSenderReceiverGenerator = new UnityCommandSenderReceiverGenerator();
+            var reactiveComponentGenerator = new ReactiveComponentGenerator();
+            var reactiveCommandComponentGenerator = new ReactiveCommandComponentGenerator();
+            var componentDiffStorageGenerator = new ComponentDiffStorageGenerator();
+            var componentDiffDeserializerGenerator = new ComponentDiffDeserializerGenerator();
+            var commandDiffDeserializerGenerator = new CommandDiffDeserializerGenerator();
+            var commandDiffStorageGenerator = new CommandDiffStorageGenerator();
+            var viewStorageGenerator = new ViewStorageGenerator();
+            var commandMetaDataStorageGenerator = new CommandMetaDataStorageGenerator();
 
-            foreach (var enumType in enumsToGenerate)
+            foreach (var enumTarget in enumsToGenerate)
             {
-                var fileName = Path.ChangeExtension(enumType.name, fileExtension);
-                var enumCode = enumGenerator.Generate(enumType, package);
-                Content.Add(Path.Combine(relativeOutputPath, fileName), enumCode);
+                var fileName = Path.ChangeExtension(enumTarget.Content.TypeName, FileExtension);
+                var enumCode = enumGenerator.Generate(enumTarget.Content, enumTarget.Package);
+                Content.Add(Path.Combine(enumTarget.OutputPath, fileName), enumCode);
             }
 
-            foreach (var type in typesToGenerate)
+            foreach (var typeTarget in typesToGenerate)
             {
-                var fileName = Path.ChangeExtension(type.Name, fileExtension);
-                var typeCode = typeGenerator.Generate(type, package, enumSet);
-                Content.Add(Path.Combine(relativeOutputPath, fileName), typeCode);
+                var fileName = Path.ChangeExtension(typeTarget.Content.CapitalisedName, FileExtension);
+                var typeCode = typeGenerator.Generate(typeTarget.Content, typeTarget.Package);
+                Content.Add(Path.Combine(typeTarget.OutputPath, fileName), typeCode);
             }
 
-            foreach (var component in componentsToGenerate)
+            foreach (var componentTarget in componentsToGenerate)
             {
-                var componentFileName = Path.ChangeExtension(component.Name, fileExtension);
-                var componentCode = blittableComponentGenerator.Generate(component, package, enumSet);
+                var relativeOutputPath = componentTarget.OutputPath;
+                var componentName = componentTarget.Content.ComponentName;
+                var package = componentTarget.Package;
+
+                var componentFileName = Path.ChangeExtension(componentName, FileExtension);
+                var componentCode = blittableComponentGenerator.Generate(componentTarget.Content, package);
                 Content.Add(Path.Combine(relativeOutputPath, componentFileName), componentCode);
 
-                if (component.CommandDefinitions.Count > 0)
+                if (componentTarget.Content.CommandDetails.Count > 0)
                 {
                     var commandPayloadsFileName =
-                        Path.ChangeExtension($"{component.Name}CommandPayloads", fileExtension);
+                        Path.ChangeExtension($"{componentName}CommandPayloads", FileExtension);
                     var commandPayloadCode =
-                        commandPayloadGenerator.Generate(component, package);
+                        commandPayloadGenerator.Generate(componentTarget.Content, package);
                     Content.Add(Path.Combine(relativeOutputPath, commandPayloadsFileName), commandPayloadCode);
 
                     var commandComponentsFileName =
-                        Path.ChangeExtension($"{component.Name}CommandComponents", fileExtension);
+                        Path.ChangeExtension($"{componentName}CommandComponents", FileExtension);
                     var commandComponentsCode =
-                        commandComponentsGenerator.Generate(component, package);
+                        commandComponentsGenerator.Generate(componentTarget.Content, package);
                     Content.Add(Path.Combine(relativeOutputPath, commandComponentsFileName), commandComponentsCode);
 
-                    var commandStorageFileName =
-                        Path.ChangeExtension($"{component.Name}CommandStorage", fileExtension);
-                    var commandStorageCode = commandStorageGenerator.Generate(component, package);
-                    Content.Add(Path.Combine(relativeOutputPath, commandStorageFileName), commandStorageCode);
+                    var commandSenderReceiverFileName =
+                        Path.ChangeExtension($"{componentName}CommandSenderReceiver", FileExtension);
+                    var commandSenderReceiverCode =
+                        commandSenderReceiverGenerator.Generate(componentTarget.Content, package);
+                    Content.Add(Path.Combine(relativeOutputPath, commandSenderReceiverFileName), commandSenderReceiverCode);
+
+                    var reactiveCommandComponentsFileName =
+                        Path.ChangeExtension($"{componentName}ReactiveCommandComponents", FileExtension);
+                    var reactiveCommandComponentsCode =
+                        reactiveCommandComponentGenerator.Generate(componentTarget.Content, package);
+                    Content.Add(Path.Combine(relativeOutputPath, reactiveCommandComponentsFileName),
+                        reactiveCommandComponentsCode);
+
+                    var commandDiffDeserializerFileName =
+                        Path.ChangeExtension($"{componentName}CommandDiffDeserializer", FileExtension);
+                    var commandDiffDeserializerCode =
+                        commandDiffDeserializerGenerator.Generate(componentTarget.Content, package);
+                    Content.Add(Path.Combine(relativeOutputPath, commandDiffDeserializerFileName),
+                        commandDiffDeserializerCode);
+
+                    var commandDiffStorageFileName =
+                        Path.ChangeExtension($"{componentName}CommandDiffStorage", FileExtension);
+                    var commandDiffStorageCode =
+                        commandDiffStorageGenerator.Generate(componentTarget.Content, package);
+                    Content.Add(Path.Combine(relativeOutputPath, commandDiffStorageFileName),
+                        commandDiffStorageCode);
+
+                    var commandMetaDataStorageFileName =
+                        Path.ChangeExtension($"{componentName}CommandMetaDataStorage", FileExtension);
+                    var commandMetaDataStorageCode =
+                        commandMetaDataStorageGenerator.Generate(componentTarget.Content, package);
+                    Content.Add(Path.Combine(relativeOutputPath, commandMetaDataStorageFileName),
+                        commandMetaDataStorageCode);
                 }
 
-                if (component.EventDefinitions.Count > 0)
+                if (componentTarget.Content.EventDetails.Count > 0)
                 {
-                    var eventsFileName = Path.ChangeExtension($"{component.Name}Events", fileExtension);
-                    var eventsCode = eventGenerator.Generate(component, package);
+                    var eventsFileName = Path.ChangeExtension($"{componentName}Events", FileExtension);
+                    var eventsCode = eventGenerator.Generate(componentTarget.Content, package);
                     Content.Add(Path.Combine(relativeOutputPath, eventsFileName), eventsCode);
                 }
 
-                var conversionFileName = Path.ChangeExtension($"{component.Name}Translation", fileExtension);
-                var componentTranslationCode = componentConversionGenerator.Generate(component, package, enumSet);
-                Content.Add(Path.Combine(relativeOutputPath, conversionFileName), componentTranslationCode);
+                var updateSenderFileName = Path.ChangeExtension($"{componentName}UpdateSender", FileExtension);
+                var updateSenderCode = componentSenderGenerator.Generate(componentTarget.Content, package);
+                Content.Add(Path.Combine(relativeOutputPath, updateSenderFileName), updateSenderCode);
 
-                var referenceProviderFileName = Path.ChangeExtension($"{component.Name}Providers", fileExtension);
+                var reactiveComponentHandlersFileName = Path.ChangeExtension($"{componentName}ReactiveHandlers", FileExtension);
+                var reactiveComponentHandlersCode = componentReactiveHandlersGenerator.Generate(componentTarget.Content, package);
+                Content.Add(Path.Combine(relativeOutputPath, reactiveComponentHandlersFileName), reactiveComponentHandlersCode);
+
+                var ecsViewManagerFileName = Path.ChangeExtension($"{componentName}EcsViewManager", FileExtension);
+                var ecsViewManagerCode = ecsViewManagerGenerator.Generate(componentTarget.Content, package);
+                Content.Add(Path.Combine(relativeOutputPath, ecsViewManagerFileName), ecsViewManagerCode);
+
+                var componentDiffStorageFileName = Path.ChangeExtension($"{componentName}ComponentDiffStorage", FileExtension);
+                var componentDiffStorageCode = componentDiffStorageGenerator.Generate(componentTarget.Content, package);
+                Content.Add(Path.Combine(relativeOutputPath, componentDiffStorageFileName), componentDiffStorageCode);
+
+                var componentDiffDeserializerFileName = Path.ChangeExtension($"{componentName}ComponentDiffDeserializer", FileExtension);
+                var componentDiffDeserializerCode = componentDiffDeserializerGenerator.Generate(componentTarget.Content, package);
+                Content.Add(Path.Combine(relativeOutputPath, componentDiffDeserializerFileName), componentDiffDeserializerCode);
+
+                var reactiveComponentsFileName = Path.ChangeExtension($"{componentName}ReactiveComponents", FileExtension);
+                var reactiveComponentsCode = reactiveComponentGenerator.Generate(componentTarget.Content, package);
+                Content.Add(Path.Combine(relativeOutputPath, reactiveComponentsFileName), reactiveComponentsCode);
+
+                var referenceProviderFileName = Path.ChangeExtension($"{componentName}Providers", FileExtension);
                 var referenceProviderTranslationCode =
-                    referenceTypeProviderGenerator.Generate(component, package, enumSet);
+                    referenceTypeProviderGenerator.Generate(componentTarget.Content, package);
                 Content.Add(Path.Combine(relativeOutputPath, referenceProviderFileName),
                     referenceProviderTranslationCode);
 
-                var gameObjectComponentDispatcherFileName =
-                    Path.ChangeExtension($"{component.Name}GameObjectComponentDispatcher", fileExtension);
-                var gameObjectComponentDispatcherCode =
-                    gameObjectComponentDispatcherGenerator.Generate(component, package, enumSet);
-                Content.Add(Path.Combine(relativeOutputPath, gameObjectComponentDispatcherFileName),
-                    gameObjectComponentDispatcherCode);
+                var componentReaderWriterFileName =
+                    Path.ChangeExtension($"{componentName}ComponentReaderWriter", FileExtension);
+                var componentReaderWriterCode =
+                    componentReaderWriterGenerator.Generate(componentTarget.Content, package);
+                Content.Add(Path.Combine(relativeOutputPath, componentReaderWriterFileName), componentReaderWriterCode);
 
-                var readerWriterFileName =
-                    Path.ChangeExtension($"{component.Name}ReaderWriter", fileExtension);
-                var readerWriterCode =
-                    readerWriterGenerator.Generate(component, package, enumSet);
-                Content.Add(Path.Combine(relativeOutputPath, readerWriterFileName), readerWriterCode);
-
-                if (component.CommandDefinitions.Count > 0)
-                {
-                    var monobehaviourCommandHandlerFileName =
-                        Path.ChangeExtension($"{component.Name}MonoBehaviourCommandHandlers", fileExtension);
-                    var monobehaviourCommandHandlerCode =
-                        gameObjectCommandHandlersGenerator.Generate(component, package);
-                    Content.Add(Path.Combine(relativeOutputPath, monobehaviourCommandHandlerFileName),
-                        monobehaviourCommandHandlerCode);
-                }
+                var viewStorageFileName = Path.ChangeExtension($"{componentName}ViewStorage", FileExtension);
+                var viewStorageCode = viewStorageGenerator.Generate(componentTarget.Content, package);
+                Content.Add(Path.Combine(relativeOutputPath, viewStorageFileName), viewStorageCode);
             }
         }
 
-        /// <summary>
-        ///     Filters out auto-generated types like PositionData from the JSON AST.
-        ///     However, we want to keep types that are used as a "data" field in a component.
-        /// </summary>
-        private List<UnityTypeDefinition> SelectTypesToGenerate(UnitySchemaFile schemaFile)
+        private struct GenerationTarget<T>
         {
-            var componentDataTypes =
-                schemaFile.ComponentDefinitions.Select(component => component.RawDataDefinition);
+            public readonly T Content;
+            public readonly string Package;
+            public readonly string OutputPath;
 
-            // From inspection of the JSON AST you can observe that a type definition is auto-generated if the following
-            // conditions are true:
-            //     1. The FQN type names are the same .
-            //     2. The source references are the same.
-            // Using this information, we can effectively filter out auto-generated types.
-            var filteredTypes = schemaFile.TypeDefinitions.Where(type => componentDataTypes.All(componentData =>
-                type.QualifiedName != componentData.TypeName ||
-                !SourceReferenceEquals(type.SourceReference, componentData.sourceReference)));
-
-            return filteredTypes.ToList();
-        }
-
-        private bool SourceReferenceEquals(SourceReferenceRaw sourceRef1, SourceReferenceRaw sourceRef2)
-        {
-            return sourceRef1.column == sourceRef2.column && sourceRef1.line == sourceRef2.line;
+            public GenerationTarget(T content, string package)
+            {
+                Content = content;
+                Package = Formatting.CapitaliseQualifiedNameParts(package);
+                OutputPath = Formatting.GetNamespacePath(package);
+            }
         }
     }
 }

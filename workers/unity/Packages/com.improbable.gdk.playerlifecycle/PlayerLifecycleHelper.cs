@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using Improbable.Gdk.Core;
 using Improbable.PlayerLifecycle;
 using Unity.Entities;
@@ -47,8 +49,9 @@ namespace Improbable.Gdk.PlayerLifecycle
             return worker.Connection.GetWorkerId() == ownerId;
         }
 
-        public static void AddClientSystems(World world)
+        public static void AddClientSystems(World world, bool autoRequestPlayerCreation = true)
         {
+            PlayerLifecycleConfig.AutoRequestPlayerCreation = autoRequestPlayerCreation;
             world.GetOrCreateManager<SendCreatePlayerRequestSystem>();
             world.GetOrCreateManager<HandlePlayerHeartbeatRequestSystem>();
         }

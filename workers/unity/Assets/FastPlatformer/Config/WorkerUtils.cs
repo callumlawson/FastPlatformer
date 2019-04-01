@@ -1,4 +1,3 @@
-using Improbable.Gdk.GameObjectRepresentation;
 using Improbable.Gdk.GameObjectCreation;
 using System.Collections.Generic;
 using FastPlatformer.Scripts.ECSSystems.Player;
@@ -29,7 +28,6 @@ namespace Playground
             AddLifecycleSystems(world);
             TransformSynchronizationHelper.AddClientSystems(world);
             PlayerLifecycleHelper.AddClientSystems(world);
-            GameObjectRepresentationHelper.AddSystems(world);
             GameObjectCreationHelper.EnableStandardGameObjectCreation(world);
             world.GetOrCreateManager<LocalPlayerInputSync>();
         }
@@ -39,7 +37,6 @@ namespace Playground
             AddLifecycleSystems(world);
             TransformSynchronizationHelper.AddServerSystems(world);
             PlayerLifecycleHelper.AddServerSystems(world);
-            GameObjectRepresentationHelper.AddSystems(world);
             GameObjectCreationHelper.EnableStandardGameObjectCreation(world);
         }
 

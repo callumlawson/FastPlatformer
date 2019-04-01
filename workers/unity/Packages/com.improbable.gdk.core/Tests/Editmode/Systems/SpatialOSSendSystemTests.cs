@@ -1,8 +1,8 @@
 ﻿using System;
 using Improbable.Gdk.Core.CodegenAdapters;
 using Improbable.Gdk.TestUtils;
-using Improbable.Worker.CInterop;
 using NUnit.Framework;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -17,7 +17,7 @@ namespace Improbable.Gdk.Core.EditmodeTests.Systems
         private const uint UnknownComponentId = 0;
 
         private World world;
-        private SpatialOSSendSystem sendSystem;
+        private ComponentSendSystem sendSystem;
 
         private ILogDispatcher logDispatcher;
 
@@ -26,11 +26,11 @@ namespace Improbable.Gdk.Core.EditmodeTests.Systems
         {
             world = new World("test-world");
             logDispatcher = new TestLogDispatcher();
-            world.CreateManager<WorkerSystem>(null, logDispatcher, TestWorkerType, Vector3.zero);
+            world.CreateManager<WorkerSystem>(new MockConnectionHandler(), null, logDispatcher, TestWorkerType, Vector3.zero);
 
-            sendSystem = world.GetOrCreateManager<SpatialOSSendSystem>();
+            sendSystem = world.GetOrCreateManager<ComponentSendSystem>();
 
-            var testHandler = new TestComponentReplicationHandler(world.GetOrCreateManager<EntityManager>());
+            var testHandler = new TestComponentReplicationHandler();
             sendSystem.AddComponentReplicator(testHandler);
         }
 
@@ -56,31 +56,21 @@ namespace Improbable.Gdk.Core.EditmodeTests.Systems
     }
 
     [DisableAutoRegister]
-    public class TestComponentReplicationHandler : ComponentReplicationHandler
+    public class TestComponentReplicationHandler : IComponentReplicationHandler
     {
-        public override uint ComponentId => SpatialOSSendSystemTests.TestComponentId;
+        public uint ComponentId => SpatialOSSendSystemTests.TestComponentId;
 
-        public override EntityArchetypeQuery ComponentUpdateQuery => new EntityArchetypeQuery
+        public EntityArchetypeQuery ComponentUpdateQuery => new EntityArchetypeQuery
         {
             All = Array.Empty<ComponentType>(),
             Any = Array.Empty<ComponentType>(),
             None = Array.Empty<ComponentType>(),
         };
 
-        public override EntityArchetypeQuery[] CommandQueries => new EntityArchetypeQuery[] { };
-
-        public TestComponentReplicationHandler(EntityManager entityManager) : base(entityManager)
+        public void SendUpdates(NativeArray<ArchetypeChunk> chunkArray, ComponentSystemBase system,
+            EntityManager entityManager, ComponentUpdateSystem componentUpdateSystem)
         {
-        }
-
-        public override void ExecuteReplication(ComponentGroup replicationGroup, ComponentSystemBase system, Connection connection)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void SendCommands(ComponentGroup commandGroup, ComponentSystemBase system, Connection connection)
-        {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }

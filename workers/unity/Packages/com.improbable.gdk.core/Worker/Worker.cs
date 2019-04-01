@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using Improbable.Gdk.ReactiveComponents;
 using Improbable.Worker.CInterop;
 using Unity.Entities;
 using UnityEngine;
+using Improbable.Gdk.Subscriptions;
 using AlphaLocator = Improbable.Worker.CInterop.Alpha.Locator;
 
 namespace Improbable.Gdk.Core
@@ -135,11 +137,6 @@ namespace Improbable.Gdk.Core
             ConnectionParameters connectionParameters,
             ILogDispatcher logger, Vector3 origin)
         {
-            // TODO: Remove when UTY-1578 is fixed.
-#if UNITY_STANDALONE_LINUX
-            connectionParameters.EnableProtocolLoggingAtStartup = false;
-            Debug.LogWarning("Automatically disabling protocol logging on Linux workers to prevent crashes.");
-#endif
             using (var connectionFuture =
                 Connection.ConnectAsync(config.ReceptionistHost, config.ReceptionistPort, config.WorkerId,
                     connectionParameters))
@@ -168,11 +165,6 @@ namespace Improbable.Gdk.Core
             ConnectionParameters connectionParameters,
             ILogDispatcher logger, Vector3 origin)
         {
-            // TODO: Remove when UTY-1578 is fixed.
-#if UNITY_STANDALONE_LINUX
-            connectionParameters.EnableProtocolLoggingAtStartup = false;
-            Debug.LogWarning("Automatically disabling protocol logging on Linux workers to prevent crashes.");
-#endif
             using (var locator = new Locator(parameters.LocatorHost, parameters.LocatorParameters))
             {
                 var deploymentList = await GetDeploymentList(locator);
@@ -211,11 +203,6 @@ namespace Improbable.Gdk.Core
             ConnectionParameters connectionParameters,
             ILogDispatcher logger, Vector3 origin)
         {
-            // TODO: Remove when UTY-1578 is fixed.
-#if UNITY_STANDALONE_LINUX
-            connectionParameters.EnableProtocolLoggingAtStartup = false;
-            Debug.LogWarning("Automatically disabling protocol logging on Linux workers to prevent crashes.");
-#endif
             using (var locator = new AlphaLocator(parameters.LocatorHost, parameters.LocatorParameters))
             {
                 using (var connectionFuture = locator.ConnectAsync(connectionParameters))
@@ -249,24 +236,31 @@ namespace Improbable.Gdk.Core
 
         private static string GetConnectionFailureReason(Connection connection)
         {
-            var connectionFailureReason = "No reason found for connection failure";
-            var dispatcher = new Dispatcher();
-            dispatcher.OnDisconnect(op => connectionFailureReason = op.Reason);
-            dispatcher.Process(connection.GetOpList(0));
-
-            return connectionFailureReason;
+            return connection.GetConnectionStatusCodeDetailString() ?? "No reason found for connection failure";
         }
 
         private void AddCoreSystems()
         {
-            World.CreateManager<WorkerSystem>(Connection, LogDispatcher, WorkerType, Origin);
-            World.GetOrCreateManager<SpatialOSSendSystem>();
+            var connectionHandler = new SpatialOSConnectionHandler(Connection);
+            World.CreateManager<WorkerSystem>(connectionHandler, Connection, LogDispatcher, WorkerType, Origin);
+            World.GetOrCreateManager<CommandSystem>();
+            World.GetOrCreateManager<ComponentUpdateSystem>();
+            World.GetOrCreateManager<EntitySystem>();
+            World.GetOrCreateManager<ComponentSendSystem>();
             World.GetOrCreateManager<SpatialOSReceiveSystem>();
-            World.GetOrCreateManager<CleanReactiveComponentsSystem>();
-            World.GetOrCreateManager<WorldCommandsCleanSystem>();
-            World.GetOrCreateManager<WorldCommandsSendSystem>();
-            World.GetOrCreateManager<CommandRequestTrackerSystem>();
-            World.GetOrCreateManager<AcknowledgeAuthorityLossSystem>();
+            World.GetOrCreateManager<SpatialOSSendSystem>();
+            World.GetOrCreateManager<EcsViewSystem>();
+            World.GetOrCreateManager<CleanTemporaryComponentsSystem>();
+
+            // Subscriptions systems
+            World.GetOrCreateManager<CommandCallbackSystem>();
+            World.GetOrCreateManager<ComponentConstraintsCallbackSystem>();
+            World.GetOrCreateManager<ComponentCallbackSystem>();
+            World.GetOrCreateManager<RequireLifecycleSystem>();
+            World.GetOrCreateManager<SubscriptionSystem>();
+
+            // Reactive components
+            ReactiveComponentsHelper.AddCommonSystems(World);
         }
 
         public void Dispose()

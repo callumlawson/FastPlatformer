@@ -14,8 +14,14 @@ namespace Improbable.Gdk.Tools
         public List<string> SchemaSourceDirs = new List<string>();
         public string CodegenOutputDir;
         public string RuntimeIp;
+        public string DevAuthTokenDir;
+        public int DevAuthTokenLifetimeDays;
 
-        private static string JsonFilePath = Path.GetFullPath("Assets/Config/GdkToolsConfiguration.json");
+        public string DevAuthTokenFullDir => Path.Combine(Application.dataPath, DevAuthTokenDir);
+        public string DevAuthTokenFilepath => Path.Combine(DevAuthTokenFullDir, "DevAuthToken.txt");
+        public int DevAuthTokenLifetimeHours => TimeSpan.FromDays(DevAuthTokenLifetimeDays).Hours;
+
+        private static readonly string JsonFilePath = Path.GetFullPath("Assets/Config/GdkToolsConfiguration.json");
 
         private GdkToolsConfiguration()
         {
@@ -46,14 +52,19 @@ namespace Improbable.Gdk.Tools
                 errors.Add($"Cannot have any empty entry in {GdkToolsConfigurationWindow.SchemaSourceDirsLabel}.");
             }
 
-            if (SchemaSourceDirs.Count == 0)
-            {
-                errors.Add($"You must have at least one item in {GdkToolsConfigurationWindow.SchemaSourceDirsLabel}.");
-            }
-
             if (!string.IsNullOrEmpty(RuntimeIp) && !IPAddress.TryParse(RuntimeIp, out _))
             {
                 errors.Add($"Runtime IP \"{RuntimeIp}\" is not a valid IP address.");
+            }
+
+            if (string.IsNullOrEmpty(DevAuthTokenDir))
+            {
+                errors.Add($"{GdkToolsConfigurationWindow.DevAuthTokenDirLabel} cannot be empty.");
+            }
+            else if (!DevAuthTokenDir.Equals("Resources") && !DevAuthTokenDir.EndsWith("/Resources"))
+            {
+                errors.Add(
+                    $"{GdkToolsConfigurationWindow.DevAuthTokenDirLabel} must be at root of a Resources folder.");
             }
 
             return errors;
@@ -64,6 +75,8 @@ namespace Improbable.Gdk.Tools
             SchemaStdLibDir = DefaultValues.SchemaStdLibDir;
             CodegenOutputDir = DefaultValues.CodegenOutputDir;
             RuntimeIp = DefaultValues.RuntimeIp;
+            DevAuthTokenDir = DefaultValues.DevAuthTokenDir;
+            DevAuthTokenLifetimeDays = DefaultValues.DevAuthTokenLifetimeDays;
 
             SchemaSourceDirs.Clear();
             SchemaSourceDirs.Add(DefaultValues.SchemaSourceDir);
@@ -94,6 +107,8 @@ namespace Improbable.Gdk.Tools
             public const string CodegenOutputDir = "Assets/Generated/Source";
             public const string SchemaSourceDir = "../../schema";
             public const string RuntimeIp = null;
+            public const string DevAuthTokenDir = "Resources";
+            public const int DevAuthTokenLifetimeDays = 30;
         }
     }
 }

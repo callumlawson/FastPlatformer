@@ -54,12 +54,12 @@ namespace Improbable.Gdk.Core
         private static readonly SemaphoreSlim WorkerConnectionSemaphore = new SemaphoreSlim(1, 1);
 
         // Important run in this step as otherwise it can interfere with the the domain unloading logic.
-        private void OnApplicationQuit()
+        protected void OnApplicationQuit()
         {
             Dispose();
         }
 
-        private void OnDestroy()
+        protected void OnDestroy()
         {
             Dispose();
         }
@@ -117,8 +117,12 @@ namespace Improbable.Gdk.Core
 
                 Worker.OnDisconnect += OnDisconnected;
 
-                HandleWorkerConnectionEstablished();
+                if (!Application.isPlaying)
+                {
+                    Dispose();
+                }
 
+                HandleWorkerConnectionEstablished();
                 World.Active = World.Active ?? Worker.World;
                 ScriptBehaviourUpdateOrder.UpdatePlayerLoop(World.AllWorlds.ToArray());
             }
@@ -259,10 +263,10 @@ namespace Improbable.Gdk.Core
                 throw new AuthenticationFailedException("Did not receive a player identity token.");
             }
 
-            if (result.Value.Status != ConnectionStatusCode.Success)
+            if (result.Value.Status.Code != ConnectionStatusCode.Success)
             {
                 throw new AuthenticationFailedException("Failed to retrieve a player identity token.\n" +
-                    $"error code: {result.Value.Status}\nerror message: {result.Value.Error}");
+                    $"error code: {result.Value.Status.Code}\nerror message: {result.Value.Status.Detail}");
             }
 
             return result.Value.PlayerIdentityToken;
@@ -294,10 +298,10 @@ namespace Improbable.Gdk.Core
                 throw new AuthenticationFailedException("Did not receive any login tokens back.");
             }
 
-            if (result.Value.Status != ConnectionStatusCode.Success)
+            if (result.Value.Status.Code != ConnectionStatusCode.Success)
             {
                 throw new AuthenticationFailedException("Failed to retrieve any login tokens.\n" +
-                    $"error code: {result.Value.Status}\nerror message: {result.Value.Error}");
+                    $"error code: {result.Value.Status.Code}\nerror message: {result.Value.Status.Detail}");
             }
 
             return result.Value.LoginTokens;

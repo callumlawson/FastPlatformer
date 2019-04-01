@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Improbable.CodeGeneration.FileHandling;
-using Improbable.CodeGeneration.Jobs;
+using Improbable.Gdk.CodeGeneration.FileHandling;
+using Improbable.Gdk.CodeGeneration.Jobs;
 using Newtonsoft.Json.Linq;
 
 namespace Improbable.Gdk.CodeGenerator
@@ -13,6 +13,7 @@ namespace Improbable.Gdk.CodeGenerator
         private readonly List<string> workerTypesToGenerate;
         private readonly string workerTypeFlag = "+workerType";
         private readonly string workerFileName = "WorkerMenu.cs";
+        private readonly string workerListFileName = "WorkerMenu.txt";
         private readonly string buildSystemFileName = "Improbable.Gdk.Generated.BuildSystem.asmdef";
         private readonly string relativeOutputPath = Path.Combine("improbable", "buildsystem");
         private readonly string relativeEditorPath = Path.Combine("improbable", "buildsystem", "Editor");
@@ -20,13 +21,13 @@ namespace Improbable.Gdk.CodeGenerator
         public WorkerGenerationJob(string outputDir, CodeGeneratorOptions options, IFileSystem fileSystem) : base(
             outputDir, fileSystem)
         {
-           
             InputFiles = new List<string>();
             OutputFiles = new List<string>();
-            
+
             workerTypesToGenerate = ExtractWorkerTypes(options.WorkerJsonDirectory);
 
-            OutputFiles.Add(Path.Combine(relativeEditorPath, "Editor", workerFileName));
+            OutputFiles.Add(Path.Combine(relativeEditorPath, workerFileName));
+            OutputFiles.Add(Path.Combine(relativeEditorPath, workerListFileName));
             OutputFiles.Add(Path.Combine(relativeOutputPath, buildSystemFileName));
         }
 
@@ -39,6 +40,8 @@ namespace Improbable.Gdk.CodeGenerator
             var buildSystemAssemblyGenerator = new BuildSystemAssemblyGenerator();
             var assemblyCode = buildSystemAssemblyGenerator.Generate();
             Content.Add(Path.Combine(relativeOutputPath, buildSystemFileName), assemblyCode);
+
+            Content.Add(Path.Combine(relativeEditorPath, workerListFileName), string.Join(Environment.NewLine, workerTypesToGenerate));
         }
 
         private List<string> ExtractWorkerTypes(string path)
