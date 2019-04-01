@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using Gameschema.Untrusted;
 using Improbable.Gdk.Subscriptions;
-using Improbable.Worker.CInterop;
+using Improbable.Gdk.TransformSynchronization;
+using Improbable.PlayerLifecycle;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace FastPlatformer.Scripts.MonoBehaviours
+namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 {
     public enum SoundEventType
     {
@@ -28,10 +29,14 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         public AudioSource AudioSource;
 
+        [UsedImplicitly, Require] private PlayerVisualizerEventsReader eventReader;
+        [UsedImplicitly, Require] private OwningWorkerReader owningWorker;
+
         //TODO - Proper SFX loading system.
         private Dictionary<SoundEventType, AudioClip> soundMapping;
-
-        [UsedImplicitly, Require] private PlayerVisualizerEventsReader eventReader;
+        private readonly Queue<SoundEvent> networkedSoundEventQueue = new Queue<SoundEvent>();
+        private TransformSynchronization transformSyncComponent;
+        private LinkedEntityComponent spatialOSComponent;
 
         private void Awake()
         {
@@ -46,17 +51,27 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             };
         }
 
+        private void Start()
+        {
+            transformSyncComponent = GetComponent<TransformSynchronization>();
+        }
+
         public void OnEnable()
         {
-            if (eventReader != null)
+            spatialOSComponent = GetComponent<LinkedEntityComponent>();
+
+            if (eventReader != null && owningWorker.Data.WorkerId != spatialOSComponent.Worker.Connection.GetWorkerId())
             {
-                eventReader.OnSoundEventEvent += soundEvent =>
-                {
-                    if (eventReader.Authority == Authority.NotAuthoritative)
-                    {
-                        PlaySoundEvent((SoundEventType) soundEvent.Eventid);
-                    }
-                };
+                eventReader.OnSoundEventEvent += soundEvent => networkedSoundEventQueue.Enqueue(soundEvent);
+            }
+        }
+
+        public void Update()
+        {
+            var currentPhysicsTick = transformSyncComponent.TickNumber;
+            if (networkedSoundEventQueue.Count > 0 && networkedSoundEventQueue.Peek().PhysicsTick <= currentPhysicsTick)
+            {
+                PlaySoundEvent((SoundEventType) networkedSoundEventQueue.Dequeue().Eventid);
             }
         }
 

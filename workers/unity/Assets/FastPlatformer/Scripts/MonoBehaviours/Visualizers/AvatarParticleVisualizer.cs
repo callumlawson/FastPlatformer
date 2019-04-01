@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using Gameschema.Untrusted;
 using Improbable.Gdk.Subscriptions;
 using Improbable.Gdk.TransformSynchronization;
+using Improbable.PlayerLifecycle;
 using Improbable.Worker.CInterop;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace FastPlatformer.Scripts.MonoBehaviours
+namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 {
     public enum ParticleEventType
     {
@@ -24,8 +25,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public ParticleSystem Impact;
 
         [UsedImplicitly, Require] private PlayerVisualizerEventsReader eventReader;
+        [UsedImplicitly, Require] private OwningWorkerReader owningWorker;
+
         private readonly Queue<ParticleEvent> networkedParticleEventQueue = new Queue<ParticleEvent>();
         private TransformSynchronization transformSyncComponent;
+        private LinkedEntityComponent spatialOSComponent;
 
         public void Start()
         {
@@ -34,7 +38,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         public void OnEnable()
         {
-            if (eventReader != null && eventReader.Authority == Authority.NotAuthoritative)
+            spatialOSComponent = GetComponent<LinkedEntityComponent>();
+
+            if (eventReader != null && owningWorker.Data.WorkerId != spatialOSComponent.Worker.Connection.GetWorkerId())
             {
                 eventReader.OnParticleEventEvent += particleEvent => networkedParticleEventQueue.Enqueue(particleEvent);
             }

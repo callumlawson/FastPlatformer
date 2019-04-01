@@ -303,7 +303,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 if (CurrentGroundPoundState == GroundPoundState.Spin ||
                     CurrentGroundPoundState == GroundPoundState.Dropping)
                 {
-                    currentVelocity += Motor.CharacterUp * 0.3f;
+                    currentVelocity += Motor.CharacterUp * 0.5f;
                     PlayNetworkedAnimationEvent(AnimationEventType.Dive);
                     CurrentGroundPoundState = GroundPoundState.Nothing;
                 }
