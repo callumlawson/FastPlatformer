@@ -1,6 +1,5 @@
 using Improbable.Gdk.GameObjectCreation;
 using System.Collections.Generic;
-using FastPlatformer.Scripts.ECSSystems.Player;
 using Improbable.Gdk.PlayerLifecycle;
 using Improbable.Gdk.TransformSynchronization;
 using Unity.Entities;
@@ -29,7 +28,6 @@ namespace Playground
             TransformSynchronizationHelper.AddClientSystems(world);
             PlayerLifecycleHelper.AddClientSystems(world);
             GameObjectCreationHelper.EnableStandardGameObjectCreation(world);
-            world.GetOrCreateManager<LocalPlayerInputSync>();
         }
 
         public static void AddGameLogicSystems(World world)

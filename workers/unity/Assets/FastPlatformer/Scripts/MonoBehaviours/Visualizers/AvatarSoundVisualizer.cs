@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Gameschema.Untrusted;
-using Improbable.Gdk.GameObjectRepresentation;
+using Improbable.Gdk.Subscriptions;
 using Improbable.Worker.CInterop;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -31,7 +31,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         //TODO - Proper SFX loading system.
         private Dictionary<SoundEventType, AudioClip> soundMapping;
 
-        [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Reader eventReader;
+        [UsedImplicitly, Require] private PlayerVisualizerEventsReader eventReader;
 
         private void Awake()
         {
@@ -50,7 +50,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         {
             if (eventReader != null)
             {
-                eventReader.OnSoundEvent += soundEvent =>
+                eventReader.OnSoundEventEvent += soundEvent =>
                 {
                     if (eventReader.Authority == Authority.NotAuthoritative)
                     {

@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Generic;
 using FastPlatformer.Scripts.MonoBehaviours.Visualizers;
 using FastPlatformer.Scripts.Util;
 using Gameschema.Untrusted;
 using Improbable;
-using Improbable.Gdk.GameObjectRepresentation;
+using Improbable.Gdk.Subscriptions;
 using Improbable.Gdk.TransformSynchronization;
 using JetBrains.Annotations;
 using KinematicCharacterController;
@@ -17,8 +16,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
     //TODO - Consider Timeline integration
     public partial class AvatarController : BaseCharacterController
     {
-        [UsedImplicitly, Require] private PlayerInput.Requirable.Writer playerInputWriter;
-        [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Writer eventWriter;
+        [UsedImplicitly, Require] private PlayerInputWriter playerInputWriter;
+        [UsedImplicitly, Require] private PlayerVisualizerEventsWriter eventWriter;
         private TransformSynchronization trasformSyncComponent;
 
         private enum JumpType
@@ -474,9 +473,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 hitCollider.gameObject.layer == playerLayer && playerInputWriter != null)
             {
                 var currentVelocity = Motor.Velocity;
-                var targetEntityId = hitCollider.attachedRigidbody.gameObject.GetComponent<SpatialOSComponent>().SpatialEntityId;
+                var targetEntityId = hitCollider.attachedRigidbody.gameObject.GetComponent<LinkedEntityComponent>().EntityId;
                 var shoveTick = trasformSyncComponent.TickNumber;
-                playerInputWriter.SendShoveEvent(new ShoveEvent(
+                playerInputWriter.SendShoveEventEvent(new ShoveEvent(
                     targetEntityId,
                     new Vector3f(currentVelocity.x, currentVelocity.y, currentVelocity.z) * 1.3f,
                     shoveTick)
@@ -741,19 +740,19 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void PlayNetworkedSoundEvent(SoundEventType soundEventType)
         {
-            eventWriter?.SendSoundEvent(new SoundEvent((uint) soundEventType, trasformSyncComponent.TickNumber - 1));
+            eventWriter?.SendSoundEventEvent(new SoundEvent((uint) soundEventType, trasformSyncComponent.TickNumber - 1));
             SoundVisualizer.PlaySoundEvent(soundEventType);
         }
 
         private void PlayNetworkedAnimationEvent(AnimationEventType animationEventType)
         {
-            eventWriter?.SendAnimationEvent(new AnimationEvent((uint) animationEventType, trasformSyncComponent.TickNumber - 1));
+            eventWriter?.SendAnimationEventEvent(new AnimationEvent((uint) animationEventType, trasformSyncComponent.TickNumber - 1));
             AnimationVisualizer.PlayAnimationEvent(animationEventType);
         }
 
         private void PlayNetworkedParticleEvent(ParticleEventType particleEvent)
         {
-            eventWriter?.SendParticleEvent( new ParticleEvent((uint) particleEvent, trasformSyncComponent.TickNumber - 1));
+            eventWriter?.SendParticleEventEvent( new ParticleEvent((uint) particleEvent, trasformSyncComponent.TickNumber - 1));
             ParticleVisualizer.PlayParticleEvent(particleEvent);
         }
     }

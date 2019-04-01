@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Gameschema.Untrusted;
-using Improbable.Gdk.GameObjectRepresentation;
+using Improbable.Gdk.Subscriptions;
 using Improbable.Gdk.TransformSynchronization;
 using Improbable.Worker.CInterop;
 using JetBrains.Annotations;
@@ -23,7 +23,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         public ParticleSystem Dash;
         public ParticleSystem Impact;
 
-        [UsedImplicitly, Require] private PlayerVisualizerEvents.Requirable.Reader eventReader;
+        [UsedImplicitly, Require] private PlayerVisualizerEventsReader eventReader;
         private readonly Queue<ParticleEvent> networkedParticleEventQueue = new Queue<ParticleEvent>();
         private TransformSynchronization transformSyncComponent;
 
@@ -36,7 +36,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         {
             if (eventReader != null && eventReader.Authority == Authority.NotAuthoritative)
             {
-                eventReader.OnParticleEvent += particleEvent => networkedParticleEventQueue.Enqueue(particleEvent);
+                eventReader.OnParticleEventEvent += particleEvent => networkedParticleEventQueue.Enqueue(particleEvent);
             }
         }
 
