@@ -1,3 +1,4 @@
+using FastPlatformer.Config.EntityTemplates;
 using Improbable;
 using Improbable.Gdk.Core;
 using Improbable.PlayerLifecycle;
@@ -26,6 +27,8 @@ namespace Playground.Editor.SnapshotGenerator
             var snapshot = new Snapshot();
 
             AddPlayerSpawner(snapshot);
+
+            snapshot.AddEntity(StarTemplate.CreateStarEntityTemplate(new Vector3(0, 10, 0)));
 
             return snapshot;
         }
