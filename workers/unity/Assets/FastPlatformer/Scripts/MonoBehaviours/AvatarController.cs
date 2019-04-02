@@ -1,4 +1,5 @@
 using System;
+using CommandTerminal;
 using FastPlatformer.Scripts.MonoBehaviours.Visualizers;
 using FastPlatformer.Scripts.Util;
 using Gameschema.Untrusted;
@@ -7,6 +8,7 @@ using Improbable.Gdk.Subscriptions;
 using Improbable.Gdk.TransformSynchronization;
 using JetBrains.Annotations;
 using KinematicCharacterController;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using AnimationEvent = Gameschema.Untrusted.AnimationEvent;
 
@@ -30,24 +32,27 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             Wall
         }
 
-        [Header("Visualizers")] public AvatarSoundVisualizer SoundVisualizer;
-        public AvatarAnimationVisualizer AnimationVisualizer;
-        public AvatarParticleVisualizer ParticleVisualizer;
+        [FoldoutGroup("Visualizers")] public AvatarSoundVisualizer SoundVisualizer;
+        [FoldoutGroup("Visualizers")] public AvatarAnimationVisualizer AnimationVisualizer;
+        [FoldoutGroup("Visualizers")] public AvatarParticleVisualizer ParticleVisualizer;
 
         //TODO Extract these variables!
-        [Header("Stable Movement")] public float MaxStableMoveSpeed = 10f;
+        [TitleGroup("Stable Movement")]
+        public float MaxStableMoveSpeed = 10f;
         public float StableMovementSharpness = 15;
         public float OrientationSharpness = 10;
         public float NeutralStoppingDrag = 0.5f;
         public const float CriticalSpeed = 4.5f;
         public AnimationCurve PowerToSlopeAngle = AnimationCurve.Linear(0, 1, 90, 0.1f);
 
-        [Header("Air Movement")] public float MaxAirMoveSpeed = 10f;
+        [TitleGroup("Air Movement")]
+        public float MaxAirMoveSpeed = 10f;
         public float AirAccelerationSpeed = 5f;
         public float AirControlFactor = 1f;
         public float Drag = 0.1f;
 
-        [Header("Jumping")] public bool AllowJumpingWhenSliding;
+        [TitleGroup("Jumping")]
+        public bool AllowJumpingWhenSliding;
         public float SingleJumpSpeed = 10f;
         public float DoubleJumpSpeed = 12f;
         public float TripleJumpSpeed = 15f;
@@ -76,7 +81,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private float timeSinceJumpRequested = Mathf.Infinity;
         private bool landedOnJumpSurfaceLastFrame;
 
-        [Header("Dashing and Shoving")] public float DashSpeed = 10;
+        [TitleGroup("Dashing and Shoving")]
+        public float DashSpeed = 10;
         public float DashDuration = 0.8f;
         public float DashImpactStickDuration = 0.1f;
         public float PostDashShoveGracePeriod = 0.3f;
@@ -95,7 +101,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private bool justShoved;
 
         //Freezing
-        [Header("Wall Jumping")]
+        [TitleGroup("Wall Jumping")]
         public WallJumpState CurrentWallJumpState;
         public float WallAtachmentDuration;
         public enum WallJumpState
@@ -108,7 +114,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private float wallAtachmentTime;
         private Vector3 wallJumpSurfaceNormal;
 
-        [Header("Ground Pound")]
+        [TitleGroup("Ground Pound")]
         public float GroundPoundSpinDuration;
         public float GroundPoundDownDuration;
         public float GroundPoundDownwardsVelocity;
@@ -122,7 +128,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             Dropping
         }
 
-        [Header("Misc")]
+        [TitleGroup("Misc")]
         public bool OrientTowardsGravity = true;
         public Vector3 BaseGravity = new Vector3(0, -30f, 0);
         public Transform CameraFollowPoint;
@@ -758,6 +764,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private uint GetEventTickNumber()
         {
+            if (trasformSyncComponent == null)
+            {
+                return 0;
+            }
+
             var tickNumber = trasformSyncComponent.TickNumber;
             if (tickNumber > 0)
             {

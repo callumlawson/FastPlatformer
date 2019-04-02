@@ -1,29 +1,38 @@
-using System.Collections.Generic;
+using CommandTerminal;
 using Gameschema.Untrusted;
 using Improbable.Gdk.Subscriptions;
 using JetBrains.Annotations;
 using UnityEngine;
-using Color = Gameschema.Untrusted.Color;
+using Color = UnityEngine.Color;
 
-namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
+namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
 {
-    public class ColorVisualizer : MonoBehaviour
+    public class ColorActuator : MonoBehaviour
     {
-        public List<MeshRenderer> MeshRenderers;
-
-        [UsedImplicitly, Require] private ColorReader colorReader;
+        [UsedImplicitly, Require] private ColorWriter colorWriter;
 
         public void OnEnable()
         {
-            colorReader.OnUpdate += ColorUpdated;
+            Terminal.Shell.AddCommand("player.color", CommandSetPlayerColor, 3, 3, "Sets the color of the player");
+            Terminal.Autocomplete.Register("player.color");
         }
 
-        private void ColorUpdated(Color.Update newColor)
+        private void CommandSetPlayerColor(CommandArg[] args) {
+            var r = args[0].Float;
+            var g = args[1].Float;
+            var b = args[2].Float;
+
+            if (Terminal.IssuedError) return; // Error will be handled by Terminal
+
+            SetColor(new Color(r, g, b));
+
+            Terminal.Log("Color updated");
+        }
+
+        private void SetColor(Color newColor)
         {
-            foreach (var meshRenderer in MeshRenderers)
-            {
-                meshRenderer.material.color = new UnityEngine.Color(newColor.R, newColor.G, newColor.B);
-            }
+            var update = new Gameschema.Untrusted.Color.Update { R = newColor.r, G = newColor.g, B = newColor.b};
+            colorWriter.SendUpdate(update);
         }
     }
 }
