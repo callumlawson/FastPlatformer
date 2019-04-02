@@ -1,0 +1,11 @@
+package gameschema.untrusted;
+
+type MessageEvent { 
+    string message = 1;
+}
+
+component GlobalMessage
+{
+    id = 12004;
+    event MessageEvent message;
+}

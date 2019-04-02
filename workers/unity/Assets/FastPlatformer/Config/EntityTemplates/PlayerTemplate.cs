@@ -27,6 +27,7 @@ namespace FastPlatformer.Config.EntityTemplates
             template.AddComponent(new PlayerInput.Snapshot(), clientAttribute);
             template.AddComponent(new PlayerVisualizerEvents.Snapshot(), clientAttribute);
             template.AddComponent(new Color.Snapshot(), clientAttribute);
+            template.AddComponent(new GlobalMessage.Snapshot(), clientAttribute);
 
             return template;
         }
