@@ -1,0 +1,10 @@
+package gameschema.untrusted;
+
+component Color
+{
+    id = 12003;
+    float r = 1;
+    float b = 2;
+    float g = 3;
+    float a = 4;
+}

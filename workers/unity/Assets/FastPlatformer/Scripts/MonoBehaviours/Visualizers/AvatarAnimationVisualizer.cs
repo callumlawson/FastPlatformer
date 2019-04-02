@@ -45,7 +45,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
             if (eventReader != null && owningWorker.Data.WorkerId != spatialOSComponent.Worker.Connection.GetWorkerId())
             {
-                eventReader.OnAnimationEventEvent += animationEvent => networkedAnimationEventQueue.Enqueue(animationEvent);
+                eventReader.OnAnimationEvent += animationEvent => networkedAnimationEventQueue.Enqueue(animationEvent);
             }
         }
 

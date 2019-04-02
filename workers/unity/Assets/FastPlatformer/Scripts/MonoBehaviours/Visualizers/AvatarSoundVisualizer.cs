@@ -62,7 +62,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
             if (eventReader != null && owningWorker.Data.WorkerId != spatialOSComponent.Worker.Connection.GetWorkerId())
             {
-                eventReader.OnSoundEventEvent += soundEvent => networkedSoundEventQueue.Enqueue(soundEvent);
+                eventReader.OnSoundEvent += soundEvent => networkedSoundEventQueue.Enqueue(soundEvent);
             }
         }
 

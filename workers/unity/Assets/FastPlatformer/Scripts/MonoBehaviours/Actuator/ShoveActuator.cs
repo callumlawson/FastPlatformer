@@ -27,7 +27,7 @@ public class ShoveActuator : MonoBehaviour
 
         if (eventReader != null && eventReader.Authority == Authority.NotAuthoritative)
         {
-            eventReader.OnShoveEventEvent += shoveEvent => shoveEventQueue.Enqueue(shoveEvent);
+            eventReader.OnShoveEvent += shoveEvent => shoveEventQueue.Enqueue(shoveEvent);
         }
     }
 

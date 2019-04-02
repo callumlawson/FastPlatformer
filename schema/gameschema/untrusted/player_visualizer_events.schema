@@ -18,7 +18,7 @@ type SoundEvent {
 component PlayerVisualizerEvents
 {
     id = 12002;
-    event AnimationEvent animation_event;
-    event ParticleEvent particle_event;
-    event SoundEvent sound_event;
+    event AnimationEvent animation;
+    event ParticleEvent particle;
+    event SoundEvent sound;
 }

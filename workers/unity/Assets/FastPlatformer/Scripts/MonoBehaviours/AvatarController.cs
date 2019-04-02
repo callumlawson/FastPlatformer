@@ -475,7 +475,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 var currentVelocity = Motor.Velocity;
                 var targetEntityId = hitCollider.attachedRigidbody.gameObject.GetComponent<LinkedEntityComponent>().EntityId;
                 var shoveTick = trasformSyncComponent.TickNumber;
-                playerInputWriter.SendShoveEventEvent(new ShoveEvent(
+                playerInputWriter.SendShoveEvent(new ShoveEvent(
                     targetEntityId,
                     new Vector3f(currentVelocity.x, currentVelocity.y, currentVelocity.z) * 1.3f,
                     shoveTick)
@@ -740,19 +740,19 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void PlayNetworkedSoundEvent(SoundEventType soundEventType)
         {
-            eventWriter?.SendSoundEventEvent(new SoundEvent((uint) soundEventType, GetEventTickNumber()));
+            eventWriter?.SendSoundEvent(new SoundEvent((uint) soundEventType, GetEventTickNumber()));
             SoundVisualizer.PlaySoundEvent(soundEventType);
         }
 
         private void PlayNetworkedAnimationEvent(AnimationEventType animationEventType)
         {
-            eventWriter?.SendAnimationEventEvent(new AnimationEvent((uint) animationEventType, GetEventTickNumber()));
+            eventWriter?.SendAnimationEvent(new AnimationEvent((uint) animationEventType, GetEventTickNumber()));
             AnimationVisualizer.PlayAnimationEvent(animationEventType);
         }
 
         private void PlayNetworkedParticleEvent(ParticleEventType particleEvent)
         {
-            eventWriter?.SendParticleEventEvent(new ParticleEvent((uint) particleEvent, GetEventTickNumber()));
+            eventWriter?.SendParticleEvent(new ParticleEvent((uint) particleEvent, GetEventTickNumber()));
             ParticleVisualizer.PlayParticleEvent(particleEvent);
         }
 

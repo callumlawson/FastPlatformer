@@ -11,5 +11,5 @@ type ShoveEvent {
 component PlayerInput
 {
     id = 12001;
-    event ShoveEvent shove_event;
+    event ShoveEvent shove;
 }

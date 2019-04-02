@@ -42,7 +42,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
             if (eventReader != null && owningWorker.Data.WorkerId != spatialOSComponent.Worker.Connection.GetWorkerId())
             {
-                eventReader.OnParticleEventEvent += particleEvent => networkedParticleEventQueue.Enqueue(particleEvent);
+                eventReader.OnParticleEvent += particleEvent => networkedParticleEventQueue.Enqueue(particleEvent);
             }
         }
 
