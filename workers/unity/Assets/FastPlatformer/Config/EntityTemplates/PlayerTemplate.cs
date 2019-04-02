@@ -4,7 +4,7 @@ using Improbable.Gdk.Core;
 using Improbable.Gdk.PlayerLifecycle;
 using Improbable.Gdk.TransformSynchronization;
 using Playground;
-using UnityEngine;
+using Color = Gameschema.Untrusted.Color;
 
 namespace FastPlatformer.Config.EntityTemplates
 {
@@ -26,6 +26,7 @@ namespace FastPlatformer.Config.EntityTemplates
             //Addons
             template.AddComponent(new PlayerInput.Snapshot(), clientAttribute);
             template.AddComponent(new PlayerVisualizerEvents.Snapshot(), clientAttribute);
+            template.AddComponent(new Color.Snapshot(), clientAttribute);
 
             return template;
         }
