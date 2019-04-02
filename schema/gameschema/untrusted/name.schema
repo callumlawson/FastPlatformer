@@ -1,0 +1,7 @@
+package gameschema.untrusted;
+
+component Name
+{
+    id = 12005;
+    string name = 1;
+}

@@ -3,7 +3,6 @@ using Gameschema.Untrusted;
 using Improbable.Gdk.Subscriptions;
 using JetBrains.Annotations;
 using UnityEngine;
-using Color = Gameschema.Untrusted.Color;
 
 namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 {
@@ -15,14 +14,15 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         public void OnEnable()
         {
-            colorReader.OnUpdate += ColorUpdated;
+            colorReader.OnUpdate += update => ColorUpdated(update.R, update.G, update.B);
+            ColorUpdated(colorReader.Data.R, colorReader.Data.G, colorReader.Data.B);
         }
 
-        private void ColorUpdated(Color.Update newColor)
+        private void ColorUpdated(float r, float g, float b)
         {
             foreach (var meshRenderer in MeshRenderers)
             {
-                meshRenderer.material.color = new UnityEngine.Color(newColor.R, newColor.G, newColor.B);
+                meshRenderer.material.color = new UnityEngine.Color(r, g, b);
             }
         }
     }

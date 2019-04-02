@@ -1,3 +1,4 @@
+using System;
 using Gameschema.Untrusted;
 using Improbable;
 using Improbable.Gdk.Core;
@@ -5,6 +6,7 @@ using Improbable.Gdk.PlayerLifecycle;
 using Improbable.Gdk.TransformSynchronization;
 using Playground;
 using Color = Gameschema.Untrusted.Color;
+using Random = UnityEngine.Random;
 
 namespace FastPlatformer.Config.EntityTemplates
 {
@@ -26,7 +28,7 @@ namespace FastPlatformer.Config.EntityTemplates
             //Addons
             template.AddComponent(new PlayerInput.Snapshot(), clientAttribute);
             template.AddComponent(new PlayerVisualizerEvents.Snapshot(), clientAttribute);
-            template.AddComponent(new Color.Snapshot(), clientAttribute);
+            template.AddComponent(new Color.Snapshot(Random.value, Random.value, Random.value, 1), clientAttribute);
             template.AddComponent(new GlobalMessage.Snapshot(), clientAttribute);
 
             return template;
