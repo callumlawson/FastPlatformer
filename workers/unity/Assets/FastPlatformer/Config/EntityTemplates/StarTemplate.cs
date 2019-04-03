@@ -1,4 +1,5 @@
 using Gameschema.Trusted;
+using Gameschema.Untrusted;
 using Improbable;
 using Improbable.Gdk.Core;
 using Improbable.Gdk.TransformSynchronization;
@@ -22,6 +23,7 @@ namespace FastPlatformer.Config.EntityTemplates
             template.SetComponentWriteAccess(EntityAcl.ComponentId, WorkerUtils.UnityGameLogic);
 
             //Addons
+            template.AddComponent(new GlobalMessage.Snapshot(), WorkerUtils.UnityGameLogic);
             template.AddComponent(new Color.Snapshot(), WorkerUtils.UnityGameLogic);
             template.AddComponent(new Pickup.Snapshot(), WorkerUtils.UnityGameLogic);
 

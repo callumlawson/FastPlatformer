@@ -28,7 +28,7 @@ namespace Playground.Editor.SnapshotGenerator
 
             AddPlayerSpawner(snapshot);
 
-            snapshot.AddEntity(StarTemplate.CreateStarEntityTemplate(new Vector3(0, 10, 0)));
+            snapshot.AddEntity(StarTemplate.CreateStarEntityTemplate(new Vector3(3, 3, 0)));
 
             return snapshot;
         }

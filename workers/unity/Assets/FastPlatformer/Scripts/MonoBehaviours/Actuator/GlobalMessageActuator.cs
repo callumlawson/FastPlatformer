@@ -21,12 +21,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
 
             if (Terminal.IssuedError) return; // Error will be handled by Terminal
 
-            SendMessage(message);
+            SendGlobalMessage(message);
 
             Terminal.Log("Message sent");
         }
 
-        private void SendMessage(string message)
+        public void SendGlobalMessage(string message)
         {
             messageWriter.SendMessageEvent(new MessageEvent(message));
         }
