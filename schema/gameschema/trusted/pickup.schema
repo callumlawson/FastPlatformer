@@ -1,0 +1,7 @@
+package gameschema.trusted;
+
+component Pickup
+{
+    id = 12006;
+    bool is_active = 1;
+}

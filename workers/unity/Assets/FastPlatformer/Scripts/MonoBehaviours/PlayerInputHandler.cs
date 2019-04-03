@@ -1,3 +1,4 @@
+using FastPlatformer.Scripts.MonoBehaviours.Actuator;
 using KinematicCharacterController.Examples;
 using UnityEngine;
 

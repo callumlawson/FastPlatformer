@@ -1,7 +1,6 @@
-using Gameschema.Untrusted;
+using Gameschema.Trusted;
 using Improbable;
 using Improbable.Gdk.Core;
-using Improbable.Gdk.PlayerLifecycle;
 using Improbable.Gdk.TransformSynchronization;
 using Playground;
 using UnityEngine;
@@ -24,6 +23,7 @@ namespace FastPlatformer.Config.EntityTemplates
 
             //Addons
             template.AddComponent(new Color.Snapshot(), WorkerUtils.UnityGameLogic);
+            template.AddComponent(new Pickup.Snapshot(), WorkerUtils.UnityGameLogic);
 
             return template;
         }

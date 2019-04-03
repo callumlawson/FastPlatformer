@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using FastPlatformer.Scripts.MonoBehaviours;
+using FastPlatformer.Scripts.MonoBehaviours.Actuator;
 using FastPlatformer.Scripts.Util;
 using UnityEngine;
 using Gameschema.Untrusted;

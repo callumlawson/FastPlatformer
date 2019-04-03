@@ -1,7 +1,8 @@
+using FastPlatformer.Scripts.MonoBehaviours.Actuator;
 using KinematicCharacterController;
 using UnityEngine;
 
-namespace FastPlatformer.Scripts.MonoBehaviours
+namespace FastPlatformer.Scripts.UI
 {
     public class AvatarControllerVisualDebug : MonoBehaviour
     {

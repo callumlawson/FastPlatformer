@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using FastPlatformer.Scripts.MonoBehaviours;
+using FastPlatformer.Scripts.MonoBehaviours.Actuator;
 using UnityEngine;
 using UnityEngine.Events;
 using KinematicCharacterController.Examples;

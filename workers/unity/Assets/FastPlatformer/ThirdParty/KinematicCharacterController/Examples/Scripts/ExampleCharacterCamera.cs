@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using FastPlatformer.Scripts.MonoBehaviours;
+using FastPlatformer.Scripts.MonoBehaviours.Actuator;
 using UnityEngine;
 
 namespace KinematicCharacterController.Examples

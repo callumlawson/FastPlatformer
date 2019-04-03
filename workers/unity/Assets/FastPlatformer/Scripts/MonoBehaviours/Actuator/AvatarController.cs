@@ -1,5 +1,4 @@
 using System;
-using CommandTerminal;
 using FastPlatformer.Scripts.MonoBehaviours.Visualizers;
 using FastPlatformer.Scripts.Util;
 using Gameschema.Untrusted;
@@ -12,7 +11,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using AnimationEvent = Gameschema.Untrusted.AnimationEvent;
 
-namespace FastPlatformer.Scripts.MonoBehaviours
+namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
 {
     //TODO - Factor out Timer object to improve dryness
     //TODO - Consider Timeline integration
