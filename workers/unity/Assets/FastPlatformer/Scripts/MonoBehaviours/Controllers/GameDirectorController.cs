@@ -6,6 +6,7 @@ using Improbable.Gdk.Core;
 using Improbable.Gdk.Subscriptions;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
+using UnityEngine;
 
 namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
 {
@@ -26,7 +27,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
         private void OnGlobalMessage(string message)
         {
             //This is a horrible hack and I'm sorry.
-            if (message.Contains("Star"))
+            if (message.Contains("got a Star"))
             {
                 var playerName = message.Split()[0];
                 if (StarRanking.ContainsKey(playerName))
@@ -37,13 +38,18 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
                 {
                     StarRanking.Add(playerName, 1);
                 }
-            }
 
-            StartCoroutine(Timing.CountdownTimer(5, () =>
-            {
-                var leader = StarRanking.OrderByDescending(entry => entry.Value).First();
-                globalMessageActuator.SendGlobalMessage($"Leader is {leader.Key} - {leader.Value} Stars!");
-            }));
+                StartCoroutine(Timing.CountdownTimer(5, () =>
+                {
+                    var leader = StarRanking.OrderByDescending(entry => entry.Value).First();
+                    globalMessageActuator.SendGlobalMessage($"Leader is {leader.Key} - {leader.Value} Stars!");
+                }));
+            }
+        }
+
+        private void OnDisable()
+        {
+            LocalEvents.GlobalMessageEvent -= OnGlobalMessage;
         }
     }
 }

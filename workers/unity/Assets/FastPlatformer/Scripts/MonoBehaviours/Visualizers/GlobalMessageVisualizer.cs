@@ -1,4 +1,3 @@
-using FastPlatformer.Scripts.UI;
 using FastPlatformer.Scripts.Util;
 using Gameschema.Untrusted;
 using Improbable.Gdk.Subscriptions;
@@ -13,11 +12,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         public void OnEnable()
         {
-            messageReader.OnMessageEvent += MessageEvent;
+            messageReader.OnMessageEvent += OnMessageEvent;
         }
 
-        private static void MessageEvent(MessageEvent messageEvent)
+        private void OnMessageEvent(MessageEvent messageEvent)
         {
+            Debug.Log($"{gameObject.name} invoked message event: ${messageEvent}");
             LocalEvents.GlobalMessageEvent.Invoke(messageEvent.Message);
         }
     }

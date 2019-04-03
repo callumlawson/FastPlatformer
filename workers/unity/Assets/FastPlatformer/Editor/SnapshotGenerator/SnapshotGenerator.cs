@@ -31,6 +31,7 @@ namespace Playground.Editor.SnapshotGenerator
             snapshot.AddEntity(StarTemplate.CreateStarEntityTemplate(new Vector3(3.13f, 17, -44.36f)));
             snapshot.AddEntity(StarTemplate.CreateStarEntityTemplate(new Vector3(-25.62f, 11.52f, -8.53f)));
             snapshot.AddEntity(StarTemplate.CreateStarEntityTemplate(new Vector3(6.56f, 17.74f, 22.09f)));
+            snapshot.AddEntity(StarTemplate.CreateStarEntityTemplate(new Vector3(6.9f, 7f, -0.5f)));
 
             snapshot.AddEntity(GameDirectorTemplate.CreateGameDirectorEntityTemplate(new Vector3(0, 50, 0)));
 

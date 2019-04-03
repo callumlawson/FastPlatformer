@@ -16,19 +16,24 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
 
         private GlobalMessageActuator globalMessageActuator;
 
+        private bool localActive = true;
+
         private void OnEnable()
         {
             globalMessageActuator = GetComponent<GlobalMessageActuator>();
+            SetActive(true);
         }
 
         public void SetActive(bool isActive)
         {
+            localActive = isActive;
             activenessWriter.SendUpdate(new Activeness.Update{IsActive = new Option<BlittableBool>(isActive)});
         }
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!activenessWriter.Data.IsActive)
+            //This sad and I don't like it.
+            if (!localActive)
             {
                 return;
             }
@@ -42,6 +47,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
             var otherEntityId = otherEntityComponent.EntityId;
             var otherEntityName = view.GetComponent<Name.Snapshot>(otherEntityId);
             globalMessageActuator.SendGlobalMessage($"{otherEntityName.Name} got a Star!");
+            Debug.Log("Star gotten!");
             StartCoroutine(Timing.CountdownTimer(30, () => SetActive(true)));
             SetActive(false);
         }

@@ -713,6 +713,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
                 CurrentGroundPoundState = GroundPoundState.Nothing;
             }
 
+            if (CurrentWallJumpState == WallJumpState.Slipping)
+            {
+                CurrentWallJumpState = WallJumpState.Nothing;
+            }
+
             var objectLandedOn = Motor.GroundingStatus.GroundCollider.gameObject;
             if (objectLandedOn.layer == playerLayer || objectLandedOn.layer == jumpSurfaceLayer)
             {
