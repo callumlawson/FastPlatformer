@@ -19,8 +19,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
         private void OnEnable()
         {
             globalMessageActuator = GetComponent<GlobalMessageActuator>();
-
-            Debug.Log(view.ToString());
         }
 
         public void SetActive(bool isActive)
@@ -44,8 +42,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
             var otherEntityId = otherEntityComponent.EntityId;
             var otherEntityName = view.GetComponent<Name.Snapshot>(otherEntityId);
             globalMessageActuator.SendGlobalMessage($"{otherEntityName.Name} got a Star!");
-            SetActive(false);
             StartCoroutine(Timing.CountdownTimer(30, () => SetActive(true)));
+            SetActive(false);
         }
     }
 }

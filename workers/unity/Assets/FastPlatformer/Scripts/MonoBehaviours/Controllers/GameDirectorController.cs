@@ -1,21 +1,21 @@
 using System.Collections.Generic;
+using System.Linq;
 using FastPlatformer.Scripts.MonoBehaviours.Actuator;
 using FastPlatformer.Scripts.Util;
-using Gameschema.Untrusted;
 using Improbable.Gdk.Core;
 using Improbable.Gdk.Subscriptions;
 using JetBrains.Annotations;
-using UnityEngine;
+using Sirenix.OdinInspector;
 
 namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
 {
-    public class GameDirectorController : MonoBehaviour
+    public class GameDirectorController : SerializedMonoBehaviour
     {
         [Require, UsedImplicitly] private View view;
 
         private GlobalMessageActuator globalMessageActuator;
 
-        private Dictionary<string, int> StarRanking;
+        public Dictionary<string, int> StarRanking = new Dictionary<string, int>();
 
         private void OnEnable()
         {
@@ -38,20 +38,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
                     StarRanking.Add(playerName, 1);
                 }
             }
-        }
 
-        private void OnTriggerEnter(Collider other)
-        {
-            var otherEntityComponent = other.GetComponent<LinkedEntityComponent>();
-            if (otherEntityComponent == null)
+            StartCoroutine(Timing.CountdownTimer(5, () =>
             {
-                return;
-            }
-
-            var otherEntityId = otherEntityComponent.EntityId;
-            var otherEntityName = view.GetComponent<Name.Snapshot>(otherEntityId);
-            Debug.Log("Dammit");
-            globalMessageActuator.SendGlobalMessage($"{otherEntityName.Name} got a Star!");
+                var leader = StarRanking.OrderByDescending(entry => entry.Value).First();
+                globalMessageActuator.SendGlobalMessage($"Leader is {leader.Key} - {leader.Value} Stars!");
+            }));
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Gameschema.Untrusted;
 using Improbable;
 using Improbable.Gdk.Core;
@@ -29,10 +30,50 @@ namespace FastPlatformer.Config.EntityTemplates
             template.AddComponent(new PlayerInput.Snapshot(), clientAttribute);
             template.AddComponent(new PlayerVisualizerEvents.Snapshot(), clientAttribute);
             template.AddComponent(new Color.Snapshot(Random.value, Random.value, Random.value, 1), clientAttribute);
-            template.AddComponent(new Name.Snapshot("Goose"), clientAttribute);
+            template.AddComponent(new Name.Snapshot(RandomNameCreator()), clientAttribute);
             template.AddComponent(new GlobalMessage.Snapshot(), clientAttribute);
 
+            numPlayersSpawned++;
+
             return template;
+        }
+
+        private static int numPlayersSpawned;
+
+        private static readonly List<string> Names = new List<string>
+        {
+            "Goose",
+            "Cathy",  
+            "Dawn",  
+            "Roscoe",  
+            "Gussie",  
+            "Ramon",  
+            "William",  
+            "Kristofer",  
+            "Tonya",  
+            "Joellen",  
+            "Riley",  
+            "Noma",  
+            "Hilda",  
+            "Jamie",  
+            "Hong",  
+            "Manda",  
+            "Breann",  
+            "Hailey",  
+            "Jannette",  
+            "Yukiko",  
+            "Margo",  
+            "Lupita",  
+            "Arnoldo",  
+            "Aleida",
+            "Mitzi",  
+            "Kiyoko",  
+            "Ardath"
+        };
+
+        private static string RandomNameCreator()
+        {
+            return Names[numPlayersSpawned % Names.Count];
         }
     }
 }
