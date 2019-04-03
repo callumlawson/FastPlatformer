@@ -29,6 +29,7 @@ namespace FastPlatformer.Config.EntityTemplates
             template.AddComponent(new PlayerInput.Snapshot(), clientAttribute);
             template.AddComponent(new PlayerVisualizerEvents.Snapshot(), clientAttribute);
             template.AddComponent(new Color.Snapshot(Random.value, Random.value, Random.value, 1), clientAttribute);
+            template.AddComponent(new Name.Snapshot("Goose"), clientAttribute);
             template.AddComponent(new GlobalMessage.Snapshot(), clientAttribute);
 
             return template;

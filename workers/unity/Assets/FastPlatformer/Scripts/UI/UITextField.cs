@@ -1,15 +1,16 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace FastPlatformer.Scripts.UI
 {
-    public class UIToastBar : MonoBehaviour
+    public class UITextField : MonoBehaviour
     {
-        public TextMeshProUGUI TextField;
+        public TextMeshProUGUI Text;
 
         public void SetMessage(string message)
         {
-            TextField.text = message;
+            Text.text = message;
         }
     }
 }

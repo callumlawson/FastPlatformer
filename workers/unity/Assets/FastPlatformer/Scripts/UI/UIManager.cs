@@ -6,10 +6,13 @@ namespace FastPlatformer.Scripts.UI
     {
         public static UIManager Instance;
 
-        public UIToastBar ToastBar;
+        public UITextField TextField;
+        public RectTransform DynamicUIRoot;
+        public Canvas Canvas;
 
         private void Awake()
         {
+            Canvas = GetComponent<Canvas>();
             Instance = this;
         }
     }

@@ -6,16 +6,27 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
     {
         public Vector3 RotateSpeed;
 
-        private Rigidbody ourRidgidbody;
+        private Rigidbody ourRigidbody;
 
         private void Start()
         {
-            ourRidgidbody = GetComponent<Rigidbody>();
+            ourRigidbody = GetComponent<Rigidbody>();
         }
 
         private void Update()
         {
-            ourRidgidbody.angularVelocity = RotateSpeed;
+            if (!ourRigidbody)
+            {
+                transform.Rotate(RotateSpeed * Time.deltaTime);
+            }
+        }
+
+        private void FixedUpdate()
+        {
+            if (ourRigidbody)
+            {
+                ourRigidbody.angularVelocity = RotateSpeed;
+            }
         }
     }
 }

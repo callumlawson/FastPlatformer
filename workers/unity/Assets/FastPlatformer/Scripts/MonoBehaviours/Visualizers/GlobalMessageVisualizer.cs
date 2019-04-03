@@ -17,7 +17,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         private static void MessageEvent(MessageEvent messageEvent)
         {
-            UIManager.Instance.ToastBar.SetMessage(messageEvent.Message);
+            UIManager.Instance.TextField.SetMessage(messageEvent.Message);
         }
     }
 }
