@@ -1,6 +1,6 @@
 package gameschema.trusted;
 
-component Pickup
+component Activeness
 {
     id = 12006;
     bool is_active = 1;

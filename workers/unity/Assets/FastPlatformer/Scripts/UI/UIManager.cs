@@ -1,3 +1,4 @@
+using FastPlatformer.Scripts.Util;
 using UnityEngine;
 
 namespace FastPlatformer.Scripts.UI
@@ -14,6 +15,8 @@ namespace FastPlatformer.Scripts.UI
         {
             Canvas = GetComponent<Canvas>();
             Instance = this;
+
+            LocalEvents.GlobalMessageEvent += message => TextField.SetMessage(message);
         }
     }
 }

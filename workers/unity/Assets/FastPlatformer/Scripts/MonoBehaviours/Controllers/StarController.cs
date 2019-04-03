@@ -1,3 +1,5 @@
+using FastPlatformer.Scripts.MonoBehaviours.Actuator;
+using FastPlatformer.Scripts.Util;
 using Gameschema.Trusted;
 using Gameschema.Untrusted;
 using Improbable.Gdk.Core;
@@ -5,12 +7,12 @@ using Improbable.Gdk.Subscriptions;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
+namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
 {
     public class StarController : MonoBehaviour
     {
         [Require, UsedImplicitly] private View view;
-        [Require, UsedImplicitly] private PickupWriter pickupWriter;
+        [Require, UsedImplicitly] private ActivenessWriter activenessWriter;
 
         private GlobalMessageActuator globalMessageActuator;
 
@@ -21,8 +23,18 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
             Debug.Log(view.ToString());
         }
 
+        public void SetActive(bool isActive)
+        {
+            activenessWriter.SendUpdate(new Activeness.Update{IsActive = new Option<BlittableBool>(isActive)});
+        }
+
         private void OnTriggerEnter(Collider other)
         {
+            if (!activenessWriter.Data.IsActive)
+            {
+                return;
+            }
+
             var otherEntityComponent = other.GetComponent<LinkedEntityComponent>();
             if (otherEntityComponent == null)
             {
@@ -31,8 +43,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
 
             var otherEntityId = otherEntityComponent.EntityId;
             var otherEntityName = view.GetComponent<Name.Snapshot>(otherEntityId);
-            Debug.Log("Dammit");
             globalMessageActuator.SendGlobalMessage($"{otherEntityName.Name} got a Star!");
+            SetActive(false);
+            StartCoroutine(Timing.CountdownTimer(30, () => SetActive(true)));
         }
     }
 }

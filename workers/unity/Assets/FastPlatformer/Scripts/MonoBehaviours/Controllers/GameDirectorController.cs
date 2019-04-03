@@ -1,24 +1,43 @@
-using Gameschema.Trusted;
+using System.Collections.Generic;
+using FastPlatformer.Scripts.MonoBehaviours.Actuator;
+using FastPlatformer.Scripts.Util;
 using Gameschema.Untrusted;
 using Improbable.Gdk.Core;
 using Improbable.Gdk.Subscriptions;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
+namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
 {
-    public class StarController : MonoBehaviour
+    public class GameDirectorController : MonoBehaviour
     {
         [Require, UsedImplicitly] private View view;
-        [Require, UsedImplicitly] private PickupWriter pickupWriter;
 
         private GlobalMessageActuator globalMessageActuator;
+
+        private Dictionary<string, int> StarRanking;
 
         private void OnEnable()
         {
             globalMessageActuator = GetComponent<GlobalMessageActuator>();
+            LocalEvents.GlobalMessageEvent += OnGlobalMessage;
+        }
 
-            Debug.Log(view.ToString());
+        private void OnGlobalMessage(string message)
+        {
+            //This is a horrible hack and I'm sorry.
+            if (message.Contains("Star"))
+            {
+                var playerName = message.Split()[0];
+                if (StarRanking.ContainsKey(playerName))
+                {
+                    StarRanking[playerName] += 1;
+                }
+                else
+                {
+                    StarRanking.Add(playerName, 1);
+                }
+            }
         }
 
         private void OnTriggerEnter(Collider other)

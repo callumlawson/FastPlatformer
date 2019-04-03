@@ -1,4 +1,5 @@
 using FastPlatformer.Scripts.UI;
+using FastPlatformer.Scripts.Util;
 using Gameschema.Untrusted;
 using Improbable.Gdk.Subscriptions;
 using JetBrains.Annotations;
@@ -17,7 +18,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         private static void MessageEvent(MessageEvent messageEvent)
         {
-            UIManager.Instance.TextField.SetMessage(messageEvent.Message);
+            LocalEvents.GlobalMessageEvent.Invoke(messageEvent.Message);
         }
     }
 }
