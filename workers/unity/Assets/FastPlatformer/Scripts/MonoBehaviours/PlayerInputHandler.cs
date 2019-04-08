@@ -1,4 +1,5 @@
 using FastPlatformer.Scripts.MonoBehaviours.Actuator;
+using FastPlatformer.Scripts.UI;
 using KinematicCharacterController.Examples;
 using UnityEngine;
 
@@ -37,13 +38,22 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void Update()
         {
-            if (Input.GetMouseButtonDown(0))
+            var uiMode = UIManager.Instance.CurrentUIMode;
+
+            if (!Input.GetKey(KeyCode.Tab) && uiMode != UIManager.UIMode.InMenu)
             {
                 Cursor.lockState = CursorLockMode.Locked;
             }
+            else if (Input.GetKey(KeyCode.Tab) || uiMode == UIManager.UIMode.InMenu)
+            {
+                Cursor.lockState = CursorLockMode.None;
+            }
 
-            HandleCameraInput();
-            HandleCharacterInput();
+            if (!Input.GetKey(KeyCode.Tab) && uiMode == UIManager.UIMode.InGame)
+            {
+                HandleCameraInput();
+                HandleCharacterInput();
+            }
         }
 
         private void HandleCameraInput()

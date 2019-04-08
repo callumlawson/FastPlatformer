@@ -7,6 +7,7 @@ using Improbable.Gdk.Subscriptions;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Analytics;
 
 namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
 {
@@ -29,6 +30,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Controllers
             //This is a horrible hack and I'm sorry.
             if (message.Contains("got a Star"))
             {
+                AnalyticsEvent.Custom("Star_Collected");
+
                 var playerName = message.Split()[0];
                 if (StarRanking.ContainsKey(playerName))
                 {
