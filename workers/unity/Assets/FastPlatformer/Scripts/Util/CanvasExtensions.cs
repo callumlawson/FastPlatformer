@@ -4,7 +4,7 @@ namespace FastPlatformer.Scripts.Util
 {
     public static class CanvasExtensions
     {
-        public static Vector2 WorldToCanvas(this Canvas canvas, Vector3 worldPosition, Camera camera = null)
+        public static Vector2 WorldToCanvas(this Canvas canvas, Vector3 worldPosition, out bool IsVisible, Camera camera = null)
         {
             if (camera == null)
             {
@@ -12,6 +12,9 @@ namespace FastPlatformer.Scripts.Util
             }
 
             var viewportPosition = camera.WorldToViewportPoint(worldPosition);
+
+            IsVisible = viewportPosition.z > 0;
+
             var canvasRect = canvas.GetComponent<RectTransform>();
 
             return new Vector2(viewportPosition.x * canvasRect.sizeDelta.x - canvasRect.sizeDelta.x * 0.5f,

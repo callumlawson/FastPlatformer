@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FastPlatformer.Scripts.Util;
 using Gameschema.Untrusted;
 using Improbable.Gdk.Subscriptions;
 using Improbable.Gdk.TransformSynchronization;
@@ -28,6 +29,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
         public AudioClip Shove;
 
         public AudioSource AudioSource;
+        public AudioListener AudioListener;
 
         [UsedImplicitly, Require] private PlayerVisualizerEventsReader eventReader;
         [UsedImplicitly, Require] private OwningWorkerReader owningWorker;
@@ -48,6 +50,14 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
                 { SoundEventType.Hoo, Hoo },
                 { SoundEventType.Dash, Dash },
                 { SoundEventType.Shove, Shove },
+            };
+
+            LocalEvents.UpdateVolumeEvent += volume =>
+            {
+                if (AudioListener)
+                {
+                    AudioListener.volume = volume;
+                }
             };
         }
 

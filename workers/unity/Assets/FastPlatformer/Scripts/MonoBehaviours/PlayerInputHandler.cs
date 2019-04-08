@@ -1,5 +1,6 @@
 using FastPlatformer.Scripts.MonoBehaviours.Actuator;
 using FastPlatformer.Scripts.UI;
+using FastPlatformer.Scripts.Util;
 using KinematicCharacterController.Examples;
 using UnityEngine;
 
@@ -30,10 +31,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private const string DashInput = "Dash";
         private const string GroundPoundInput = "GroundPound";
 
+        private bool invertY = false;
+
         private void Start()
         {
             Cursor.lockState = CursorLockMode.Locked;
             CharacterCamera.SetFollowCharacter(Character);
+            LocalEvents.UpdateInvertYEvent += newInvertValue => invertY = newInvertValue;
         }
 
         private void Update()
@@ -58,8 +62,14 @@ namespace FastPlatformer.Scripts.MonoBehaviours
 
         private void HandleCameraInput()
         {
-            var mouseLookAxisUp = Input.GetAxisRaw(LookYInput);
+            var mouseLookAxisUp = -Input.GetAxisRaw(LookYInput);
             var mouseLookAxisRight = Input.GetAxisRaw(LookXInput);
+
+            if (invertY)
+            {
+                mouseLookAxisUp = -mouseLookAxisUp;
+            }
+
             var lookInputVector = new Vector3(mouseLookAxisRight, mouseLookAxisUp, 0f);
 
             // Prevent moving the camera while the cursor isn't locked

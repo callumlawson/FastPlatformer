@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using FastPlatformer.Scripts.MonoBehaviours;
 using FastPlatformer.Scripts.MonoBehaviours.Actuator;
+using FastPlatformer.Scripts.Util;
 using UnityEngine;
 
 namespace KinematicCharacterController.Examples
@@ -30,7 +31,7 @@ namespace KinematicCharacterController.Examples
         public float MinVerticalAngle = -80f;
         [Range(-90f, 90f)]
         public float MaxVerticalAngle = 80f;
-        public float RotationSpeed = 10f;
+        [HideInInspector] public float RotationSpeed = 10f; //Set in options menu
         public float RotationSharpness = 30f;
 
         [Header("Obstruction")]
@@ -71,6 +72,8 @@ namespace KinematicCharacterController.Examples
             _targetVerticalAngle = 0f;
 
             PlanarDirection = Vector3.forward;
+
+            LocalEvents.UpdateLookSensitivityEvent += newSensitivity => RotationSpeed = newSensitivity;
         }
 
         // Set the transform that the camera will orbit around

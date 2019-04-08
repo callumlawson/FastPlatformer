@@ -1,4 +1,5 @@
 using CommandTerminal;
+using FastPlatformer.Scripts.Util;
 using Gameschema.Untrusted;
 using Improbable.Gdk.Subscriptions;
 using JetBrains.Annotations;
@@ -9,6 +10,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
     public class NameActuator : MonoBehaviour
     {
         [UsedImplicitly, Require] private NameWriter nameWriter;
+
+        public void Awake()
+        {
+            LocalEvents.UpdatePlayerNameEvent += SetName;
+
+        }
 
         public void OnEnable()
         {
