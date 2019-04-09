@@ -42,8 +42,20 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
         public float OrientationSharpness = 10;
         public float NeutralStoppingDrag = 0.5f;
         public const float CriticalSpeed = 4.5f;
+        public float InputDeadZoneMagnitude = 0.2f;
         public AnimationCurve PowerToSlopeAngle = AnimationCurve.Linear(0, 1, 90, 0.1f);
 
+        public float WindUpDuration;
+        public float HeelDuration;
+        public MoveState CurrentMoveState;
+        public enum MoveState
+        {
+            Still,
+            WindUp,
+            Running,
+            Heel
+        }
+        
         [TitleGroup("Air Movement")]
         public float MaxAirMoveSpeed = 10f;
         public float AirAccelerationSpeed = 5f;
@@ -553,6 +565,46 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
                 Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
             var targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
 
+
+            //This is hideous and I'm sorry
+            switch (CurrentMoveState)
+            {
+                case MoveState.Still when targetMovementVelocity.magnitude > 1.0f:
+                    CurrentMoveState = MoveState.WindUp;
+                    StartCoroutine(Timing.CountdownTimer(WindUpDuration, () =>
+                    {
+                        if (CurrentMoveState == MoveState.WindUp)
+                        {
+                            CurrentMoveState = MoveState.Running;
+                        }
+                    }));
+                    break;
+                case MoveState.Running when currentVelocity.magnitude < 0.5f:
+                    CurrentMoveState = MoveState.Still;
+                    break;
+                case MoveState.Running when Vector3.Dot(currentVelocity.normalized, targetMovementVelocity.normalized) < -0.7:
+                case MoveState.WindUp when Vector3.Dot(currentVelocity.normalized, targetMovementVelocity.normalized) < -0.7:
+                    CurrentMoveState = MoveState.Heel;
+                    StartCoroutine(Timing.CountdownTimer(HeelDuration, () =>
+                    {
+                        CurrentMoveState = targetMovementVelocity.magnitude > 1.0f ? MoveState.Running : MoveState.Still;
+                    }));
+                    break;
+                case MoveState.Heel:
+                    targetMovementVelocity = Vector3.zero;
+                    currentVelocity = Vector3.zero;
+                    break;
+                case MoveState.Running:
+                    break;
+                case MoveState.WindUp:
+                    break;
+                case MoveState.Still:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+           
+            
             //Shoving loss of traction
             if (!justShoved)
             {
@@ -560,17 +612,16 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
             }
 
             var shovedControlModifier = justShoved ? PostShoveControlReductionMultiplier : 1.0f;
-
+            var heelControlModifer = CurrentMoveState == MoveState.Heel ? 0.1f : 1.0f;
+            
             // Smooth movement Velocity
             currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity,
-                1 - Mathf.Exp(-StableMovementSharpness * deltaTime * shovedControlModifier));
+                1 - Mathf.Exp(-StableMovementSharpness * deltaTime * shovedControlModifier * heelControlModifer));
 
             // Apply upwards slope penalty - needs revision
             var slopeAngleInDegrees = Vector3.SignedAngle(Motor.CharacterUp, effectiveGroundNormal, -Motor.CharacterRight);
             var alongPlaneVector = Vector3.Cross(effectiveGroundNormal, Motor.CharacterUp);
             var upPlaneVector = Vector3.Cross(alongPlaneVector, effectiveGroundNormal);
-
-            //Up Slope penalty
             if (Math.Abs(slopeAngleInDegrees) > 8)
             {
                 var slopeSpeedFactor = PowerToSlopeAngle.Evaluate(slopeAngleInDegrees);
@@ -621,7 +672,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
             {
                 currentJumpType = JumpType.Wall;
             }
-            else if (Vector3.Dot(currentVelocity, moveInputVector) < -0.8)
+            else if (Vector3.Dot(currentVelocity.normalized, moveInputVector.normalized) < -0.5 && CurrentMoveState == MoveState.Heel)
             {
                 currentJumpType = JumpType.Backflip;
             }
@@ -731,6 +782,16 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
             CurrentJumpState = JumpState.JustLanded;
 
             StartCoroutine(Timing.CountdownTimer(DoubleJumpTimeWindowSize, () => CurrentJumpState = JumpState.Grounded));
+
+            KillVelocityOnLandingIfNoInput();
+        }
+
+        private void KillVelocityOnLandingIfNoInput()
+        {
+            if (moveInputVector.magnitude < InputDeadZoneMagnitude)
+            {
+                Motor.BaseVelocity = Motor.BaseVelocity * 0.1f;
+            } 
         }
 
         private Vector3 GetEffectiveGroundNormal(Vector3 currentVelocity)
