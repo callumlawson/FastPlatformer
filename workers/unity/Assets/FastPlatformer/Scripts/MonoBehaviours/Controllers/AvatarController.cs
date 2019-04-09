@@ -171,7 +171,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
             var controllerInput = Vector3.ClampMagnitude(new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward), 1f);
 
             var cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
-            if (Math.Abs(cameraPlanarDirection.sqrMagnitude) < 0.001f)
+            if (Math.Abs(cameraPlanarDirection.sqrMagnitude) == 0.0f)
             {
                 cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.up, Motor.CharacterUp).normalized;
             }
@@ -559,6 +559,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
 
         private void ApplyGroundMovement(ref Vector3 currentVelocity, float deltaTime)
         {
+            var planarVelocity = currentVelocity;
+            planarVelocity.y = 0;
+
             var effectiveGroundNormal = GetEffectiveGroundNormal(currentVelocity);
 
             // Reorient velocity on slope
@@ -597,11 +600,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
                 //         CurrentMoveState = targetMovementVelocity.magnitude > 1.0f ? MoveState.Running : MoveState.Still;
                 //     }));
                 //     break;
-                case MoveState.Running when Vector3.Dot(currentVelocity.normalized, targetMovementVelocity.normalized) < -0.7 && CurrentJumpState == JumpState.Grounded:
-                case MoveState.WindUp when Vector3.Dot(currentVelocity.normalized, targetMovementVelocity.normalized) < -0.7 && CurrentJumpState == JumpState.Grounded:
+                case MoveState.Running when currentVelocity.magnitude > 3.0f && Vector3.Dot(currentVelocity.normalized, targetMovementVelocity.normalized) < -0.7 && CurrentJumpState == JumpState.Grounded:
+                case MoveState.WindUp when currentVelocity.magnitude > 3.0f && Vector3.Dot(currentVelocity.normalized, targetMovementVelocity.normalized) < -0.7 && CurrentJumpState == JumpState.Grounded:
                     CurrentMoveState = MoveState.Heel;
                     PlayNetworkedAnimationEvent(AnimationEventType.Heel);
-                    HeelFacingDirection = currentVelocity.normalized;
+                    HeelFacingDirection = planarVelocity.normalized;
                     StartCoroutine(Timing.CountdownTimer(HeelDuration, () =>
                     {
                         CurrentMoveState = targetMovementVelocity.magnitude > 1.0f ? MoveState.Running : MoveState.Still;
@@ -690,7 +693,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
             {
                 currentJumpType = JumpType.Wall;
             }
-            else if (Vector3.Dot(moveInputVector.normalized, HeelFacingDirection.normalized) < -0.75f && CurrentMoveState == MoveState.Heel)
+            else if (Vector3.Dot(moveInputVector.normalized, HeelFacingDirection.normalized) < -0.60f && CurrentMoveState == MoveState.Heel)
             {
                 currentJumpType = JumpType.Backflip;
             }
