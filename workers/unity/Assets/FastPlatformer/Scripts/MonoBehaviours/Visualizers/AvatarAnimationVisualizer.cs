@@ -17,7 +17,8 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
         Land = 3,
         TripleJump = 4,
         DoubleJump = 5,
-        GroundPound = 6
+        GroundPound = 6,
+        Heel = 7
     }
 
     public class AvatarAnimationVisualizer : MonoBehaviour
