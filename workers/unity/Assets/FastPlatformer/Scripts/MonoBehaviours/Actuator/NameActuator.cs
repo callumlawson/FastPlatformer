@@ -14,11 +14,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
         public void Awake()
         {
             LocalEvents.UpdatePlayerNameEvent += SetName;
-
-        }
-
-        public void OnEnable()
-        {
             Terminal.Shell.AddCommand("player.name", CommandSetPlayerName, 1, 1, "Sets the name of the player");
             Terminal.Autocomplete.Register("player.name");
         }

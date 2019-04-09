@@ -10,10 +10,16 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
     {
         [UsedImplicitly, Require] private GlobalMessageWriter messageWriter;
 
-        public void Awake() //TODO: This is called once per writer not once per client :(
+        private static bool registeredCommand;
+
+        public void Awake()
         {
-            Terminal.Shell.AddCommand("message.global", CommandSendGlobalMessage, 1, 1, "Sends a message to all players");
-            Terminal.Autocomplete.Register("message.global");
+            if (Terminal.Shell != null && !registeredCommand)
+            {
+                Terminal.Shell.AddCommand("message.global", CommandSendGlobalMessage, 1, 1, "Sends a message to all players");
+                Terminal.Autocomplete.Register("message.global");
+                registeredCommand = true;
+            }
         }
 
         private void CommandSendGlobalMessage(CommandArg[] args) {

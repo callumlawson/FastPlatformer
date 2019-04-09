@@ -14,7 +14,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
 
         private const string Star = "star";
 
-        public void OnEnable()
+        public void Awake()
         {
             Terminal.Shell.AddCommand("spawn", CommandSpawnTemplate, 1, 1, "Spawns a template in front of the player");
             Terminal.Autocomplete.Register("spawn");
