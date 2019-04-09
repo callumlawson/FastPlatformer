@@ -4,6 +4,7 @@
 *.asset text eol=lf
 *.anim eol=lf
 MainTerrain.asset binary
+LiberationSans SDF.asset binary
 *.controller eol=lf
 *.mat eol=lf
 *.meta eol=lf
