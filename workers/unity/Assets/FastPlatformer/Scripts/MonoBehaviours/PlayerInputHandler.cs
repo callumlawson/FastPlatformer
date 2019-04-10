@@ -84,16 +84,16 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private void HandleCharacterInput()
         {
             var characterInputs = new CharacterInputs
-                {
-                    MoveAxisForward = Input.GetAxisRaw(VerticalInput),
-                    MoveAxisRight = Input.GetAxisRaw(HorizontalInput),
-                    CameraRotation = CharacterCamera.transform.rotation,
-                    JumpPress = Input.GetButtonDown(JumpInput),
-                    JumpHold = Input.GetButton(JumpInput),
-                    Dash = Input.GetButtonDown(DashInput),
-                    Interact = Input.GetKeyDown(KeyCode.E),
-                    GroundPound = Input.GetButtonDown(GroundPoundInput)
-                };
+            {
+                MoveAxisForward = Input.GetAxisRaw(VerticalInput),
+                MoveAxisRight = Input.GetAxisRaw(HorizontalInput),
+                CameraRotation = CharacterCamera.transform.rotation,
+                JumpPress = Input.GetButtonDown(JumpInput),
+                JumpHold = Input.GetButton(JumpInput),
+                Dash = Input.GetButtonDown(DashInput),
+                Interact = Input.GetKeyDown(KeyCode.E),
+                GroundPound = Input.GetButtonDown(GroundPoundInput)
+            };
 
             // Apply inputs to character
             Character.SetInputs(characterInputs);
