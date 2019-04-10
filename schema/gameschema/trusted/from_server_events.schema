@@ -1,0 +1,11 @@
+package gameschema.trusted;
+
+type GameplayEvent {
+    uint32 eventid = 1;
+}
+
+component FromServerEvents
+{
+    id = 12007;
+    event GameplayEvent gameplay;
+}

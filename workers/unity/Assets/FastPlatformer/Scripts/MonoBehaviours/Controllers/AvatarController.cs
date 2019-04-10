@@ -1,6 +1,7 @@
 using System;
 using FastPlatformer.Scripts.MonoBehaviours.Visualizers;
 using FastPlatformer.Scripts.Util;
+using Gameschema.Trusted;
 using Gameschema.Untrusted;
 using Improbable;
 using Improbable.Gdk.Subscriptions;
@@ -17,6 +18,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
     //TODO - Consider Timeline integration
     public partial class AvatarController : BaseCharacterController
     {
+        [UsedImplicitly, Require] private FromServerEventsReader serverEventsReader;
         [UsedImplicitly, Require] private PlayerInputWriter playerInputWriter;
         [UsedImplicitly, Require] private PlayerVisualizerEventsWriter eventWriter;
         private TransformSynchronization trasformSyncComponent;
@@ -111,6 +113,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
         }
         public DashState CurrentDashState;
         private bool justShoved;
+        private bool dashRefilReady;
 
         //Freezing
         [TitleGroup("Wall Jumping")]
@@ -161,6 +164,20 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
         private void Start()
         {
             trasformSyncComponent = GetComponent<TransformSynchronization>();
+            serverEventsReader.OnGameplayEvent += OnGameplayEvent;
+        }
+
+        private void OnGameplayEvent(GameplayEvent gameplayEvent)
+        {
+            var eventType = (GameplayEventType) gameplayEvent.Eventid;
+            switch (eventType)
+            {
+                case GameplayEventType.DashRefresh:
+                    dashRefilReady = true;
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         /// <summary>
@@ -188,8 +205,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
                 jumpTriggeredThisFrame = true;
             }
 
-            if (inputs.Dash && CurrentDashState == DashState.DashAvailable)
+            if (inputs.Dash && CurrentDashState == DashState.DashAvailable || dashRefilReady)
             {
+                dashRefilReady = false;
                 CurrentDashState = DashState.DashRequested;
             }
 
@@ -453,6 +471,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
                 timeSinceLastAbleToJump += deltaTime;
             }
 
+            if (CurrentDashState == DashState.DashConsumed && dashRefilReady)
+            {
+                CurrentDashState = DashState.DashAvailable;
+                dashRefilReady = false;
+            }
+            
             if (CurrentDashState == DashState.DashConsumed && Motor.GroundingStatus.IsStableOnGround)
             {
                 CurrentDashState = DashState.DashAvailable;

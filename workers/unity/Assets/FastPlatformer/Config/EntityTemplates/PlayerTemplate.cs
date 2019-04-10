@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Gameschema.Trusted;
 using Gameschema.Untrusted;
 using Improbable;
 using Improbable.Gdk.Core;
@@ -26,7 +27,10 @@ namespace FastPlatformer.Config.EntityTemplates
             template.SetReadAccess(WorkerUtils.UnityClient, WorkerUtils.UnityGameLogic, WorkerUtils.AndroidClient, WorkerUtils.iOSClient);
             template.SetComponentWriteAccess(EntityAcl.ComponentId, WorkerUtils.UnityGameLogic);
 
-            //Addons
+            //Addons - Server
+            template.AddComponent(new FromServerEvents.Snapshot(), WorkerUtils.UnityGameLogic);
+            
+            //Addons - Client
             template.AddComponent(new PlayerInput.Snapshot(), clientAttribute);
             template.AddComponent(new PlayerVisualizerEvents.Snapshot(), clientAttribute);
             template.AddComponent(new Color.Snapshot(Random.value, Random.value, Random.value, 1), clientAttribute);

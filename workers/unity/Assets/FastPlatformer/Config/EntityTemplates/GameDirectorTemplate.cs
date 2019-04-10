@@ -9,7 +9,7 @@ namespace FastPlatformer.Config.EntityTemplates
 {
     public static class GameDirectorTemplate
     {
-        public static EntityTemplate CreateGameDirectorEntityTemplate(Vector3 position)
+        public static EntityTemplate Create(Vector3 position)
         {
             //Core
             var template = new EntityTemplate();

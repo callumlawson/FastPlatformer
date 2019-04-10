@@ -37,7 +37,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
             {
                 case Star:
                     var playerTransform = gameObject.transform;
-                    var template = StarTemplate.CreateStarEntityTemplate(playerTransform.position + playerTransform.forward * 2);
+                    var template = StarTemplate.Create(playerTransform.position + playerTransform.forward * 2);
                     worldCommandSender.SendCreateEntityCommand(new WorldCommands.CreateEntity.Request(template));
                     break;
                 default:
