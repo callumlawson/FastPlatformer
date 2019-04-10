@@ -572,9 +572,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
             var inputRight = Vector3.Cross(moveInputVector, Motor.CharacterUp);
             var reorientedInput =
                 Vector3.Cross(effectiveGroundNormal, inputRight).normalized * moveInputVector.magnitude;
+            
             var targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
-
-
+            
             //This is hideous and I'm sorry
             switch (CurrentMoveState)
             {
@@ -591,15 +591,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
                 case MoveState.Running when currentVelocity.magnitude < 0.3f && targetMovementVelocity.magnitude < 1.0f && CurrentJumpState == JumpState.Grounded:
                     CurrentMoveState = MoveState.Still;
                     break;
-                // case MoveState.Running when currentVelocity.magnitude < 0.3f && targetMovementVelocity.magnitude < 1.0f && CurrentJumpState == JumpState.Grounded:
-                //     CurrentMoveState = MoveState.Heel;
-                //     PlayNetworkedAnimationEvent(AnimationEventType.Heel);
-                //     HeelFacingDirection = currentVelocity.normalized;
-                //     StartCoroutine(Timing.CountdownTimer(HeelDuration / 2f, () =>
-                //     {
-                //         CurrentMoveState = targetMovementVelocity.magnitude > 1.0f ? MoveState.Running : MoveState.Still;
-                //     }));
-                //     break;
                 case MoveState.Running when currentVelocity.magnitude > 3.0f && Vector3.Dot(currentVelocity.normalized, targetMovementVelocity.normalized) < -0.7 && CurrentJumpState == JumpState.Grounded:
                 case MoveState.WindUp when currentVelocity.magnitude > 3.0f && Vector3.Dot(currentVelocity.normalized, targetMovementVelocity.normalized) < -0.7 && CurrentJumpState == JumpState.Grounded:
                     CurrentMoveState = MoveState.Heel;
@@ -624,20 +615,16 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
                     throw new ArgumentOutOfRangeException();
             }
 
-
-            //Shoving loss of traction
-            if (!justShoved)
-            {
-                currentVelocity *= 1f / (1f + NeutralStoppingDrag * deltaTime);
-            }
-
             var shovedControlModifier = justShoved ? PostShoveControlReductionMultiplier : 1.0f;
             var heelControlModifer = CurrentMoveState == MoveState.Heel ? 0.1f : 1.0f;
             var windUpControlModifer = CurrentMoveState == MoveState.WindUp ? 0.45f : 1.0f;
 
-            // Smooth movement Velocity
-            currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity,
-                1 - Mathf.Exp(-StableMovementSharpness * deltaTime * shovedControlModifier * heelControlModifer * windUpControlModifer));
+            if (!justShoved)
+            {
+                currentVelocity *= 1f / (1f + NeutralStoppingDrag * deltaTime);
+            }
+            
+            currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity, 1 - Mathf.Exp(-StableMovementSharpness * deltaTime * shovedControlModifier * heelControlModifer * windUpControlModifer));
 
             // Apply upwards slope penalty - needs revision
             var slopeAngleInDegrees = Vector3.SignedAngle(Motor.CharacterUp, effectiveGroundNormal, -Motor.CharacterRight);
@@ -690,6 +677,10 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
                 currentJumpType = JumpType.JumpPad;
             }
             else if ((CurrentWallJumpState == WallJumpState.JustAttached || CurrentWallJumpState == WallJumpState.Slipping))
+            {
+                currentJumpType = JumpType.Wall;
+            }
+            else if (Motor.GroundingStatus.FoundAnyGround && !Motor.GroundingStatus.IsStableOnGround) //Sliding
             {
                 currentJumpType = JumpType.Wall;
             }
