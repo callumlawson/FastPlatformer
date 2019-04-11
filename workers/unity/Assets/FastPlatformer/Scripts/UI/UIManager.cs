@@ -27,7 +27,7 @@ namespace FastPlatformer.Scripts.UI
             Instance = this;
 
             LocalEvents.GlobalMessageEvent += message => TextField.SetMessage(message);
-            LocalEvents.SetUIMode += newUIMode => { CurrentUIMode = newUIMode; };
+            LocalEvents.UIModeChanged += newUIMode => { CurrentUIMode = newUIMode; };
 
             CurrentUIMode = UIMode.InGame;
         }

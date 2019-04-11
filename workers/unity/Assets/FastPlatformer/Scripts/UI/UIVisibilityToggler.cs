@@ -9,7 +9,7 @@ namespace FastPlatformer.Scripts.UI
 
         private void Awake()
         {
-            LocalEvents.SetUIMode += uiMode =>
+            LocalEvents.UIModeChanged += uiMode =>
             {
                 gameObject.SetActive(uiMode == VisibleUIMode);
             };

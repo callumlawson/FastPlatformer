@@ -36,7 +36,7 @@ namespace Improbable.Gdk.GameObjectCreation
 
         public void OnEntityCreated(SpatialOSEntity entity, EntityGameObjectLinker linker)
         {
-             if (!entity.HasComponent<Metadata.Component>() || !entity.HasComponent<Position.Component>())
+            if (!entity.HasComponent<Metadata.Component>() || !entity.HasComponent<Position.Component>())
             {
                 return;
             }

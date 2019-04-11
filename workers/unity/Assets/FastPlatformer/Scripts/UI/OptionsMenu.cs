@@ -55,14 +55,14 @@ namespace FastPlatformer.Scripts.UI
         public void ShowMenu()
         {
             menuShowing = true;
-            LocalEvents.SetUIMode(UIManager.UIMode.InMenu);
+            LocalEvents.UIModeChanged(UIManager.UIMode.InMenu);
             OptionsPanel.gameObject.SetActive(true);
         }
 
         public void HideMenu()
         {
             menuShowing = false;
-            LocalEvents.SetUIMode(UIManager.UIMode.InGame);
+            LocalEvents.UIModeChanged(UIManager.UIMode.InGame);
             OptionsPanel.gameObject.SetActive(false);
         }
 
