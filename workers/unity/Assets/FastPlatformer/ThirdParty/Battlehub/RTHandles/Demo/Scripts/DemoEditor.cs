@@ -3,6 +3,7 @@ using System.Collections;
 using System.Linq;
 using FastPlatformer.Scripts.UI;
 using FastPlatformer.Scripts.Util;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -59,12 +60,13 @@ namespace Battlehub.RTHandles.Demo
             base.Start();
             Editor.IsOpened = true;
             Editor.IsPlaying = false;
+            LocalEvents.UIModeChanged.Invoke(UIManager.UIMode.InEditMode);
             OnPlaymodeStateChanged();
 
             Editor.PlaymodeStateChanged += OnPlaymodeStateChanged;
             Editor.Selection.SelectionChanged += OnSelectionChanged;
 
-            StartCoroutine(nameof(SwitchMode));
+            // StartCoroutine(nameof(SwitchMode));
         }
 
         private IEnumerator SwitchMode() //TODO: Horrible Hack to avoid fun race condition.
@@ -192,15 +194,15 @@ namespace Battlehub.RTHandles.Demo
 
         private IEnumerator CoPlay()
         {
+            LocalEvents.UIModeChanged.Invoke(UIManager.UIMode.InGame);
             yield return new WaitForEndOfFrame();
             Editor.IsPlaying = true;
-            LocalEvents.SetUIMode.Invoke(UIManager.UIMode.InGame);
         }
 
         private void OnStopClick()
         {
             Editor.IsPlaying = false;
-            LocalEvents.SetUIMode.Invoke(UIManager.UIMode.InEditMode);
+            LocalEvents.UIModeChanged.Invoke(UIManager.UIMode.InEditMode);
         }
 
         private void OnDeleteClick()

@@ -37,14 +37,14 @@ namespace Battlehub.RTHandles
 
         private HashSet<Transform> m_prefabInstanceTransforms;
         private Plane m_dragPlane;
-                
+
         private IRTE m_editor;
         private RuntimeWindow m_scene;
         protected RuntimeWindow Scene
         {
             get { return m_scene; }
         }
-        
+
         protected virtual void Start()
         {
             if(m_prefab == null)
@@ -157,13 +157,11 @@ namespace Battlehub.RTHandles
             m_prefabInstanceTransforms = new HashSet<Transform>(m_prefabInstance.GetComponentsInChildren<Transform>(true));
             m_prefab.SetActive(wasPrefabEnabled);
 
-            ExposeToEditor exposeToEditor = ExposeToEditor(m_prefabInstance); 
+            ExposeToEditor exposeToEditor = ExposeToEditor(m_prefabInstance);
 
             exposeToEditor.SetName(m_prefab.name);
             m_prefabInstance.SetActive(true);
         }
-
-      
 
         public virtual void OnDrag(PointerEventData eventData)
         {

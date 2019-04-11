@@ -38,7 +38,7 @@ namespace Battlehub.RTCommon
         public static event ExposeToEditorEvent _Disabled;
         public static event ExposeToEditorChangeEvent<ExposeToEditor> _ParentChanged;
         public static event ExposeToEditorEvent<Component> _ComponentAdded;
-        
+
         [SerializeField]
         [HideInInspector]
         private Collider[] m_colliders;
@@ -67,8 +67,8 @@ namespace Battlehub.RTCommon
         }
 
         private static readonly Bounds m_none = new Bounds();
-        public ExposeToEditorUnityEvent Selected;
-        public ExposeToEditorUnityEvent Unselected;
+        public ExposeToEditorUnityEvent Selected = new ExposeToEditorUnityEvent();
+        public ExposeToEditorUnityEvent Unselected = new ExposeToEditorUnityEvent();
         public GameObject BoundsObject;
         public BoundsType BoundsType;
         public Bounds CustomBounds;
@@ -205,7 +205,7 @@ namespace Battlehub.RTCommon
 
         private void Start()
         {
-           
+
             if (hideFlags != HideFlags.HideAndDontSave)
             {
                 if (_Started != null)
@@ -359,7 +359,7 @@ namespace Battlehub.RTCommon
                         {
                             return sibling;
                         }
-                    }  
+                    }
                 }
             }
             else
