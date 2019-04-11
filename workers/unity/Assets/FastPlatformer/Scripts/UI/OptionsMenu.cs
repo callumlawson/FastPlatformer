@@ -38,7 +38,8 @@ namespace FastPlatformer.Scripts.UI
 
         public void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
+            if ((UIManager.Instance.CurrentUIMode == UIManager.UIMode.InGame || UIManager.Instance.CurrentUIMode == UIManager.UIMode.InMenu)
+                && Input.GetKeyDown(KeyCode.Escape))
             {
                 if (menuShowing)
                 {
@@ -54,14 +55,14 @@ namespace FastPlatformer.Scripts.UI
         public void ShowMenu()
         {
             menuShowing = true;
-            UIManager.Instance.CurrentUIMode = UIManager.UIMode.InMenu;
+            LocalEvents.SetUIMode(UIManager.UIMode.InMenu);
             OptionsPanel.gameObject.SetActive(true);
         }
 
         public void HideMenu()
         {
             menuShowing = false;
-            UIManager.Instance.CurrentUIMode = UIManager.UIMode.InGame;
+            LocalEvents.SetUIMode(UIManager.UIMode.InGame);
             OptionsPanel.gameObject.SetActive(false);
         }
 

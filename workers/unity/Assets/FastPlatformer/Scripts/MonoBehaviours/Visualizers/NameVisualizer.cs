@@ -14,14 +14,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
         private GameObject namePlate;
         private RectTransform namePlateTransform;
         private UITextField textField;
-        private CapsuleCollider playerCapsule;
 
         private void OnEnable()
         {
             MakeNamePlate();
             nameReader.OnUpdate += update => NameUpdated(update.Name);
             NameUpdated(nameReader.Data.Name);
-            playerCapsule = GetComponent<CapsuleCollider>();
         }
 
         private void MakeNamePlate()
@@ -42,7 +40,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
         private void Update()
         {
             var anchoredPosition = UIManager.Instance.Canvas.WorldToCanvas(gameObject.transform.position + Vector3.up * 1.5f, out bool isVisible);
-            if (isVisible)
+            if (isVisible && UIManager.Instance.CurrentUIMode == UIManager.UIMode.InGame)
             {
                 namePlate.SetActive(true);
                 namePlateTransform.anchoredPosition = anchoredPosition;

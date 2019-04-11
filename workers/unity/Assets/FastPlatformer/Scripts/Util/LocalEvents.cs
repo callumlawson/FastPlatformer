@@ -1,4 +1,5 @@
 using System;
+using FastPlatformer.Scripts.UI;
 
 namespace FastPlatformer.Scripts.Util
 {
@@ -9,5 +10,6 @@ namespace FastPlatformer.Scripts.Util
         public static Action<float> UpdateVolumeEvent = delegate { };
         public static Action<bool> UpdateInvertYEvent = delegate { };
         public static Action<float> UpdateLookSensitivityEvent = delegate { };
+        public static Action<UIManager.UIMode> SetUIMode = delegate { };
     }
 }

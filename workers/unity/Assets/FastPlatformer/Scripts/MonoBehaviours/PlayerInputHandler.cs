@@ -3,6 +3,7 @@ using FastPlatformer.Scripts.UI;
 using FastPlatformer.Scripts.Util;
 using KinematicCharacterController.Examples;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace FastPlatformer.Scripts.MonoBehaviours
 {
@@ -21,7 +22,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         }
 
         public AvatarController Character;
-        public ExampleCharacterCamera CharacterCamera;
+        [FormerlySerializedAs("CharacterCamera")] public ExampleCharacterCamera CharacterCameraController;
 
         private const string LookXInput = "Look X";
         private const string LookYInput = "Look Y";
@@ -36,7 +37,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         private void Start()
         {
             Cursor.lockState = CursorLockMode.Locked;
-            CharacterCamera.SetFollowCharacter(Character);
+            CharacterCameraController.SetFollowCharacter(Character);
             LocalEvents.UpdateInvertYEvent += newInvertValue => invertY = newInvertValue;
         }
 
@@ -78,7 +79,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
                 lookInputVector = Vector3.zero;
             }
 
-            CharacterCamera.UpdateWithInput(Time.deltaTime, lookInputVector);
+            CharacterCameraController.UpdateWithInput(Time.deltaTime, lookInputVector);
         }
 
         private void HandleCharacterInput()
@@ -87,7 +88,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
             {
                 MoveAxisForward = Input.GetAxisRaw(VerticalInput),
                 MoveAxisRight = Input.GetAxisRaw(HorizontalInput),
-                CameraRotation = CharacterCamera.transform.rotation,
+                CameraRotation = CharacterCameraController.transform.rotation,
                 JumpPress = Input.GetButtonDown(JumpInput),
                 JumpHold = Input.GetButton(JumpInput),
                 Dash = Input.GetButtonDown(DashInput),

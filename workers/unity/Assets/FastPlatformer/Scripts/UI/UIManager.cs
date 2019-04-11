@@ -1,5 +1,6 @@
 using FastPlatformer.Scripts.Util;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace FastPlatformer.Scripts.UI
 {
@@ -8,7 +9,8 @@ namespace FastPlatformer.Scripts.UI
         public enum UIMode
         {
             InGame,
-            InMenu
+            InMenu,
+            InEditMode
         }
 
         public static UIManager Instance;
@@ -23,9 +25,11 @@ namespace FastPlatformer.Scripts.UI
         {
             Canvas = GetComponent<Canvas>();
             Instance = this;
-            CurrentUIMode = UIMode.InGame;
 
             LocalEvents.GlobalMessageEvent += message => TextField.SetMessage(message);
+            LocalEvents.SetUIMode += newUIMode => { CurrentUIMode = newUIMode; };
+
+            CurrentUIMode = UIMode.InGame;
         }
     }
 }

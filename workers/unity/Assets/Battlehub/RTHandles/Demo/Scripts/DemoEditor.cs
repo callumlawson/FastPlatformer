@@ -1,6 +1,7 @@
 ﻿using Battlehub.RTCommon;
 using System.Collections;
 using System.Linq;
+using FastPlatformer.Scripts.UI;
 using FastPlatformer.Scripts.Util;
 using UnityEngine;
 using UnityEngine.UI;
@@ -63,11 +64,12 @@ namespace Battlehub.RTHandles.Demo
             Editor.PlaymodeStateChanged += OnPlaymodeStateChanged;
             Editor.Selection.SelectionChanged += OnSelectionChanged;
 
-            Invoke(nameof(SwitchMode), 0.5f);
+            StartCoroutine(nameof(SwitchMode));
         }
 
-        private void SwitchMode() //Hack to avoid fun race condition.
+        private IEnumerator SwitchMode() //TODO: Horrible Hack to avoid fun race condition.
         {
+            yield return new WaitForSeconds(0.5f);
             OnPlayClick();
         }
 
@@ -192,13 +194,13 @@ namespace Battlehub.RTHandles.Demo
         {
             yield return new WaitForEndOfFrame();
             Editor.IsPlaying = true;
-            LocalEvents.SetRuntimeEditMode.Invoke(true);
+            LocalEvents.SetUIMode.Invoke(UIManager.UIMode.InGame);
         }
 
         private void OnStopClick()
         {
             Editor.IsPlaying = false;
-            LocalEvents.SetRuntimeEditMode.Invoke(false);
+            LocalEvents.SetUIMode.Invoke(UIManager.UIMode.InEditMode);
         }
 
         private void OnDeleteClick()
