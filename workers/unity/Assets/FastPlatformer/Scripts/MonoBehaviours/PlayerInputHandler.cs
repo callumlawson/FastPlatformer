@@ -45,11 +45,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         {
             var uiMode = UIManager.Instance.CurrentUIMode;
 
-            if (!Input.GetKey(KeyCode.Tab) && uiMode != UIManager.UIMode.InMenu)
+            if (!Input.GetKey(KeyCode.Tab) && uiMode == UIManager.UIMode.InGame)
             {
                 Cursor.lockState = CursorLockMode.Locked;
             }
-            else if (Input.GetKey(KeyCode.Tab) || uiMode == UIManager.UIMode.InMenu)
+            else if (Input.GetKey(KeyCode.Tab) || uiMode == UIManager.UIMode.InMenu || uiMode == UIManager.UIMode.InEditMode)
             {
                 Cursor.lockState = CursorLockMode.None;
             }

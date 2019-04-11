@@ -23,7 +23,7 @@ namespace Battlehub.RTCommon
         bool GetKeyDown(KeyCode key);
         bool GetKeyUp(KeyCode key);
         bool GetKey(KeyCode key);
-        
+
         Vector3 GetPointerXY(int pointer);
 
         bool GetPointerDown(int button);
@@ -162,9 +162,9 @@ namespace Battlehub.RTCommon
             switch (axis)
             {
                 case InputAxis.X:
-                    return Input.GetAxis("Mouse X");
+                    return Input.GetAxis("Look X");
                 case InputAxis.Y:
-                    return Input.GetAxis("Mouse Y");
+                    return Input.GetAxis("Look Y");
                 case InputAxis.Z:
                     return Input.GetAxis("Mouse ScrollWheel");
                 default:
