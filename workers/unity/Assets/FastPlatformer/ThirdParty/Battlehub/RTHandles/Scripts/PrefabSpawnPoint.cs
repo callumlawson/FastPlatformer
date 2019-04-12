@@ -1,6 +1,7 @@
 ﻿using Battlehub.RTCommon;
 using System.Collections.Generic;
 using System.Linq;
+using FastPlatformer.Scripts.Util;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -186,11 +187,15 @@ namespace Battlehub.RTHandles
         {
             if (m_prefabInstance != null)
             {
-                ExposeToEditor exposeToEditor = m_prefabInstance.GetComponent<ExposeToEditor>();
-                m_editor.Undo.BeginRecord();
-                m_editor.Undo.RegisterCreatedObjects(new[] { exposeToEditor });
-                m_editor.Selection.activeObject = m_prefabInstance;
-                m_editor.Undo.EndRecord();
+                //TODO: Less Yolo
+                Destroy(m_prefabInstance);
+                LocalEvents.SpawnRequestEvent(m_prefabInstance.name, m_prefabInstance.transform.position, m_prefabInstance.transform.rotation);
+
+                // ExposeToEditor exposeToEditor = m_prefabInstance.GetComponent<ExposeToEditor>();
+                // m_editor.Undo.BeginRecord();
+                // m_editor.Undo.RegisterCreatedObjects(new[] { exposeToEditor });
+                // m_editor.Selection.activeObject = m_prefabInstance;
+                // m_editor.Undo.EndRecord();
             }
 
             m_prefabInstance = null;

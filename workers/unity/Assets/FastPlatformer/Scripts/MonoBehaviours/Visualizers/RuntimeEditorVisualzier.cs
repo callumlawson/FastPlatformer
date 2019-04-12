@@ -28,16 +28,15 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         private void OnEnable()
         {
-            UpdateBasedOnUIMode(UIManager.Instance.CurrentUIMode);
             isRegistered = false;
             linkedSpatialOSEntity = GetComponent<LinkedEntityComponent>();
+            UpdateBasedOnUIMode(UIManager.Instance.CurrentUIMode);
         }
 
         private void UpdateBasedOnUIMode(UIManager.UIMode newMode)
         {
             if (newMode == UIManager.UIMode.InEditMode)
             {
-                var m_editor = IOC.Resolve<IRTE>();
                 exposeToEditor = gameObject.GetComponent<ExposeToEditor>();
                 if (exposeToEditor == null)
                 {
@@ -51,21 +50,18 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
                 exposeToEditor = gameObject.GetComponent<ExposeToEditor>();
                 if (exposeToEditor != null)
                 {
+                    exposeToEditor.Selected.RemoveListener(OnSelected);
+                    exposeToEditor.Selected.RemoveListener(OnUnselected);
                     Destroy(exposeToEditor);
                 }
             }
         }
 
-        private void Update()
-        {
-            // thisWorker.WorkerId
-        }
-
         private void OnSelected(ExposeToEditor exposedToEditor)
         {
-            authorityRequestCommandSender.SendAuthorityRequestCommand(linkedSpatialOSEntity.EntityId, new AuthorityRequest
+            authorityRequestCommandSender?.SendAuthorityChangeCommand(linkedSpatialOSEntity.EntityId, new AuthorityRequest
             {
-                WorkerId = world.GetExistingManager<WorkerSystem>().Connection.GetWorkerId()
+                WorkerId = $"workerId:{world.GetExistingManager<WorkerSystem>().Connection.GetWorkerId()}"
             });
         }
 

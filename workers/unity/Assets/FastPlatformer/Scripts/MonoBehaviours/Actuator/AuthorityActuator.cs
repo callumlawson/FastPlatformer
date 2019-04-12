@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Gameschema.Trusted;
 using Improbable;
 using Improbable.Gdk.Subscriptions;
+using Improbable.Transform;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -12,18 +13,21 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
         [UsedImplicitly, Require] private EntityAclWriter aclWriter;
         [UsedImplicitly, Require] private AuthorityManagerCommandReceiver commandReceiver;
 
+        private uint transformComponentId;
+
         public void OnEnable()
         {
-            commandReceiver.OnAuthorityRequestRequestReceived += OnAuthorityRequest;
-            
-            var writeAcl = aclWriter.Data.ComponentWriteAcl;
-            var workerAttrSet = new List<WorkerAttributeSet> { new WorkerAttributeSet(new List<string>{ })};
-            writeAcl[11000] = new WorkerRequirementSet{AttributeSet = new List<WorkerAttributeSet>()};
+            commandReceiver.OnAuthorityChangeRequestReceived += OnAuthorityChangeRequest;
+            transformComponentId = TransformInternal.ComponentId;
         }
 
-        private void OnAuthorityRequest(AuthorityManager.AuthorityRequest.ReceivedRequest obj)
+        private void OnAuthorityChangeRequest(AuthorityManager.AuthorityChange.ReceivedRequest request)
         {
-            throw new System.NotImplementedException();
+            var targetWorkerId = request.Payload.WorkerId;
+            var writeAcl = aclWriter.Data.ComponentWriteAcl;
+            var workerAttrSet = new List<WorkerAttributeSet> { new WorkerAttributeSet(new List<string>{targetWorkerId})};
+            writeAcl[transformComponentId] = new WorkerRequirementSet{AttributeSet = workerAttrSet};
+            aclWriter.SendUpdate(new EntityAcl.Update{ComponentWriteAcl = writeAcl});
         }
     }
 }

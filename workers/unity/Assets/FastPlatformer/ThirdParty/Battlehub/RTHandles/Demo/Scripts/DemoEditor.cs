@@ -3,7 +3,7 @@ using System.Collections;
 using System.Linq;
 using FastPlatformer.Scripts.UI;
 using FastPlatformer.Scripts.Util;
-using UnityEditor;
+using Improbable.Gdk.Subscriptions;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -220,10 +220,19 @@ namespace Battlehub.RTHandles.Demo
                     .Where(o => o != null)
                     .ToArray();
 
-                Editor.Undo.BeginRecord();
-                Editor.Selection.objects = null;
-                Editor.Undo.DestroyObjects(exposed);
-                Editor.Undo.EndRecord();
+                foreach (var exposedGameObject in exposed)
+                {
+                    var linkedEntity = exposedGameObject.GetComponent<LinkedEntityComponent>();
+                    if (linkedEntity)
+                    {
+                        LocalEvents.DestroyRequestEvent.Invoke(linkedEntity.EntityId);
+                    }
+                }
+
+                // Editor.Undo.BeginRecord();
+                // Editor.Selection.objects = null;
+                // Editor.Undo.DestroyObjects(exposed);
+                // Editor.Undo.EndRecord();
             }
         }
 
