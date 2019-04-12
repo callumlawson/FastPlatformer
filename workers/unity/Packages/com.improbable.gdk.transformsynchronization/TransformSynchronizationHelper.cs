@@ -10,8 +10,8 @@ namespace Improbable.Gdk.TransformSynchronization
     {
         public static void AddTransformSynchronizationComponents(EntityTemplate template,
             string writeAccess,
-            Vector3 location = default(Vector3),
-            Vector3 velocity = default(Vector3))
+            Vector3 location = default,
+            Vector3 velocity = default)
         {
             AddTransformSynchronizationComponents(template, writeAccess,
                 Quaternion.identity,
@@ -30,7 +30,8 @@ namespace Improbable.Gdk.TransformSynchronization
                 Location = location.ToImprobableLocation(),
                 Rotation = rotation.ToImprobableQuaternion(),
                 Velocity = velocity.ToImprobableVelocity(),
-                TicksPerSecond = 1f / Time.fixedDeltaTime
+                TicksPerSecond = 1f / Time.fixedDeltaTime,
+                Scale = Vector3.one.ToImprobableScale()
             };
 
             template.AddComponent(transform, writeAccess);

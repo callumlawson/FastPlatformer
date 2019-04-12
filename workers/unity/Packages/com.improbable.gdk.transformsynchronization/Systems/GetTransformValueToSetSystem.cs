@@ -54,7 +54,8 @@ namespace Improbable.Gdk.TransformSynchronization
                     Position = bufferHead.Position + worker.Origin,
                     Orientation = bufferHead.Orientation,
                     Velocity = bufferHead.Velocity,
-                    ApproximateRemoteTick = bufferHead.PhysicsTick
+                    ApproximateRemoteTick = bufferHead.PhysicsTick,
+                    Scale = bufferHead.Scale
                 };
 
                 transformToSetArray[i] = currentTransform;

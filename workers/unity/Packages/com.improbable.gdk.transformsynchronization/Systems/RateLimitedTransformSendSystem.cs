@@ -62,11 +62,13 @@ namespace Improbable.Gdk.TransformSynchronization
                     Rotation = transformToSend.Orientation.ToImprobableQuaternion(),
                     Velocity = transformToSend.Velocity.ToImprobableVelocity(),
                     PhysicsTick = transform.PhysicsTick + ticksSinceLastUpdateArray[i].NumberOfTicks,
-                    TicksPerSecond = tickRate.PhysicsTicksPerRealSecond
+                    TicksPerSecond = tickRate.PhysicsTicksPerRealSecond,
+                    Scale = transformToSend.Scale.ToImprobableScale()
                 };
 
                 if (!(TransformUtils.HasChanged(currentTransform.Location, transform.Location) ||
-                    TransformUtils.HasChanged(currentTransform.Rotation, transform.Rotation)))
+                    TransformUtils.HasChanged(currentTransform.Rotation, transform.Rotation) ||
+                    TransformUtils.HasChanged(currentTransform.Scale, transform.Scale)))
                 {
                     continue;
                 }

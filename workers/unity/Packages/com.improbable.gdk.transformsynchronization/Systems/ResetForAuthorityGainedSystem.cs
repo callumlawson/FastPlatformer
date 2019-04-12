@@ -109,6 +109,7 @@ namespace Improbable.Gdk.TransformSynchronization
                 var unityTransform = unityTransformArray[i];
                 unityTransform.position = t.Location.ToUnityVector3() + worker.Origin;
                 unityTransform.rotation = t.Rotation.ToUnityQuaternion();
+                unityTransform.localScale = t.Scale.ToUnityVector3();
                 bufferedTransformArray[i].Clear();
                 ticksSinceLastUpdateArray[i] = new TicksSinceLastTransformUpdate();
             }

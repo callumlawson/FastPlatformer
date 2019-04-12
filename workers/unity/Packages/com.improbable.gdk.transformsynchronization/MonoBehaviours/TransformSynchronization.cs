@@ -142,7 +142,8 @@ namespace Improbable.Gdk.TransformSynchronization
                 Position = transformComponent.Location.ToUnityVector3() + world.GetExistingManager<WorkerSystem>().Origin,
                 Velocity = transformComponent.Velocity.ToUnityVector3(),
                 Orientation = transformComponent.Rotation.ToUnityQuaternion(),
-                ApproximateRemoteTick = 0
+                ApproximateRemoteTick = 0,
+                Scale = transformComponent.Scale.ToUnityVector3()
             };
 
             var previousTransform = new DeferredUpdateTransform
@@ -165,7 +166,8 @@ namespace Improbable.Gdk.TransformSynchronization
             {
                 Position = transformComponent.Location.ToUnityVector3() - world.GetExistingManager<WorkerSystem>().Origin,
                 Velocity = transformComponent.Velocity.ToUnityVector3(),
-                Orientation = transformComponent.Rotation.ToUnityQuaternion()
+                Orientation = transformComponent.Rotation.ToUnityQuaternion(),
+                Scale = transformComponent.Scale.ToUnityVector3()
             };
 
             var ticksSinceLastUpdate = new TicksSinceLastTransformUpdate

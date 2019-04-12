@@ -75,6 +75,7 @@ namespace Improbable.Gdk.TransformSynchronization
 
                 transform.localPosition = transformToSet.Position;
                 transform.localRotation = transformToSet.Orientation;
+                transform.localScale = transformToSet.Scale;
             }
         }
     }

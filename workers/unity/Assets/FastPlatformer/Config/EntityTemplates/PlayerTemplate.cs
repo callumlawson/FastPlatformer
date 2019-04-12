@@ -7,6 +7,7 @@ using Improbable.Gdk.Core;
 using Improbable.Gdk.PlayerLifecycle;
 using Improbable.Gdk.TransformSynchronization;
 using Playground;
+using UnityEngine;
 using Color = Gameschema.Untrusted.Color;
 using Random = UnityEngine.Random;
 
@@ -22,14 +23,14 @@ namespace FastPlatformer.Config.EntityTemplates
             var template = new EntityTemplate();
             template.AddComponent(new Position.Snapshot(), clientAttribute);
             template.AddComponent(new Metadata.Snapshot { EntityType = "PlatformerCharacter" }, WorkerUtils.UnityGameLogic);
-            TransformSynchronizationHelper.AddTransformSynchronizationComponents(template, clientAttribute);
+            TransformSynchronizationHelper.AddTransformSynchronizationComponents(template, clientAttribute, Vector3.one);
             PlayerLifecycleHelper.AddPlayerLifecycleComponents(template, workerId, clientAttribute, WorkerUtils.UnityGameLogic);
             template.SetReadAccess(WorkerUtils.UnityClient, WorkerUtils.UnityGameLogic, WorkerUtils.AndroidClient, WorkerUtils.iOSClient);
             template.SetComponentWriteAccess(EntityAcl.ComponentId, WorkerUtils.UnityGameLogic);
 
             //Addons - Server
             template.AddComponent(new FromServerEvents.Snapshot(), WorkerUtils.UnityGameLogic);
-            
+
             //Addons - Client
             template.AddComponent(new PlayerInput.Snapshot(), clientAttribute);
             template.AddComponent(new PlayerVisualizerEvents.Snapshot(), clientAttribute);

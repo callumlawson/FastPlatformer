@@ -21,6 +21,12 @@ type Quaternion {
     float z = 4;
 }
 
+type Scale {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
 component TransformInternal {
     id = 11000;
     Location location = 1;
@@ -28,4 +34,5 @@ component TransformInternal {
     Velocity velocity = 3;
     uint32 physics_tick = 4;
     float ticks_per_second = 5;
+    Scale scale = 6;
 }

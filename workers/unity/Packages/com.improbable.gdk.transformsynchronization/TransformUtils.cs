@@ -18,6 +18,11 @@ namespace Improbable.Gdk.TransformSynchronization
             return a.X != b.X || a.Y != b.Y || a.Z != b.Z;
         }
 
+        public static bool HasChanged(Scale a, Scale b)
+        {
+            return a.X != b.X || a.Y != b.Y || a.Z != b.Z;
+        }
+
         // Checking for no change, so exact equality is fine
         public static bool HasChanged(Improbable.Transform.Quaternion a, Improbable.Transform.Quaternion b)
         {
@@ -58,6 +63,16 @@ namespace Improbable.Gdk.TransformSynchronization
         public static Coordinates ToCoordinates(this Location location)
         {
             return new Coordinates(location.X, location.Y, location.Z);
+        }
+
+        public static Vector3 ToUnityVector3(this Scale scale)
+        {
+            return new Vector3(scale.X, scale.Y, scale.Z);
+        }
+
+        public static Scale ToImprobableScale(this Vector3 scale)
+        {
+            return new Scale(scale.x, scale.y, scale.z);
         }
     }
 }

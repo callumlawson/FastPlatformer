@@ -77,7 +77,8 @@ namespace Improbable.Gdk.TransformSynchronization
                 {
                     Position = transform.position,
                     Velocity = Vector3.zero,
-                    Orientation = transform.rotation
+                    Orientation = transform.rotation,
+                    Scale = transform.localScale
                 };
                 transformToSendArray[i] = transformToSend;
             }

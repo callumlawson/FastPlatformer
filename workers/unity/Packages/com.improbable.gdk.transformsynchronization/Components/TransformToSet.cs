@@ -9,5 +9,6 @@ namespace Improbable.Gdk.TransformSynchronization
         public Vector3 Velocity;
         public Quaternion Orientation;
         public uint ApproximateRemoteTick;
+        public Vector3 Scale;
     }
 }

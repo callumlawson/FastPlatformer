@@ -15,6 +15,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
         [UsedImplicitly, Require] private World world;
         [UsedImplicitly, Require] private AuthorityManagerCommandSender authorityRequestCommandSender;
 
+        public bool AddCustomBounds;
+        public Vector3 CustomBoundsExtents = new Vector3(0.5f, 0.5f, 0.5f);
+
         private LinkedEntityComponent linkedSpatialOSEntity;
 
         private ExposeToEditor exposeToEditor;
@@ -41,6 +44,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
                 if (exposeToEditor == null)
                 {
                     exposeToEditor = gameObject.AddComponent<ExposeToEditor>();
+                    if (AddCustomBounds)
+                    {
+                        exposeToEditor.BoundsType = BoundsType.Custom;
+                        exposeToEditor.CustomBounds.extents = CustomBoundsExtents;
+                    }
+
                 }
                 exposeToEditor.Selected.AddListener(OnSelected);
                 exposeToEditor.Unselected.AddListener(OnUnselected);
@@ -55,6 +64,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
                     Destroy(exposeToEditor);
                 }
             }
+        }
+
+        private void OnDestroy()
+        {
+            LocalEvents.UIModeChanged -= UpdateBasedOnUIMode;
         }
 
         private void OnSelected(ExposeToEditor exposedToEditor)

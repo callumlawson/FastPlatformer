@@ -161,6 +161,11 @@ namespace Improbable.Gdk.TransformSynchronization
             {
                 lastTransform.PhysicsTick = update.PhysicsTick.Value;
             }
+
+            if (update.Scale.HasValue)
+            {
+                lastTransform.Scale = update.Scale.Value;
+            }
         }
 
         private static BufferedTransform ToBufferedTransform(TransformInternal.Component transform)
@@ -170,7 +175,8 @@ namespace Improbable.Gdk.TransformSynchronization
                 Position = transform.Location.ToUnityVector3(),
                 Velocity = transform.Velocity.ToUnityVector3(),
                 Orientation = transform.Rotation.ToUnityQuaternion(),
-                PhysicsTick = transform.PhysicsTick
+                PhysicsTick = transform.PhysicsTick,
+                Scale = transform.Scale.ToUnityVector3()
             };
         }
 
@@ -181,7 +187,8 @@ namespace Improbable.Gdk.TransformSynchronization
                 Position = component.Location.ToUnityVector3(),
                 Velocity = component.Velocity.ToUnityVector3(),
                 Orientation = component.Rotation.ToUnityQuaternion(),
-                PhysicsTick = tick
+                PhysicsTick = tick,
+                Scale = component.Scale.ToUnityVector3()
             };
         }
 
@@ -194,7 +201,8 @@ namespace Improbable.Gdk.TransformSynchronization
                 Position = Vector3.Lerp(first.Position, second.Position, t),
                 Velocity = Vector3.Lerp(first.Velocity, second.Velocity, t),
                 Orientation = Quaternion.Slerp(first.Orientation, second.Orientation, t),
-                PhysicsTick = first.PhysicsTick + ticksAfterFirst
+                PhysicsTick = first.PhysicsTick + ticksAfterFirst,
+                Scale = Vector3.Lerp(first.Scale, second.Scale, t)
             };
         }
     }
