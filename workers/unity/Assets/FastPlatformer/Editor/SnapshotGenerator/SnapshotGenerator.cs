@@ -28,14 +28,14 @@ namespace Playground.Editor.SnapshotGenerator
 
             AddPlayerSpawner(snapshot);
 
-            snapshot.AddEntity(StarTemplate.Create(new Vector3(3.13f, 17, -44.36f)));
-            snapshot.AddEntity(StarTemplate.Create(new Vector3(-25.62f, 11.52f, -8.53f)));
-            snapshot.AddEntity(StarTemplate.Create(new Vector3(6.56f, 17.74f, 22.09f)));
-            snapshot.AddEntity(StarTemplate.Create(new Vector3(6.9f, 7f, -0.5f)));
+            // snapshot.AddEntity(StarTemplate.Create(new Vector3(3.13f, 17, -44.36f)));
+            // snapshot.AddEntity(StarTemplate.Create(new Vector3(-25.62f, 11.52f, -8.53f)));
+            // snapshot.AddEntity(StarTemplate.Create(new Vector3(6.56f, 17.74f, 22.09f)));
+            // snapshot.AddEntity(StarTemplate.Create(new Vector3(6.9f, 7f, -0.5f)));
+            //
+            // snapshot.AddEntity(DashPickupTemplate.Create(new Vector3(-3f, 2, 4)));
+            // snapshot.AddEntity(DashPickupTemplate.Create(new Vector3(-3f, 2, 7)));
 
-            snapshot.AddEntity(DashPickupTemplate.Create(new Vector3(-3f, 2, 4)));
-            snapshot.AddEntity(DashPickupTemplate.Create(new Vector3(-3f, 2, 7)));
-            
             snapshot.AddEntity(GameDirectorTemplate.Create(new Vector3(0, 50, 0)));
 
             return snapshot;
