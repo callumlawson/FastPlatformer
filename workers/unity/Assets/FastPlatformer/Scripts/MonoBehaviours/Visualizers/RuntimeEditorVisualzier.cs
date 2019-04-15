@@ -1,9 +1,12 @@
 using Battlehub.RTCommon;
+using Battlehub.RTHandles;
 using FastPlatformer.Scripts.UI;
 using FastPlatformer.Scripts.Util;
 using Gameschema.Trusted;
 using Improbable.Gdk.Core;
 using Improbable.Gdk.Subscriptions;
+using Improbable.Transform;
+using Improbable.Worker.CInterop;
 using JetBrains.Annotations;
 using Unity.Entities;
 using UnityEngine;
@@ -18,9 +21,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
         public bool AddCustomBounds;
         public Vector3 CustomBoundsExtents = new Vector3(0.5f, 0.5f, 0.5f);
 
+        private ComponentUpdateSystem componentUpdateSystem;
         private LinkedEntityComponent linkedSpatialOSEntity;
 
         private ExposeToEditor exposeToEditor;
+        private LockAxes lockAxes;
         private bool isSelected;
         private bool isRegistered;
 
@@ -34,6 +39,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
             isRegistered = false;
             linkedSpatialOSEntity = GetComponent<LinkedEntityComponent>();
             UpdateBasedOnUIMode(UIManager.Instance.CurrentUIMode);
+            componentUpdateSystem = world.GetExistingManager<ComponentUpdateSystem>();
         }
 
         private void UpdateBasedOnUIMode(UIManager.UIMode newMode)
@@ -44,6 +50,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
                 if (exposeToEditor == null)
                 {
                     exposeToEditor = gameObject.AddComponent<ExposeToEditor>();
+                    lockAxes = gameObject.AddComponent<LockAxes>();
                     if (AddCustomBounds)
                     {
                         exposeToEditor.BoundsType = BoundsType.Custom;
@@ -62,8 +69,15 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
                     exposeToEditor.Selected.RemoveListener(OnSelected);
                     exposeToEditor.Selected.RemoveListener(OnUnselected);
                     Destroy(exposeToEditor);
+                    Destroy(lockAxes);
                 }
             }
+        }
+
+        public void Update()
+        {
+            // var authority = componentUpdateSystem.GetAuthority(linkedSpatialOSEntity.EntityId, TransformInternal.ComponentId);
+            // SetLockState(authority == Authority.NotAuthoritative);
         }
 
         private void OnDestroy()
@@ -82,6 +96,21 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
         private void OnUnselected(ExposeToEditor exposedToEditor)
         {
             //Do nothing.
+        }
+
+        private void SetLockState(bool isLocked)
+        {
+            lockAxes.ScaleX = isLocked;
+            lockAxes.ScaleY = isLocked;
+            lockAxes.ScaleZ = isLocked;
+            lockAxes.PositionX = isLocked;
+            lockAxes.PositionY = isLocked;
+            lockAxes.PositionZ = isLocked;
+            lockAxes.RotationX = isLocked;
+            lockAxes.RotationY = isLocked;
+            lockAxes.RotationZ = isLocked;
+            lockAxes.RotationFree = isLocked;
+            lockAxes.RotationScreen = isLocked;
         }
     }
 }

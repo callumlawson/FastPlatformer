@@ -94,6 +94,11 @@ namespace Battlehub.RTHandles.Demo
             {
                 DeleteSelected();
             }
+
+            if (Input.GetKeyDown(KeyCode.Tab) && UIManager.Instance.CurrentUIMode == UIManager.UIMode.InGame)
+            {
+                OnStopClick();
+            }
         }
         protected override void SubscribeUIEvents()
         {

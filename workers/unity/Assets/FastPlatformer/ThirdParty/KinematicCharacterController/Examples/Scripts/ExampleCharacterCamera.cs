@@ -31,7 +31,7 @@ namespace KinematicCharacterController.Examples
         public float MinVerticalAngle = -80f;
         [Range(-90f, 90f)]
         public float MaxVerticalAngle = 80f;
-        [HideInInspector] public float RotationSpeed = 10f; //Set in options menu
+        [HideInInspector] public float RotationSpeed = 170f; //Set in options menu
         public float RotationSharpness = 30f;
 
         [Header("Obstruction")]

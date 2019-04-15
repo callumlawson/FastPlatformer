@@ -56,7 +56,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
             {
                 if (AudioListener)
                 {
-                    AudioListener.volume = volume;
+                    AudioListener.volume = volume * 0.7f;
                 }
             };
         }
