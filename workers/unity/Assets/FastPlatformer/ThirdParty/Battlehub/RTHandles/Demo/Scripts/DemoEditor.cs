@@ -273,6 +273,8 @@ namespace Battlehub.RTHandles.Demo
                     .Where(o => o != null)
                     .ToArray();
 
+                Editor.Selection.Select(null, null);
+
                 foreach (var exposedGameObject in exposed)
                 {
                     var linkedEntity = exposedGameObject.GetComponent<LinkedEntityComponent>();

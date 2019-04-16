@@ -53,7 +53,18 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         public void OnDisable()
         {
-            Destroy(namePlate);
+            if (namePlate != null)
+            {
+                Destroy(namePlate);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (namePlate != null)
+            {
+                Destroy(namePlate);
+            }
         }
     }
 }

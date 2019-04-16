@@ -5,8 +5,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
 {
     public class TeleportActuator : MonoBehaviour
     {
-        public Transform TargetMarker;
-
         private int ownedPlayerLayer;
 
         private void Awake()
@@ -16,16 +14,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
 
         private void OnTriggerEnter(Collider other)
         {
-            if (TargetMarker == null)
-            {
-                Debug.LogWarning("TeleportActuator script is missing a target location", this);
-            }
-
             var collidingObject = other.gameObject;
 
             if (collidingObject.layer == ownedPlayerLayer)
             {
-                collidingObject.GetComponent<KinematicCharacterMotor>().SetPosition(TargetMarker.transform.position);
+                collidingObject.GetComponent<KinematicCharacterMotor>().SetPosition(new Vector3(0, 15, 0));
                 collidingObject.GetComponent<KinematicCharacterMotor>().BaseVelocity = Vector3.zero;
             }
         }

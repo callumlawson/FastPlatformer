@@ -20,6 +20,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
         private const string Star = "Star";
         private const string DashPickup = "DashPickup";
         private const string Platform = "Platform";
+        private const string TeleportZone = "TeleportZone";
 
         public void Awake()
         {
@@ -67,6 +68,9 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
                     break;
                 case Platform:
                     template = PlatformTemplate.Create(position, rotation, scale, workerId);
+                    break;
+                case TeleportZone:
+                    template = TeleportZoneTemplate.Create(position, rotation, scale, workerId);
                     break;
                 default:
                     Terminal.Log("Spawn failed - no registered template with that name.");

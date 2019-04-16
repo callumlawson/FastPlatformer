@@ -82,15 +82,9 @@ namespace Battlehub.RTHandles
 
         protected virtual bool UnitSnappingAction()
         {
-            return
-#if UNITY_EDITOR
-                m_editor.Input.GetKey(KeyCode.LeftShift)
-#else
-                m_editor.Input.GetKey(KeyCode.LeftControl)
-#endif
+            return m_editor.Input.GetKey(KeyCode.LeftControl)
                 || m_editor.Tools.UnitSnapping;
         }
-
     }
 }
 

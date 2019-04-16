@@ -9,7 +9,7 @@ namespace Battlehub.RTHandles
     public class PositionHandle : BaseHandle
     {
         public float GridSize = 1.0f;
-        
+
         private Vector3 m_cursorPosition;
         private Vector3 m_currentPosition;
 
@@ -87,7 +87,7 @@ namespace Battlehub.RTHandles
         protected override void AwakeOverride()
         {
             base.AwakeOverride();
-            
+
         }
 
         protected override void OnEnableOverride()
@@ -116,13 +116,13 @@ namespace Battlehub.RTHandles
         protected override void OnDisableOverride()
         {
             base.OnDisableOverride();
-        
+
             if(Window != null && Editor != null)
             {
                 Editor.Tools.IsSnapping = false;
                 Editor.Tools.IsSnappingChanged -= OnSnappingChanged;
             }
-            
+
             m_targetLayers = null;
             m_snapTargets = null;
             m_snapTargetsBounds = null;
@@ -156,7 +156,7 @@ namespace Battlehub.RTHandles
             {
                 SelectedAxis = Hit();
             }
-        
+
             if (IsInVertexSnappingMode || Editor.Tools.IsSnapping)
             {
                 Vector2 mousePosition;
@@ -285,7 +285,7 @@ namespace Battlehub.RTHandles
                                                     closestObject = exposedToEditor.gameObject;
                                                     minDistance = distance;
                                                 }
-                                            }   
+                                            }
                                         }
                                     }
                                 }
@@ -337,7 +337,7 @@ namespace Battlehub.RTHandles
                         }
                     }
                 }
-            }     
+            }
         }
 
         private void GetMinPoint(Transform meshTransform, ref float minDistance, ref Vector3 minPoint, ref bool minPointFound, Mesh mesh)
@@ -405,7 +405,7 @@ namespace Battlehub.RTHandles
         protected override void OnDrop()
         {
             base.OnDrop();
-       
+
             if (SnapToGround)
             {
                 SnapActiveTargetsToGround(ActiveTargets, Window.Camera, true);
@@ -497,7 +497,7 @@ namespace Battlehub.RTHandles
             HashSet<Transform> snapTargetsHS = new HashSet<Transform>();
             List<Transform> snapTargets = new List<Transform>();
             List<Bounds> snapTargetBounds = new List<Bounds>();
-            
+
             if (Target != null)
             {
                 for (int i = 0; i < RealTargets.Length; ++i)
@@ -603,7 +603,7 @@ namespace Battlehub.RTHandles
                            sp.y - pixelSize <= mp.y && mp.y <= sp.y + pixelSize;
                 }
             }
-            
+
             return false;
         }
 
@@ -639,7 +639,7 @@ namespace Battlehub.RTHandles
             {
                 DragPlane = GetDragPlane(matrix, axis);
             }
-           
+
             return result;
         }
 
@@ -708,12 +708,12 @@ namespace Battlehub.RTHandles
                 }
             }
 
-            return  RuntimeHandleAxis.None;
+            return RuntimeHandleAxis.None;
         }
 
         protected override bool OnBeginDrag()
         {
-            SelectedAxis = Hit();           
+            SelectedAxis = Hit();
             m_currentPosition = HandlePosition;
             m_cursorPosition = HandlePosition;
 
@@ -815,7 +815,7 @@ namespace Battlehub.RTHandles
                 if (EffectiveGridUnitSize == 0.0)
                 {
                     offset = m_matrix.MultiplyVector(offset).normalized * mag;
-                    transform.position += offset;   
+                    transform.position += offset;
                 }
                 else
                 {
@@ -825,7 +825,7 @@ namespace Battlehub.RTHandles
                     Vector3 gridOffset = Vector3.zero;
                     if (Mathf.Abs(toCurrentPosition.x * 1.5f) >= EffectiveGridUnitSize)
                     {
-                        gridOffset.x = EffectiveGridUnitSize * Mathf.Sign(toCurrentPosition.x); 
+                        gridOffset.x = EffectiveGridUnitSize * Mathf.Sign(toCurrentPosition.x);
                     }
 
                     if (Mathf.Abs(toCurrentPosition.y * 1.5f) >= EffectiveGridUnitSize)
@@ -838,7 +838,7 @@ namespace Battlehub.RTHandles
                     {
                         gridOffset.z = EffectiveGridUnitSize * Mathf.Sign(toCurrentPosition.z);
                     }
-                  
+
                     m_currentPosition += gridOffset;
                     HandlePosition = m_currentPosition;
                 }
