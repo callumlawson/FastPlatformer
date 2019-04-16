@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using FastPlatformer.Scripts.Util;
+using Improbable.Gdk.GameObjectCreation;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -109,6 +110,19 @@ namespace Battlehub.RTHandles
             return false;
         }
 
+        private bool GetAimPoint(Camera camera, Pointer pointer, out Vector3 point)
+        {
+            var ray = pointer.Ray;
+            var hits = Physics.RaycastAll(ray).Where(h => !m_prefabInstanceTransforms.Contains(h.transform)).OrderBy(h => h.distance);
+            if (hits.Any())
+            {
+                point = hits.First().point;
+                return true;
+            }
+            point = Vector3.zero;
+            return false;
+        }
+
         protected virtual GameObject InstantiatePrefab(GameObject prefab, Vector3 point, Quaternion rotation)
         {
             GameObject instance = Instantiate(prefab, point, rotation);
@@ -166,19 +180,16 @@ namespace Battlehub.RTHandles
 
         public virtual void OnDrag(PointerEventData eventData)
         {
-            Vector3 point;
-            Quaternion rotation;
-            if (GetPointOnDragPlane(m_scene.Camera, m_scene.Pointer, out point, out rotation))
+            if (GetAimPoint(m_scene.Camera, m_scene.Pointer, out var point))
             {
                 if (m_prefabInstance != null)
                 {
                     m_prefabInstance.transform.position = point;
-                    m_prefabInstance.transform.rotation = rotation;
-                    RaycastHit hit = Physics.RaycastAll(m_scene.Pointer).Where(h => !m_prefabInstanceTransforms.Contains(h.transform)).FirstOrDefault();
-                    if (hit.transform != null)
-                    {
-                        m_prefabInstance.transform.position = hit.point;
-                    }
+                    // RaycastHit hit = Physics.RaycastAll(m_scene.Pointer).Where(h => !m_prefabInstanceTransforms.Contains(h.transform)).FirstOrDefault();
+                    // if (hit.transform != null)
+                    // {
+                    //     m_prefabInstance.transform.position = hit.point;
+                    // }
                 }
             }
         }
