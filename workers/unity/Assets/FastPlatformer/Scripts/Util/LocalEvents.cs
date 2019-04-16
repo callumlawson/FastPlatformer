@@ -1,7 +1,9 @@
 using System;
 using FastPlatformer.Scripts.UI;
 using Improbable.Gdk.Core;
+using Improbable.Transform;
 using UnityEngine;
+using Quaternion = UnityEngine.Quaternion;
 
 namespace FastPlatformer.Scripts.Util
 {
@@ -14,6 +16,7 @@ namespace FastPlatformer.Scripts.Util
         public static Action<float> UpdateLookSensitivityEvent = delegate { };
         public static Action<UIManager.UIMode> UIModeChanged = delegate { };
         public static Action<string, Vector3, Quaternion> SpawnRequestEvent = delegate { };
+        public static Action<string, string, TransformInternal.Snapshot> SpawnRequestFromSnapshotEvent = delegate { };
         public static Action<EntityId> DestroyRequestEvent = delegate { };
     }
 }

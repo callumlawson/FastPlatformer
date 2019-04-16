@@ -3,7 +3,11 @@ using System.Collections;
 using System.Linq;
 using FastPlatformer.Scripts.UI;
 using FastPlatformer.Scripts.Util;
+using Improbable;
+using Improbable.Gdk.Core;
+using Improbable.Gdk.GameObjectCreation;
 using Improbable.Gdk.Subscriptions;
+using Improbable.Transform;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,6 +21,9 @@ namespace Battlehub.RTHandles.Demo
 
         [SerializeField]
         private Button m_deleteButton = null;
+
+        [SerializeField]
+        private Button m_duplicateButton = null;
 
         [SerializeField]
         private Button m_play = null;
@@ -99,7 +106,30 @@ namespace Battlehub.RTHandles.Demo
             {
                 OnStopClick();
             }
+
+            if (Editor.Input.GetKeyDown(KeyCode.D))
+            {
+                OnDuplicateClick();
+            }
         }
+
+        public void OnDuplicateClick()
+        {
+            if (Editor.Selection.Length > 0)
+            {
+                foreach (GameObject entity in Editor.Selection)
+                {
+                    var linkedEntityRef = entity.gameObject.GetComponent<LinkedEntityComponent>();
+                    var entityId = linkedEntityRef.EntityId;
+                    var entityComponents = linkedEntityRef.World.GetExistingManager<ComponentUpdateSystem>();
+                    var workerId = $"workerId:{linkedEntityRef.Worker.Connection.GetWorkerId()}";
+                    var name = entityComponents.GetComponent<Metadata.Snapshot>(entityId).EntityType;
+                    var transform = entityComponents.GetComponent<TransformInternal.Snapshot>(entityId);
+                    LocalEvents.SpawnRequestFromSnapshotEvent(workerId, name, transform);
+                }
+            }
+        }
+
         protected override void SubscribeUIEvents()
         {
             base.SubscribeUIEvents();
@@ -120,6 +150,10 @@ namespace Battlehub.RTHandles.Demo
             {
                 m_deleteButton.onClick.AddListener(OnDeleteClick);
             }
+            if(m_duplicateButton != null)
+            {
+                m_duplicateButton.onClick.AddListener(OnDuplicateClick);
+            }
         }
 
         protected override void UnsubscribeUIEvents()
@@ -138,9 +172,13 @@ namespace Battlehub.RTHandles.Demo
             {
                 m_focusButton.onClick.RemoveListener(OnFocusClick);
             }
-            if(m_deleteButton != null)
+            if (m_deleteButton != null)
             {
                 m_deleteButton.onClick.RemoveListener(OnDeleteClick);
+            }
+            if (m_duplicateButton != null)
+            {
+                m_duplicateButton.onClick.RemoveListener(OnDuplicateClick);
             }
         }
 
@@ -154,19 +192,19 @@ namespace Battlehub.RTHandles.Demo
             {
                 m_ui.SetActive(!Editor.IsPlaying);
             }
-            if(m_prefabSpawnPoints != null)
+            if (m_prefabSpawnPoints != null)
             {
                 m_prefabSpawnPoints.SetActive(!Editor.IsPlaying);
             }
-            if(m_stop != null)
+            if (m_stop != null)
             {
                 m_stop.gameObject.SetActive(Editor.IsPlaying);
             }
-            if(m_editorCamera != null)
+            if (m_editorCamera != null)
             {
                 m_editorCamera.SetActive(!Editor.IsPlaying);
             }
-            if(m_gameCamera != null)
+            if (m_gameCamera != null)
             {
                 m_gameCamera.SetActive(Editor.IsPlaying);
             }
@@ -174,20 +212,30 @@ namespace Battlehub.RTHandles.Demo
 
         private void OnSelectionChanged(Object[] unselectedObjects)
         {
-            if(m_focusButton != null)
+            if (m_focusButton != null)
             {
                 m_focusButton.interactable = Editor.Selection.Length > 0;
             }
 
-            if(m_deleteButton != null)
+            if (m_deleteButton != null)
             {
                 m_deleteButton.interactable = Editor.Selection.Length > 0;
+            }
+
+            if (m_deleteButton != null)
+            {
+                m_deleteButton.interactable = Editor.Selection.Length > 0;
+            }
+
+            if (m_duplicateButton != null)
+            {
+                m_duplicateButton.interactable = Editor.Selection.Length > 0;
             }
         }
 
         private void OnFocusClick()
         {
-            IScenePivot scenePivot = Editor.GetWindow(RuntimeWindowType.Scene).IOCContainer.Resolve<IScenePivot>();
+            var scenePivot = Editor.GetWindow(RuntimeWindowType.Scene).IOCContainer.Resolve<IScenePivot>();
             scenePivot.Focus();
         }
 

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 using Battlehub.RTCommon;
 namespace Battlehub.RTHandles
@@ -29,7 +30,7 @@ namespace Battlehub.RTHandles
         protected override void AwakeOverride()
         {
             base.AwakeOverride();
-        
+
             m_scale = Vector3.one;
             m_roundedScale = m_scale;
         }
@@ -91,7 +92,7 @@ namespace Battlehub.RTHandles
                     return RuntimeHandleAxis.Z;
                 }
             }
-            
+
             return RuntimeHandleAxis.None;
         }
 
@@ -222,11 +223,13 @@ namespace Battlehub.RTHandles
 
                 for (int i = 0; i < m_refScales.Length; ++i)
                 {
-                    Quaternion rotation =  Editor.Tools.PivotRotation == RuntimePivotRotation.Global ? Targets[i].rotation : Quaternion.identity;
-                    
-                    ActiveTargets[i].localScale = Quaternion.Inverse(rotation) * Vector3.Scale(m_refScales[i], m_roundedScale);
+                    var rotation = Editor.Tools.PivotRotation == RuntimePivotRotation.Global ? Targets[i].rotation : Quaternion.identity;
+
+                    var targetScale = Quaternion.Inverse(rotation) * Vector3.Scale(m_refScales[i], m_roundedScale);
+                    targetScale = ClampScale(targetScale, 0.5f, 20);
+                    ActiveTargets[i].localScale = targetScale;
                 }
-                
+
                 m_prevPoint = point;
             }
         }
@@ -237,10 +240,20 @@ namespace Battlehub.RTHandles
 
             m_scale = Vector3.one;
             m_roundedScale = m_scale;
+
             if(Model != null)
             {
                 Model.SetScale(m_roundedScale);
             }
+        }
+
+        private Vector3 ClampScale(Vector3 scale, float min, float max)
+        {
+            scale.x = Mathf.Clamp(scale.x, min, max);
+            scale.y = Mathf.Clamp(scale.y, min, max);
+            scale.z = Mathf.Clamp(scale.z, min, max);
+
+            return scale;
         }
 
         protected override void DrawOverride(Camera camera)

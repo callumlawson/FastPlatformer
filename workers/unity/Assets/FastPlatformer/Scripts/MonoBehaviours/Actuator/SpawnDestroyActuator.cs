@@ -4,8 +4,12 @@ using FastPlatformer.Scripts.Util;
 using Improbable.Gdk.Core;
 using Improbable.Gdk.Core.Commands;
 using Improbable.Gdk.Subscriptions;
+using Improbable.Gdk.TransformSynchronization;
+using Improbable.Transform;
 using JetBrains.Annotations;
+using Playground;
 using UnityEngine;
+using Quaternion = UnityEngine.Quaternion;
 
 namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
 {
@@ -23,6 +27,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
             Terminal.Autocomplete.Register("spawn");
             Terminal.Autocomplete.Register(Star);
             LocalEvents.SpawnRequestEvent += SpawnTemplate;
+            LocalEvents.SpawnRequestFromSnapshotEvent += SpawnTemplate;
             LocalEvents.DestroyRequestEvent += DestroyEntity;
         }
 
@@ -47,7 +52,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
             worldCommandSender.SendDeleteEntityCommand(new WorldCommands.DeleteEntity.Request(entityId));
         }
 
-        private void SpawnTemplate(string templateName, Vector3 position, Quaternion rotation)
+        private void SpawnTemplate(string templateName, Vector3 position, Quaternion rotation, Vector3 scale, string workerId)
         {
             EntityTemplate template = null;
 
@@ -55,13 +60,13 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
             switch (templateName)
             {
                 case Star:
-                    template = StarTemplate.Create(position);
+                    template = StarTemplate.Create(position, rotation, scale, workerId);
                     break;
                 case DashPickup:
-                    template = DashPickupTemplate.Create(position);
+                    template = DashPickupTemplate.Create(position, rotation, scale, workerId);
                     break;
                 case Platform:
-                    template = PlatformTemplate.Create(position);
+                    template = PlatformTemplate.Create(position, rotation, scale, workerId);
                     break;
                 default:
                     Terminal.Log("Spawn failed - no registered template with that name.");
@@ -69,6 +74,18 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
             }
 
             worldCommandSender.SendCreateEntityCommand(new WorldCommands.CreateEntity.Request(template));
+        }
+
+        private void SpawnTemplate(string templateName, Vector3 position, Quaternion rotation)
+        {
+           SpawnTemplate(templateName, position, rotation, Vector3.one, WorkerUtils.UnityGameLogic);
+        }
+
+        private void SpawnTemplate(string workerId, string templateName, TransformInternal.Snapshot transformSnapshot)
+        {
+            SpawnTemplate(templateName, transformSnapshot.Location.ToUnityVector3(),
+                transformSnapshot.Rotation.ToUnityQuaternion(),
+                transformSnapshot.Scale.ToUnityVector3(), workerId);
         }
     }
 }

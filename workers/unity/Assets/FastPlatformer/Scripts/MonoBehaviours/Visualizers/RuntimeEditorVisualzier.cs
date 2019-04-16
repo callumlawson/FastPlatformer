@@ -27,7 +27,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
         private ExposeToEditor exposeToEditor;
         private LockAxes lockAxes;
         private bool isSelected;
-        private bool isRegistered;
+        private bool currentLockState;
 
         private void Awake()
         {
@@ -36,7 +36,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         private void OnEnable()
         {
-            isRegistered = false;
             linkedSpatialOSEntity = GetComponent<LinkedEntityComponent>();
             UpdateBasedOnUIMode(UIManager.Instance.CurrentUIMode);
             componentUpdateSystem = world.GetExistingManager<ComponentUpdateSystem>();
@@ -76,8 +75,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         public void Update()
         {
-            // var authority = componentUpdateSystem.GetAuthority(linkedSpatialOSEntity.EntityId, TransformInternal.ComponentId);
-            // SetLockState(authority == Authority.NotAuthoritative);
+            if (isSelected)
+            {
+                var authority = componentUpdateSystem.GetAuthority(linkedSpatialOSEntity.EntityId, TransformInternal.ComponentId);
+                SetLockState(authority == Authority.NotAuthoritative);
+            }
         }
 
         private void OnDestroy()
@@ -87,6 +89,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         private void OnSelected(ExposeToEditor exposedToEditor)
         {
+            isSelected = true;
             authorityRequestCommandSender?.SendAuthorityChangeCommand(linkedSpatialOSEntity.EntityId, new AuthorityRequest
             {
                 WorkerId = $"workerId:{world.GetExistingManager<WorkerSystem>().Connection.GetWorkerId()}"
@@ -95,22 +98,27 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         private void OnUnselected(ExposeToEditor exposedToEditor)
         {
-            //Do nothing.
+            isSelected = false;
         }
 
         private void SetLockState(bool isLocked)
         {
-            lockAxes.ScaleX = isLocked;
-            lockAxes.ScaleY = isLocked;
-            lockAxes.ScaleZ = isLocked;
-            lockAxes.PositionX = isLocked;
-            lockAxes.PositionY = isLocked;
-            lockAxes.PositionZ = isLocked;
-            lockAxes.RotationX = isLocked;
-            lockAxes.RotationY = isLocked;
-            lockAxes.RotationZ = isLocked;
-            lockAxes.RotationFree = isLocked;
-            lockAxes.RotationScreen = isLocked;
+            if (isLocked != currentLockState)
+            {
+                lockAxes.ScaleX = isLocked;
+                lockAxes.ScaleY = isLocked;
+                lockAxes.ScaleZ = isLocked;
+                lockAxes.PositionX = isLocked;
+                lockAxes.PositionY = isLocked;
+                lockAxes.PositionZ = isLocked;
+                lockAxes.RotationX = isLocked;
+                lockAxes.RotationY = isLocked;
+                lockAxes.RotationZ = isLocked;
+                lockAxes.RotationFree = isLocked;
+                lockAxes.RotationScreen = isLocked;
+                GetComponent<SelectionGizmo>().Appearance.ApplySettings();
+                currentLockState = isLocked;
+            }
         }
     }
 }

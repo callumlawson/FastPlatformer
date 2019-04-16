@@ -4,8 +4,10 @@ using System.IO;
 using Improbable.Gdk.Core;
 using Improbable.Gdk.Subscriptions;
 using Improbable.PlayerLifecycle;
+using Improbable.Transform;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using Quaternion = UnityEngine.Quaternion;
 
 namespace Improbable.Gdk.GameObjectCreation
 {
@@ -72,10 +74,14 @@ namespace Improbable.Gdk.GameObjectCreation
                 return;
             }
 
-            var spatialOSPosition = entity.GetComponent<Position.Component>();
-            var position = new Vector3((float)spatialOSPosition.Coords.X, (float)spatialOSPosition.Coords.Y, (float)spatialOSPosition.Coords.Z)
+            // var spatialOSPosition = entity.GetComponent<Position.Component>();
+            var spatialOSTransform = entity.GetComponent<TransformInternal.Component>();
+            var position = new Vector3(spatialOSTransform.Location.X, spatialOSTransform.Location.Y, spatialOSTransform.Location.Z)
                 + workerOrigin;
-            var gameObject = Object.Instantiate(prefab, position, Quaternion.identity);
+            var rotation = new Quaternion(spatialOSTransform.Rotation.X, spatialOSTransform.Rotation.Y, spatialOSTransform.Rotation.Z,
+                spatialOSTransform.Rotation.W);
+            var gameObject = Object.Instantiate(prefab, position, rotation);
+            gameObject.transform.localScale = new Vector3(spatialOSTransform.Scale.X, spatialOSTransform.Scale.Y, spatialOSTransform.Scale.Z);
             gameObject.name = isClientOwned ?
                 $"{prefab.name}(SpatialOS: {entity.SpatialOSEntityId}, Worker: {workerType} - Client Owned)" :
                 $"{prefab.name}(SpatialOS: {entity.SpatialOSEntityId}, Worker: {workerType})";

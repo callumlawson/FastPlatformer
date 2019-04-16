@@ -11,20 +11,11 @@ namespace FastPlatformer.Config.EntityTemplates
 {
     public static class DashPickupTemplate
     {
-        public static EntityTemplate Create(Vector3 position)
+        public static EntityTemplate Create(Vector3 position, Quaternion rotation, Vector3 scale, string transformAuthWorker)
         {
-            //Core
-            var template = new EntityTemplate();
-            template.AddComponent(new Position.Snapshot(new Coordinates(position.x, position.y, position.z)), WorkerUtils.UnityGameLogic);
-            template.AddComponent(new Metadata.Snapshot { EntityType = "DashPickup" }, WorkerUtils.UnityGameLogic);
-            template.AddComponent(new Persistence.Snapshot(), WorkerUtils.UnityGameLogic);
-            TransformSynchronizationHelper.AddTransformSynchronizationComponents(template, WorkerUtils.UnityGameLogic, position);
-            template.SetReadAccess(WorkerUtils.UnityClient, WorkerUtils.UnityGameLogic, WorkerUtils.AndroidClient, WorkerUtils.iOSClient);
-            template.SetComponentWriteAccess(EntityAcl.ComponentId, WorkerUtils.UnityGameLogic);
+            var template = BaseTemplates.Standard("DashPickup", position, rotation, scale, transformAuthWorker);
 
-            //Addons - server
             template.AddComponent(new Activeness.Snapshot { IsActive = true }, WorkerUtils.UnityGameLogic);
-            template.AddComponent(new AuthorityManager.Snapshot(), WorkerUtils.UnityGameLogic);
 
             return template;
         }

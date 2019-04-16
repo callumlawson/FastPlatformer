@@ -11,21 +11,10 @@ namespace FastPlatformer.Config.EntityTemplates
 {
     public static class StarTemplate
     {
-        public static EntityTemplate Create(Vector3 position)
+        public static EntityTemplate Create(Vector3 position, Quaternion rotation, Vector3 scale, string transformAuthWorker)
         {
-            //Core
-            var template = new EntityTemplate();
-            template.AddComponent(new Position.Snapshot(new Coordinates(position.x, position.y, position.z)), WorkerUtils.UnityGameLogic);
-            template.AddComponent(new Metadata.Snapshot { EntityType = "Star" }, WorkerUtils.UnityGameLogic);
-            template.AddComponent(new Persistence.Snapshot(), WorkerUtils.UnityGameLogic);
-            TransformSynchronizationHelper.AddTransformSynchronizationComponents(template, WorkerUtils.UnityGameLogic, position);
-            template.SetReadAccess(WorkerUtils.UnityClient, WorkerUtils.UnityGameLogic, WorkerUtils.AndroidClient, WorkerUtils.iOSClient);
+            var template = BaseTemplates.Standard("Star", position, rotation, scale, transformAuthWorker);
 
-            //Auth management
-            template.SetComponentWriteAccess(EntityAcl.ComponentId, WorkerUtils.UnityGameLogic);
-            template.AddComponent(new AuthorityManager.Snapshot(), WorkerUtils.UnityGameLogic);
-
-            //Addons - server
             template.AddComponent(new GlobalMessage.Snapshot(), WorkerUtils.UnityGameLogic);
             template.AddComponent(new Color.Snapshot(), WorkerUtils.UnityGameLogic);
             template.AddComponent(new Activeness.Snapshot { IsActive = true }, WorkerUtils.UnityGameLogic);
