@@ -1,6 +1,7 @@
 using FastPlatformer.Scripts.MonoBehaviours.Actuator;
 using FastPlatformer.Scripts.UI;
 using FastPlatformer.Scripts.Util;
+using FastPlatformer.ThirdParty.KinematicCharacterController.Examples.Scripts;
 using KinematicCharacterController.Examples;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -22,7 +23,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours
         }
 
         public AvatarController Character;
-        [FormerlySerializedAs("CharacterCamera")] public ExampleCharacterCamera CharacterCameraController;
+        [FormerlySerializedAs("CharacterCamera")] public CharacterCamera CharacterCameraController;
 
         private const string LookXInput = "Look X";
         private const string LookYInput = "Look Y";

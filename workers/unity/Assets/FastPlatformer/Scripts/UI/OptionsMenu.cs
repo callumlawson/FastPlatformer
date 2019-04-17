@@ -23,9 +23,8 @@ namespace FastPlatformer.Scripts.UI
 
             SensitivitySlider.minValue = 100;
             SensitivitySlider.maxValue = 500;
-            var startSensitivity = 170;
-            SensitivitySlider.value = startSensitivity;
-            LocalEvents.UpdateLookSensitivityEvent.Invoke(startSensitivity);
+            SensitivitySlider.value = 170;
+
 
             SoundToggle.isOn = true;
 
@@ -34,6 +33,11 @@ namespace FastPlatformer.Scripts.UI
             InvertYToggle.onValueChanged.AddListener(OnInvertYUpdated);
             SoundToggle.onValueChanged.AddListener(OnSoundOnUpdated);
             SensitivitySlider.onValueChanged.AddListener(OnSensitivityUpdated);
+        }
+
+        private void Start()
+        {
+            LocalEvents.UpdateLookSensitivityEvent.Invoke(SensitivitySlider.value);
         }
 
         public void Update()

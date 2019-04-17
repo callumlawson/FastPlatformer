@@ -17,16 +17,11 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
     {
         [UsedImplicitly, Require] private WorldCommandSender worldCommandSender;
 
-        private const string Star = "Star";
-        private const string DashPickup = "DashPickup";
-        private const string Platform = "Platform";
-        private const string TeleportZone = "TeleportZone";
-
         public void Awake()
         {
             Terminal.Shell.AddCommand("spawn", CommandSpawnTemplate, 1, 1, "Spawns a template in front of the player");
             Terminal.Autocomplete.Register("spawn");
-            Terminal.Autocomplete.Register(Star);
+            Terminal.Autocomplete.Register(Templates.Star);
             LocalEvents.SpawnRequestEvent += SpawnTemplate;
             LocalEvents.SpawnRequestFromSnapshotEvent += SpawnTemplate;
             LocalEvents.DestroyRequestEvent += DestroyEntity;
@@ -55,28 +50,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Actuator
 
         private void SpawnTemplate(string templateName, Vector3 position, Quaternion rotation, Vector3 scale, string workerId)
         {
-            EntityTemplate template = null;
-
-            //TODO: Extract
-            switch (templateName)
-            {
-                case Star:
-                    template = StarTemplate.Create(position, rotation, scale, workerId);
-                    break;
-                case DashPickup:
-                    template = DashPickupTemplate.Create(position, rotation, scale, workerId);
-                    break;
-                case Platform:
-                    template = PlatformTemplate.Create(position, rotation, scale, workerId);
-                    break;
-                case TeleportZone:
-                    template = TeleportZoneTemplate.Create(position, rotation, scale, workerId);
-                    break;
-                default:
-                    Terminal.Log("Spawn failed - no registered template with that name.");
-                    break;
-            }
-
+            EntityTemplate template = Templates.GetTemplate(templateName, position, rotation, scale, workerId);
             worldCommandSender.SendCreateEntityCommand(new WorldCommands.CreateEntity.Request(template));
         }
 

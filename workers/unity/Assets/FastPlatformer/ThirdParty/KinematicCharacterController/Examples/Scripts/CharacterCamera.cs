@@ -1,14 +1,11 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using FastPlatformer.Scripts.MonoBehaviours;
 using FastPlatformer.Scripts.MonoBehaviours.Actuator;
 using FastPlatformer.Scripts.Util;
 using UnityEngine;
 
-namespace KinematicCharacterController.Examples
+namespace FastPlatformer.ThirdParty.KinematicCharacterController.Examples.Scripts
 {
-    public class ExampleCharacterCamera : MonoBehaviour
+    public class CharacterCamera : MonoBehaviour
     {
         [Header("Framing")]
         public Camera Camera;
@@ -22,17 +19,18 @@ namespace KinematicCharacterController.Examples
         public float DistanceMovementSpeed = 10f;
         public float DistanceMovementSharpness = 10f;
 
-        [Header("Rotation")]
+        [Header("Orientation")]
+
+        public float RotationVelocity = 170f;
+
         public bool InvertX = false;
         public bool InvertY = false;
-        [Range(-90f, 90f)]
-        public float DefaultVerticalAngle = 20f;
-        [Range(-90f, 90f)]
-        public float MinVerticalAngle = -80f;
-        [Range(-90f, 90f)]
-        public float MaxVerticalAngle = 80f;
-        [HideInInspector] public float RotationSpeed = 170f; //Set in options menu
-        public float RotationSharpness = 30f;
+        [Range(-90f, 90f)] public float DefaultVerticalAngle = 20f;
+        [Range(-90f, 90f)] public float MinVerticalAngle = -80f;
+        [Range(-90f, 90f)] public float MaxVerticalAngle = 80f;
+        public float RotationSharpness = 100000f;
+
+
 
         [Header("Obstruction")]
         public float ObstructionCheckRadius = 0.5f;
@@ -73,7 +71,10 @@ namespace KinematicCharacterController.Examples
 
             PlanarDirection = Vector3.forward;
 
-            LocalEvents.UpdateLookSensitivityEvent += newSensitivity => RotationSpeed = newSensitivity;
+            LocalEvents.UpdateLookSensitivityEvent += newSensitivity =>
+            {
+                RotationVelocity = newSensitivity;
+            };
         }
 
         // Set the transform that the camera will orbit around
@@ -104,10 +105,10 @@ namespace KinematicCharacterController.Examples
                 rotationInput = rotationInput * deltaTime;
 
                 // Process rotation input
-                Quaternion rotationFromInput = Quaternion.Euler(FollowCharacter.CameraFollowPoint.up * (rotationInput.x * RotationSpeed));
+                Quaternion rotationFromInput = Quaternion.Euler(FollowCharacter.CameraFollowPoint.up * (rotationInput.x * RotationVelocity));
                 PlanarDirection = rotationFromInput * PlanarDirection;
                 PlanarDirection = Vector3.Cross(FollowCharacter.CameraFollowPoint.up, Vector3.Cross(PlanarDirection, FollowCharacter.CameraFollowPoint.up));
-                _targetVerticalAngle -= (rotationInput.y * RotationSpeed);
+                _targetVerticalAngle -= (rotationInput.y * RotationVelocity);
                 _targetVerticalAngle = Mathf.Clamp(_targetVerticalAngle, MinVerticalAngle, MaxVerticalAngle);
 
                 // Process distance input

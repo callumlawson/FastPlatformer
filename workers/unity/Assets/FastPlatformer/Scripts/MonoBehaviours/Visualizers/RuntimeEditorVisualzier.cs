@@ -103,7 +103,7 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         private void SetLockState(bool isLocked)
         {
-            if (isLocked != currentLockState)
+            if (isLocked != currentLockState && lockAxes != null)
             {
                 lockAxes.ScaleX = isLocked;
                 lockAxes.ScaleY = isLocked;
