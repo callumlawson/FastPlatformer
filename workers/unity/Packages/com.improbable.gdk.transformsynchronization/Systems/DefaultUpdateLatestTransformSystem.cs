@@ -26,6 +26,7 @@ namespace Improbable.Gdk.TransformSynchronization
             rigidbodyGroup = GetComponentGroup(
                 ComponentType.ReadOnly<Rigidbody>(),
                 ComponentType.Create<TransformToSend>(),
+            ComponentType.ReadOnly<UnityEngine.Transform>(),
                 ComponentType.ReadOnly<GetTransformFromGameObjectTag>(),
                 ComponentType.ReadOnly<TransformInternal.ComponentAuthority>());
 
@@ -48,6 +49,7 @@ namespace Improbable.Gdk.TransformSynchronization
             rigidbodyGroup.SetFilter(TransformInternal.ComponentAuthority.Authoritative);
 
             var rigidbodyArray = rigidbodyGroup.GetComponentArray<Rigidbody>();
+            var transformArray = rigidbodyGroup.GetComponentArray<UnityEngine.Transform>();
             var transformToSendArray = rigidbodyGroup.GetComponentDataArray<TransformToSend>();
 
             for (int i = 0; i < rigidbodyArray.Length; ++i)
@@ -57,7 +59,8 @@ namespace Improbable.Gdk.TransformSynchronization
                 {
                     Position = rigidbody.position,
                     Velocity = rigidbody.velocity,
-                    Orientation = rigidbody.rotation
+                    Orientation = rigidbody.rotation,
+                    Scale = transformArray[i].localScale
                 };
                 transformToSendArray[i] = transformToSend;
             }

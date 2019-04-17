@@ -21,16 +21,13 @@ namespace FastPlatformer.ThirdParty.KinematicCharacterController.Examples.Script
 
         [Header("Orientation")]
 
-        public float RotationVelocity = 170f;
+        public float RotationVelocity = 250f;
 
         public bool InvertX = false;
         public bool InvertY = false;
         [Range(-90f, 90f)] public float DefaultVerticalAngle = 20f;
         [Range(-90f, 90f)] public float MinVerticalAngle = -80f;
         [Range(-90f, 90f)] public float MaxVerticalAngle = 80f;
-        public float RotationSharpness = 100000f;
-
-
 
         [Header("Obstruction")]
         public float ObstructionCheckRadius = 0.5f;
@@ -125,7 +122,7 @@ namespace FastPlatformer.ThirdParty.KinematicCharacterController.Examples.Script
                 // Calculate smoothed rotation
                 Quaternion planarRot = Quaternion.LookRotation(PlanarDirection, FollowCharacter.CameraFollowPoint.up);
                 Quaternion verticalRot = Quaternion.Euler(_targetVerticalAngle, 0, 0);
-                Quaternion targetRotation = Quaternion.Slerp(Transform.rotation, planarRot * verticalRot, 1f - Mathf.Exp(-RotationSharpness * deltaTime));
+                Quaternion targetRotation = planarRot * verticalRot;
 
                 // Apply rotation
                 Transform.rotation = targetRotation;

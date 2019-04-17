@@ -15,7 +15,7 @@ namespace FastPlatformer.Config.EntityTemplates
 {
     public static class PlayerTemplate
     {
-        public static EntityTemplate CreatePlayerEntityTemplate(string workerId, byte[] position)
+        public static EntityTemplate CreatePlayerEntityTemplate(string workerId, byte[] bytes)
         {
             var clientAttribute = $"workerId:{workerId}";
 
@@ -23,7 +23,8 @@ namespace FastPlatformer.Config.EntityTemplates
             var template = new EntityTemplate();
             template.AddComponent(new Position.Snapshot(), clientAttribute);
             template.AddComponent(new Metadata.Snapshot { EntityType = "PlatformerCharacter" }, WorkerUtils.UnityGameLogic);
-            TransformSynchronizationHelper.AddTransformSynchronizationComponents(template, clientAttribute, Vector3.one);
+            TransformSynchronizationHelper.AddTransformSynchronizationComponents(
+                template, clientAttribute, Vector3.one, Quaternion.identity, Vector3.one);
             PlayerLifecycleHelper.AddPlayerLifecycleComponents(template, workerId, clientAttribute, WorkerUtils.UnityGameLogic);
             template.SetReadAccess(WorkerUtils.UnityClient, WorkerUtils.UnityGameLogic, WorkerUtils.AndroidClient, WorkerUtils.iOSClient);
             template.SetComponentWriteAccess(EntityAcl.ComponentId, WorkerUtils.UnityGameLogic);
