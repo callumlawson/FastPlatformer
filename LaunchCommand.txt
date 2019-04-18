@@ -1,0 +1,1 @@
+spatial cloud launch callumplatformer1804 cloud_launch.json platformertest --cluster=eu1-prod --snapshot=snapshots/default.snapshot

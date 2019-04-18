@@ -23,7 +23,7 @@ namespace FastPlatformer.Scripts.UI
 
             SensitivitySlider.minValue = 100;
             SensitivitySlider.maxValue = 500;
-            SensitivitySlider.value = 170;
+            SensitivitySlider.value = 250;
 
 
             SoundToggle.isOn = true;
