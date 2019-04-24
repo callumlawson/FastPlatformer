@@ -45,7 +45,7 @@ namespace FastPlatformer.ThirdParty.KinematicCharacterController.Examples.Script
         private float _targetVerticalAngle;
         private RaycastHit _obstructionHit;
         private int _obstructionCount;
-        private RaycastHit[] _obstructions = new RaycastHit[MaxObstructions];
+        private RaycastHit[] obstructions = new RaycastHit[MaxObstructions];
         private float _obstructionTime;
         private Vector3 _currentFollowPosition;
 
@@ -131,13 +131,13 @@ namespace FastPlatformer.ThirdParty.KinematicCharacterController.Examples.Script
                 {
                     RaycastHit closestHit = new RaycastHit();
                     closestHit.distance = Mathf.Infinity;
-                    _obstructionCount = Physics.SphereCastNonAlloc(_currentFollowPosition, ObstructionCheckRadius, -Transform.forward, _obstructions, TargetDistance, ObstructionLayers, QueryTriggerInteraction.Ignore);
+                    _obstructionCount = Physics.SphereCastNonAlloc(_currentFollowPosition, ObstructionCheckRadius, -Transform.forward, obstructions, TargetDistance, ObstructionLayers, QueryTriggerInteraction.Ignore);
                     for (int i = 0; i < _obstructionCount; i++)
                     {
                         bool isIgnored = false;
                         for (int j = 0; j < _internalIgnoredColliders.Count; j++)
                         {
-                            if (_internalIgnoredColliders[j] == _obstructions[i].collider)
+                            if (_internalIgnoredColliders[j] == obstructions[i].collider)
                             {
                                 isIgnored = true;
                                 break;
@@ -152,13 +152,13 @@ namespace FastPlatformer.ThirdParty.KinematicCharacterController.Examples.Script
                         //     }
                         // }
 
-                        if (!isIgnored && _obstructions[i].distance < closestHit.distance && _obstructions[i].distance > 0)
+                        if (!isIgnored && obstructions[i].distance < closestHit.distance && obstructions[i].distance > 0)
                         {
-                            closestHit = _obstructions[i];
+                            closestHit = obstructions[i];
                         }
                     }
 
-                    // If obstructions detecter
+                    // If obstructions detected
                     if (closestHit.distance < Mathf.Infinity)
                     {
                         _distanceIsObstructed = true;
