@@ -10,7 +10,8 @@ namespace FastPlatformer.Scripts.UI
         {
             InGame,
             InMenu,
-            InEditMode
+            InEditMode,
+            InGamePlaceMode
         }
 
         public static UIManager Instance;
