@@ -166,7 +166,7 @@ namespace Battlehub.RTCommon
                 case InputAxis.Y:
                     return Input.GetAxis("Look Y");
                 case InputAxis.Z:
-                    return Input.GetAxis("Mouse ScrollWheel");
+                    return Input.GetAxis("Scroll");
                 default:
                     return 0;
             }

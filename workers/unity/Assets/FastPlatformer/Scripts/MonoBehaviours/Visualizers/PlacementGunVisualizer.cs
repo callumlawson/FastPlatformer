@@ -3,6 +3,7 @@ using System.Linq;
 using FastPlatformer.Scripts.Util;
 using Gameschema.Untrusted;
 using Improbable.Gdk.Subscriptions;
+using TMPro;
 using UnityEngine;
 
 namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
@@ -20,8 +21,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
         public LayerMask CollisionTestedLayers;
         public float SnapDistance;
         public AnimationCurve FOVOverDistance;
-
-        
 
         private int selectedPlaceable;
         private LineRenderer currentLine;
@@ -48,6 +47,12 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         private void Update()
         {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                selectedPlaceable = (selectedPlaceable + 1) % Placeables.Count;
+                CreateProxy();
+            }
+
             var aimPoint = GetAimPoint();
             UpdateCursorPosition(aimPoint);
 
@@ -67,7 +72,6 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
             currentLine.SetPositions(targetLinePositions);
 
             var scrollInput = Input.GetAxis(ScrollAxis);
-            Debug.Log(scrollInput.ToString());
             PlacementDistance += scrollInput * Time.deltaTime * ScrollSpeed;
             PlacementDistance = Mathf.Clamp(PlacementDistance, 25f, MaxPlacementRange);
         }
@@ -143,6 +147,10 @@ namespace FastPlatformer.Scripts.MonoBehaviours.Visualizers
 
         private void CreateProxy()
         {
+            if (currentProxy != null)
+            {
+                Destroy(currentProxy);
+            }
             currentProxy = Instantiate(Placeables[selectedPlaceable]);
             currentProxy.transform.localScale = currentProxy.transform.localScale * 1.03f;
             currentProxy.SetLayerRecursive(ignoreRayastLayer);
